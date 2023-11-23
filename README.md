@@ -2,7 +2,7 @@ wtbx
 ===
 
 > Author: @twjw  
-> Repository: https://github.com/twjw/js-kit/tree/main/toolbox
+> Repository: https://github.com/twjw/toolbox-js
 
 ---
 
