@@ -1,0 +1,26 @@
+{
+  "name": "wtbx",
+  "version": "1.0.0",
+  "description": "",
+  "main": "packages",
+  "exports": {
+    "./common": "./packages/common/index.mjs",
+    "./react-native": "./packages/react-native/index.mjs",
+    "./react": "./packages/react/index.mjs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,css,sass,scss,json,md}": "prettier --write"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.1.0",
+    "prettier": "^3.1.0"
+  }
+}
