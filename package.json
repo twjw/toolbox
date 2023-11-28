@@ -4,9 +4,9 @@
   "description": "",
   "main": "packages",
   "exports": {
-    "./common": "./packages/common/index.mjs",
-    "./react-native": "./packages/react-native/index.mjs",
-    "./react": "./packages/react/index.mjs"
+    "./common": "./packages/common/index.ts",
+    "./react-native": "./packages/react-native/index.ts",
+    "./react": "./packages/react/index.ts"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,12 +15,45 @@
   "author": "",
   "license": "ISC",
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,css,sass,scss,json}": "prettier --write"
+    "*.{css,sass,scss,json}": "prettier --write",
+    "*.{js,jsx,ts,tsx}": "./node_modules/.bin/eslint -- fix"
+  },
+  "prettier": {
+    "printWidth": 96,
+    "tabWidth": 2,
+    "useTabs": true,
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "jsxBracketSameLine": false,
+    "arrowParens": "avoid"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": { "browser": true, "es2020": true },
+    "extends": [
+      "prettier"
+    ],
+    "ignorePatterns": ["dist", ".eslintrc.js"],
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["unused-imports", "prettier"],
+    "rules": {
+      "unused-imports/no-unused-imports": "warn"
+    }
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
     "husky": "^8.0.3",
     "lint-staged": "^15.1.0",
-    "prettier": "^3.1.0"
+    "prettier": "^3.1.0",
+    "typescript": "^5.2.2"
   }
 }

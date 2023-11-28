@@ -3,12 +3,27 @@ const typeLevel = {
   success: 2,
   warn: 3,
   error: 4,
-};
+} as const;
 
-function _commonLog(type) {
-  const banners = []
+type LogType = keyof typeof typeLevel
 
-  return function (...args) {
+type CommonLogReturnFunction = (...args: any[]) => void
+
+type Logs = {
+  prefix: string,
+  isDebug: boolean,
+  logLevel: typeof typeLevel[keyof typeof typeLevel],
+  info: CommonLogReturnFunction,
+  success: CommonLogReturnFunction,
+  warn: CommonLogReturnFunction,
+  error: CommonLogReturnFunction,
+  throw: (error: Error | string, ...args: any[]) => void,
+}
+
+function _commonLog(type: LogType): CommonLogReturnFunction {
+  const banners: any[] = []
+
+  return function (this: Logs, ...args) {
     if (!this.isDebug) return;
     if (this.logLevel > typeLevel[type]) return;
 
@@ -41,7 +56,7 @@ function _commonLog(type) {
   };
 }
 
-function throwError(error, ...args) {
+function throwError(this: Logs, error: Error | string, ...args: any[]) {
   if (!this.isDebug) return;
 
   if (args.length > 0) {
@@ -53,7 +68,7 @@ function throwError(error, ...args) {
   throw error;
 }
 
-const logs = {
+const logs: Logs = {
   prefix: 'LOG',
   isDebug: true,
   logLevel: 1,
