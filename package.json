@@ -5,7 +5,6 @@
   "main": "packages",
   "exports": {
     "./common": "./packages/common/index.ts",
-    "./react-native": "./packages/react-native/index.ts",
     "./react": "./packages/react/index.ts"
   },
   "scripts": {
