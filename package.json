@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "packages",
+  "module": "packages",
   "exports": {
     "./common": "./packages/common/index.ts",
     "./react": "./packages/react/index.ts"
