@@ -21,38 +21,44 @@ type Logs = {
 }
 
 function _commonLog(type: LogType): CommonLogReturnFunction {
-  const banners: any[] = []
+  let css: string
+
+  if (type === 'info') {
+    css = (
+      'border: 1px solid rgba(0, 0, 0, 0.7); border-radius: 4px; padding: 0 4px; background-color: rgba(0, 0, 0, 0.05);'
+    )
+  } else if (type === 'success') {
+    css = (
+      'border-radius: 4px; padding: 0 4px; background-color: green; color: #fff;'
+    )
+  } else if (type === 'warn') {
+    css = (
+      'border-radius: 4px; padding: 0 4px; background-color: orange; color: #fff;'
+    )
+  } else if (type === 'error') {
+    css = (
+      'border-radius: 4px; padding: 0 4px; background-color: red; color: #fff;'
+    )
+  }
 
   return function (this: Logs, ...args) {
     if (!this.isDebug) return;
     if (this.logLevel > typeLevel[type]) return;
 
-    if (!banners.length) {
-      const prefix = this.prefix ? `${this.prefix} ` : ''
+    const banners = [] as any[]
 
-      banners.push(`%c${prefix}${type.toUpperCase()}`)
-
-      if (type === 'info') {
-        banners.push(
-          'border: 1px solid rgba(0, 0, 0, 0.7); border-radius: 4px; padding: 0 4px; background-color: rgba(0, 0, 0, 0.05);'
-        )
-      } else if (type === 'success') {
-        banners.push(
-          'border-radius: 4px; padding: 0 4px; background-color: green; color: #fff;'
-        )
-      } else if (type === 'warn') {
-        banners.push(
-          'border-radius: 4px; padding: 0 4px; background-color: orange; color: #fff;'
-        )
-      } else if (type === 'error') {
-        banners.push(
-          'border-radius: 4px; padding: 0 4px; background-color: red; color: #fff;'
-        )
-      }
-    }
+    if (this.prefix) {
+			banners.unshift(`%c${this.prefix ? `${this.prefix} ` : ''}${type.toUpperCase()}`, css)
+		}
 
     const d = new Date()
-    console.log(...banners, `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`, ...args);
+    const hms = `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
+
+    if (banners.length) {
+      console.log(...banners, hms, ...args);
+    } else {
+      console.log(hms, ...args);
+    }
   };
 }
 
