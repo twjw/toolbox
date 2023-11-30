@@ -13,7 +13,7 @@ wtbx
   - [common/create-callback-watcher](#commoncreate-callback-watcher)
   - [common/create-uuid](#commoncreate-uuid)
   - [common/enum2](#commonenum2)
-  - [common/fetch](#commonfetch)
+  - [common/fetch2](#commonfetch2)
   - [common/logs](#commonlogs)
   - [common/range-loop](#commonrange-loop)
   - [common/recur-find-key-str-value](#commonrecur-find-key-str-value)
@@ -27,13 +27,21 @@ wtbx
 # common
 
 ## common/create-callback-watcher
+
 ## common/create-uuid
+
 ## common/enum2
-## common/fetch
+
+## common/fetch2
+
 ## common/logs
+
 ## common/range-loop
+
 ## common/recur-find-key-str-value
+
 ## common/recur-find-key-value
+
 
 ---
 
