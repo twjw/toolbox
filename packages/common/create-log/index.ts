@@ -9,7 +9,7 @@ type LogType = keyof typeof typeLevel
 
 type CommonLogReturnFunction = (...args: any[]) => void
 
-type Logs = {
+type Log = {
   prefix: string,
   isDebug: boolean,
   logLevel: typeof typeLevel[keyof typeof typeLevel],
@@ -41,7 +41,7 @@ function _commonLog(prefix: string, type: LogType): CommonLogReturnFunction {
     )
   }
 
-  return function (this: Logs, ...args) {
+  return function (this: Log, ...args) {
     if (!this.isDebug) return;
     if (this.logLevel > typeLevel[type]) return;
 
@@ -56,7 +56,7 @@ function _commonLog(prefix: string, type: LogType): CommonLogReturnFunction {
   };
 }
 
-function throwError(this: Logs, error: Error | string, ...args: any[]) {
+function throwError(this: Log, error: Error | string, ...args: any[]) {
   if (!this.isDebug) return;
 
   if (args.length > 0) {
@@ -78,7 +78,7 @@ function createLog (prefix: string = '', isDebug: boolean = true) {
 		warn: _commonLog(prefix, 'warn'),
 		error: _commonLog(prefix, 'error'),
 		throw: throwError,
-	} as Logs
+	} as Log
 }
 
 export { createLog };

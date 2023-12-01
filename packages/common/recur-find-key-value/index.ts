@@ -1,11 +1,6 @@
-type RecursiveKeyOf<Obj extends object, Sep extends string = '.'> = {
-  [K in keyof Obj & (string | number)]:
-  Obj[K] extends object
-    ? `${K}` | `${K}${Sep}${RecursiveKeyOf<Obj[K]>}`
-    : `${K}`;
-}[keyof Obj & (string | number)];
+import {wObject} from "../../type";
 
-const recurFindKeyValue = <T extends object, Sep extends string = '.'>(obj: T, key: RecursiveKeyOf<T, Sep>, separator?: Sep) => {
+const recurFindKeyValue = <T extends object, Sep extends string = '.'>(obj: T, key: wObject.RecursiveKeyOf<T, Sep>, separator?: Sep) => {
   const keys = key.split(separator || '.')
   let result: any = obj
   let k
@@ -19,10 +14,6 @@ const recurFindKeyValue = <T extends object, Sep extends string = '.'>(obj: T, k
     return key
 
   return result
-}
-
-export type {
-  RecursiveKeyOf,
 }
 
 export {
