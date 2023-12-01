@@ -20,23 +20,23 @@ type Logs = {
   throw: (error: Error | string, ...args: any[]) => void,
 }
 
-function _commonLog(type: LogType): CommonLogReturnFunction {
-  let css: string
+function _commonLog(prefix: string, type: LogType): CommonLogReturnFunction {
+  const banners = [`%c${prefix ? `${prefix} ` : ''}${type.toUpperCase()}`] as any[]
 
   if (type === 'info') {
-    css = (
+    banners.push(
       'border: 1px solid rgba(0, 0, 0, 0.7); border-radius: 4px; padding: 0 4px; background-color: rgba(0, 0, 0, 0.05);'
     )
   } else if (type === 'success') {
-    css = (
+    banners.push(
       'border-radius: 4px; padding: 0 4px; background-color: green; color: #fff;'
     )
   } else if (type === 'warn') {
-    css = (
+    banners.push(
       'border-radius: 4px; padding: 0 4px; background-color: orange; color: #fff;'
     )
   } else if (type === 'error') {
-    css = (
+    banners.push(
       'border-radius: 4px; padding: 0 4px; background-color: red; color: #fff;'
     )
   }
@@ -44,12 +44,6 @@ function _commonLog(type: LogType): CommonLogReturnFunction {
   return function (this: Logs, ...args) {
     if (!this.isDebug) return;
     if (this.logLevel > typeLevel[type]) return;
-
-    const banners = [] as any[]
-
-    if (this.prefix) {
-			banners.unshift(`%c${this.prefix ? `${this.prefix} ` : ''}${type.toUpperCase()}`, css)
-		}
 
     const d = new Date()
     const hms = `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
@@ -74,15 +68,17 @@ function throwError(this: Logs, error: Error | string, ...args: any[]) {
   throw error;
 }
 
-const logs: Logs = {
-  prefix: 'LOG',
-  isDebug: true,
-  logLevel: 1,
-  info: _commonLog("info"),
-  success: _commonLog("success"),
-  warn: _commonLog("warn"),
-  error: _commonLog("error"),
-  throw: throwError,
-};
+function createLog (prefix: string = '', isDebug: boolean = true) {
+  return {
+    prefix,
+    isDebug,
+		logLevel: 1,
+		info: _commonLog(prefix, 'info'),
+		success: _commonLog(prefix, 'success'),
+		warn: _commonLog(prefix, 'warn'),
+		error: _commonLog(prefix, 'error'),
+		throw: throwError,
+	} as Logs
+}
 
-export { logs };
+export { createLog };

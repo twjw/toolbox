@@ -27,12 +27,12 @@ type Storage2State<State extends Storage2PropState> = {
   [K in keyof State]: State[K]['defaultValue']
 }
 
-class Storage2<Prefix extends string, State extends Storage2PropState> {
-  private static defaultDriver: Storage = localStorage
-  private static trueValues = ['1', 'True', 'true']
-  private static emptyValues = ['', 'null', 'undefined']
+class Storage2<Prefix extends string = string, State extends Storage2PropState = {}> {
+  protected static defaultDriver: Storage = localStorage
+  protected static trueValues = ['1', 'True', 'true']
+  protected static emptyValues = ['', 'null', 'undefined']
 
-  private define = {} as Storage2Define<Prefix, State>
+  protected define = {} as Storage2Define<Prefix, State>
   state = {} as Storage2State<State>
 
   constructor(prefix: Prefix, state: State, driver: Storage = Storage2.defaultDriver) {
@@ -79,7 +79,7 @@ class Storage2<Prefix extends string, State extends Storage2PropState> {
     }
   }
 
-  private setJsonValue<K extends keyof State>(define: Storage2Define<Prefix, State>[K], key: K, value: any) {
+  protected setJsonValue<K extends keyof State>(define: Storage2Define<Prefix, State>[K], key: K, value: any) {
     if (value == null || Storage2.emptyValues.includes(value)) {
       this.remove(key)
     } else {
@@ -93,7 +93,7 @@ class Storage2<Prefix extends string, State extends Storage2PropState> {
     return value
   }
 
-  private parseJsonValue<T>(value: string | null, defaultValue: T): T {
+  protected parseJsonValue<T>(value: string | null, defaultValue: T): T {
     if (value == null || Storage2.emptyValues.includes(value))
       return defaultValue
 
@@ -105,7 +105,7 @@ class Storage2<Prefix extends string, State extends Storage2PropState> {
     return defaultValue
   }
 
-  private getStorageValue<K extends keyof State>(key: K): Storage2State<State>[K] {
+  protected getStorageValue<K extends keyof State>(key: K): Storage2State<State>[K] {
     const currentDefine = this.define[key]
     const storageValue = currentDefine.driver.getItem(currentDefine.storageKey)
 
