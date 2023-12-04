@@ -1,0 +1,5 @@
+{
+  "createFetch2": {
+    "query-string": "^8.1.0"
+  }
+}
