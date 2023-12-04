@@ -1,66 +1,5 @@
 import queryString from 'query-string'
-
-module Fetch2 {
-  // (input: NodeJS.fetch.RequestInfo, init?: RequestInit): Promise<Response>
-
-  export type Options = {
-    prefix?: string
-  }
-
-  export type Method = 'get' | 'post' | 'put' | 'delete'
-
-  export type Url<S extends string> = S extends `${infer M}:${infer U
-  }`
-    ? M extends 'get'
-      ? string
-      : M extends 'post'
-        ? string
-        : M extends 'put'
-          ? string
-          : M extends 'delete'
-            ? string
-            : never
-    : never
-
-  export type RequestInit = Omit<NodeJS.fetch.RequestInit, 'body'> & {
-    body?: object
-    params?: object
-    resType?: ResType
-  }
-
-  export type ResType = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text'
-
-  export type InterceptorUseRequestCallback = (res: Config) => Config
-
-  export type InterceptorUseRequest = (callback: InterceptorUseRequestCallback) => void
-
-  export type InterceptorUseResponseCallback = (res: InterceptorResponse | { req: ResReq }) => any
-
-  export type InterceptorUseResponse = (callback: InterceptorUseResponseCallback) => void
-
-  export type InterceptorResponse = Response & { data: any, req: ResReq }
-  export type InterceptorErrorResponse = { req: ResReq }
-
-  export type Config = Fetch2.RequestInit
-    & {
-    url: string
-  }
-
-  export type Request = Omit<Config, 'body'> & { body: NodeJS.fetch.RequestInit['body'] }
-
-  export type ResReq = Request & { origin: {
-      url: string
-      body: object
-    } }
-
-  export type Instance = {
-    <R>(url: string, init?: Fetch2.RequestInit): Promise<R>
-    interceptors: {
-      request: { use: InterceptorUseRequest }
-      response: { use: InterceptorUseResponse }
-    }
-  }
-}
+import { Fetch2 } from './type'
 
 const _maxMethodLength = 'DELETE'.length - 1
 
@@ -122,8 +61,9 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
     requestUses: [] as Fetch2.InterceptorUseRequestCallback[],
     responseUses: [] as Fetch2.InterceptorUseResponseCallback[],
   }
+  const controllers = {} as Record<symbol, AbortController>
 
-  const newFetch = (async <R>(url: string, init?: Fetch2.RequestInit) => {
+  const newFetch = (async <R>(url: string, init?: Fetch2.RequestInit, apiOptions?: Fetch2.ApiOptions) => {
     let config: Fetch2.Config = {
       ...init,
       url,
@@ -135,15 +75,19 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
       }
     }
 
-    const request = _toRequest(prefix, config)
-    let res = {} as Fetch2.InterceptorResponse | Fetch2.InterceptorErrorResponse
+    const request = _toRequest(apiOptions?.prefix || prefix, config)
+    const controllerKey = Symbol()
+    let res = {} as Fetch2.InterceptorResponse
 
+    controllers[controllerKey] = apiOptions?.controller || new AbortController()
     try {
+      request.signal = controllers[controllerKey].signal
       res = await fetch(request.url, request) as Fetch2.InterceptorResponse
-      ;(res as Fetch2.InterceptorResponse).data = await (res as Fetch2.InterceptorResponse)[config?.resType || 'json']()
-    } catch (e) {
-      res = {} as Fetch2.InterceptorErrorResponse
-    } finally {
+      res.data = await res[config?.resType || 'json']()
+    }
+    catch (e) {}
+    finally {
+      delete controllers[controllerKey]
       res.req = request as Fetch2.ResReq
       res.req.origin = {
         url: config.url,
@@ -162,28 +106,31 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
     return result!
   }) as Fetch2.Instance
 
-  const useRequest: Fetch2.InterceptorUseRequest = (callback) => {
-    interceptors.requestUses.push(callback)
+  newFetch.cancel = (controller: AbortController) => {
+    controller.abort()
   }
+  newFetch.cancelAll = () => {
+    const syms = Object.getOwnPropertySymbols(controllers)
 
-  const useResponse: Fetch2.InterceptorUseResponse = (callback) => {
-    interceptors.responseUses.push(callback)
+    for (const sym of syms) {
+      controllers[sym]?.abort?.()
+      delete controllers[sym]
+    }
   }
-
   newFetch.interceptors = {
     request: {
-      use: useRequest
+      use: (callback) => {
+        interceptors.requestUses.push(callback)
+      }
     },
     response: {
-      use: useResponse
+      use: (callback) => {
+        interceptors.responseUses.push(callback)
+      }
     },
   }
 
   return newFetch
-}
-
-export type {
-  Fetch2
 }
 
 export {

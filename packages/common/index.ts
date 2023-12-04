@@ -1,5 +1,6 @@
-export * from './create-callback-watcher'
+export * from "./create-callback-watcher"
 export * from "./create-fetch2"
+export type * from "./create-fetch2/type"
 export * from "./create-log";
 export * from "./create-uuid";
 export * from "./enum2";
