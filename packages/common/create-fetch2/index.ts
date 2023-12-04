@@ -85,7 +85,11 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
       res = await fetch(request.url, request) as Fetch2.InterceptorResponse
       res.data = await res[config?.resType || 'json']()
     }
-    catch (e) {}
+    catch (e) {
+      if ((e as Error).name === 'AbortError') {
+        return 'abort'
+      }
+    }
     finally {
       delete controllers[controllerKey]
       res.req = request as Fetch2.ResReq

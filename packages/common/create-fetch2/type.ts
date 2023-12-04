@@ -36,7 +36,7 @@ module Fetch2 {
 
   export type InterceptorUseRequest = (callback: InterceptorUseRequestCallback) => void
 
-  export type InterceptorUseResponseCallback = (res: Partial<InterceptorResponse> & Pick<InterceptorResponse, 'req'> /* 取消的話只剩下 req */) => any
+  export type InterceptorUseResponseCallback = (res: InterceptorResponse) => any
 
   export type InterceptorUseResponse = (callback: InterceptorUseResponseCallback) => void
 
