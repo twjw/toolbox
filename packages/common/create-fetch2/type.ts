@@ -2,6 +2,8 @@ module Fetch2 {
   export type Options = {
     // 路由前綴
     prefix?: string
+    // 就timeout(毫秒)
+    timeout?: number
   }
 
   export type ApiOptions = Options & {

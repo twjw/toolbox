@@ -56,7 +56,7 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
   }
 }
 
-const resolveRes = <R>(res: Fetch2.InterceptorResponse, responseUses: Fetch2.InterceptorUseResponseCallback[], markResolveList: ((result: any) => void)[] | null, resolve: (r: R) => void) => {
+const _resolveRes = <R>(res: Fetch2.InterceptorResponse, responseUses: Fetch2.InterceptorUseResponseCallback[], markResolveList: ((result: any) => void)[] | null, resolve: (r: R) => void) => {
   let result = res as R
 
   if (responseUses.length) {
@@ -74,9 +74,23 @@ const resolveRes = <R>(res: Fetch2.InterceptorResponse, responseUses: Fetch2.Int
   }
 }
 
-// TODO retry, 競態, timeout
+class _Fetch2BaseError extends Error {
+  constructor(err: Error) {
+    super(err.message);
+    this.name = 'Fetch2AbortError';
+    this.stack = err.stack;
+  }
+}
+
+class Fetch2AbortError extends _Fetch2BaseError {}
+
+class Fetch2TimeoutError extends _Fetch2BaseError {}
+
+class Fetch2UnknownError extends _Fetch2BaseError {}
+
+// TODO retry, 競態, timeout, error 攔截拋自定義
 const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
-  const { prefix = '' } = options || {}
+  const { prefix = '', timeout = 0 } = options || {}
   const interceptors = {
     requestUses: [] as Fetch2.InterceptorUseRequestCallback[],
     responseUses: [] as Fetch2.InterceptorUseResponseCallback[],
@@ -99,7 +113,7 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
           }
         }
 
-        const { prefix: apiPrefix, controller: apiController, cacheTime, forceRun, mark } = apiOptions || {}
+        const { prefix: apiPrefix, controller: apiController, cacheTime, forceRun, mark, timeout } = apiOptions || {}
         const request = _toRequest(apiPrefix || prefix, config)
         const controllerKey = Symbol()
         let res = {} as Fetch2.InterceptorResponse
@@ -167,13 +181,13 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
           res = cacheMap[cacheUrl].res
         }
 
-        resolveRes(res, interceptors.responseUses, mark ? repeatMarkMap[_mark!] : null, resolve)
+        _resolveRes(res, interceptors.responseUses, mark ? repeatMarkMap[_mark!] : null, resolve)
 
         if (mark && repeatMarkMap[_mark!].length) {
           delete repeatMarkMap[_mark!]
         }
       } catch (err) {
-        reject(err)
+        reject(new Fetch2UnknownError(err as Error))
       }
     })
   }) as Fetch2.Instance
@@ -208,5 +222,8 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 }
 
 export {
+  Fetch2AbortError,
+  Fetch2TimeoutError,
+  Fetch2UnknownError,
   createFetch2,
 }
