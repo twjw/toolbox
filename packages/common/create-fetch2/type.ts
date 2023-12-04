@@ -7,6 +7,8 @@ module Fetch2 {
   export type ApiOptions = Options & {
     // 取消控制器
     controller?: AbortController
+    // 緩存時間(毫秒)
+    cacheTime?: number
   }
 
   export type Method = 'get' | 'post' | 'put' | 'delete'
@@ -40,7 +42,7 @@ module Fetch2 {
 
   export type InterceptorUseResponse = (callback: InterceptorUseResponseCallback) => void
 
-  export type InterceptorResponse = Response & { data: any, req: ResReq }
+  export type InterceptorResponse = Omit<Response, 'body' | 'headers'> & { data: any, req: ResReq }
 
   export type Config = Fetch2.RequestInit
     & {

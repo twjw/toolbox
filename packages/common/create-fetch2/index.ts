@@ -1,5 +1,6 @@
 import queryString from 'query-string'
 import { Fetch2 } from './type'
+import {InterceptorResponse} from "./type.ts";
 
 const _maxMethodLength = 'DELETE'.length - 1
 
@@ -55,12 +56,14 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
   }
 }
 
+// TODO retry, 競態, 強制
 const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
   const { prefix = '' } = options || {}
   const interceptors = {
     requestUses: [] as Fetch2.InterceptorUseRequestCallback[],
     responseUses: [] as Fetch2.InterceptorUseResponseCallback[],
   }
+  const cacheMap = {} as Record<string, { lastCacheTime: number, res: Fetch2.InterceptorResponse }>
   const controllers = {} as Record<symbol, AbortController>
 
   const newFetch = (async <R>(url: string, init?: Fetch2.RequestInit, apiOptions?: Fetch2.ApiOptions) => {
@@ -78,25 +81,55 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
     const request = _toRequest(apiOptions?.prefix || prefix, config)
     const controllerKey = Symbol()
     let res = {} as Fetch2.InterceptorResponse
+    let lastCacheTime = 0
+    const cacheUrl = `${request.method}:${request.url}`
 
-    controllers[controllerKey] = apiOptions?.controller || new AbortController()
-    try {
+    if (cacheMap[cacheUrl] == null) {
+      if (apiOptions?.cacheTime) {
+				lastCacheTime = Date.now() + apiOptions.cacheTime
+			}
+    } else {
+      const c = cacheMap[cacheUrl]
+      if (c.lastCacheTime < Date.now() + (apiOptions?.cacheTime || 0)) {
+        delete cacheMap[cacheUrl]
+      } else {
+        return c.res
+      }
+    }
+
+    if (cacheMap[cacheUrl] == null) {
+			controllers[controllerKey] = apiOptions?.controller || new AbortController()
       request.signal = controllers[controllerKey].signal
-      res = await fetch(request.url, request) as Fetch2.InterceptorResponse
-      res.data = await res[config?.resType || 'json']()
-    }
-    catch (e) {
-      if ((e as Error).name === 'AbortError') {
-        return 'abort'
+
+      try {
+        let originRes = await fetch(request.url, request)
+
+        res = originRes as unknown as Fetch2.InterceptorResponse
+
+        if (lastCacheTime > 0) {
+          cacheMap[cacheUrl] = {
+            lastCacheTime,
+            res,
+          }
+        }
+
+        res.data = await res[config?.resType || 'json']()
       }
-    }
-    finally {
-      delete controllers[controllerKey]
-      res.req = request as Fetch2.ResReq
-      res.req.origin = {
-        url: config.url,
-        body: config.body as object,
+      catch (e) {
+        if ((e as Error).name === 'AbortError') {
+          return 'abort'
+        }
       }
+      finally {
+        delete controllers[controllerKey]
+        res.req = request as Fetch2.ResReq
+        res.req.origin = {
+          url: config.url,
+          body: config.body as object,
+        }
+      }
+		} else {
+      res = cacheMap[cacheUrl].res
     }
 
     let result: R
@@ -113,6 +146,7 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
   newFetch.cancel = (controller: AbortController) => {
     controller.abort()
   }
+
   newFetch.cancelAll = () => {
     const syms = Object.getOwnPropertySymbols(controllers)
 
@@ -121,6 +155,7 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
       delete controllers[sym]
     }
   }
+
   newFetch.interceptors = {
     request: {
       use: (callback) => {
