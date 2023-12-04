@@ -56,7 +56,7 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
   }
 }
 
-// TODO retry, 競態, 強制
+// TODO retry, 競態
 const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
   const { prefix = '' } = options || {}
   const interceptors = {
@@ -90,10 +90,10 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 			}
     } else {
       const c = cacheMap[cacheUrl]
-      if (c.lastCacheTime < Date.now() + (apiOptions?.cacheTime || 0)) {
+      if (apiOptions?.forceRun) {
         delete cacheMap[cacheUrl]
-      } else {
-        return c.res
+      } else if (c.lastCacheTime < Date.now() + (apiOptions?.cacheTime || 0)) {
+        delete cacheMap[cacheUrl]
       }
     }
 
@@ -148,11 +148,11 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
   }
 
   newFetch.cancelAll = () => {
-    const syms = Object.getOwnPropertySymbols(controllers)
+    const names = Object.getOwnPropertySymbols(controllers)
 
-    for (const sym of syms) {
-      controllers[sym]?.abort?.()
-      delete controllers[sym]
+    for (const name of names) {
+      controllers[name]?.abort?.()
+      delete controllers[name]
     }
   }
 

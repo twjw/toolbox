@@ -9,6 +9,8 @@ module Fetch2 {
     controller?: AbortController
     // 緩存時間(毫秒)
     cacheTime?: number
+    // 是否無視緩存強制執行(會清除緩存)
+    forceRun?: boolean
   }
 
   export type Method = 'get' | 'post' | 'put' | 'delete'
