@@ -56,7 +56,25 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
   }
 }
 
-// TODO retry, 競態
+const resolveRes = <R>(res: Fetch2.InterceptorResponse, responseUses: Fetch2.InterceptorUseResponseCallback[], markResolveList: ((result: any) => void)[] | null, resolve: (r: R) => void) => {
+  let result = res as R
+
+  if (responseUses.length) {
+    for (let i = 0; i < responseUses.length; i++) {
+      result = responseUses[i](res)
+    }
+  }
+
+  resolve(result)
+
+  if (markResolveList != null) {
+    for (let i = 1; i < markResolveList.length; i++) {
+      markResolveList[i](result)
+    }
+  }
+}
+
+// TODO retry, 競態, timeout
 const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
   const { prefix = '' } = options || {}
   const interceptors = {
@@ -65,82 +83,99 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
   }
   const cacheMap = {} as Record<string, { lastCacheTime: number, res: Fetch2.InterceptorResponse }>
   const controllers = {} as Record<symbol, AbortController>
+  const repeatMarkMap = {} as Record<symbol | string | number, ((result: any) => void)[]>
 
-  const newFetch = (async <R>(url: string, init?: Fetch2.RequestInit, apiOptions?: Fetch2.ApiOptions) => {
-    let config: Fetch2.Config = {
-      ...init,
-      url,
-    }
-
-    if (interceptors.requestUses.length) {
-      for (let i = 0; i < interceptors.requestUses.length; i++) {
-        config = interceptors.requestUses[i](config)
-      }
-    }
-
-    const request = _toRequest(apiOptions?.prefix || prefix, config)
-    const controllerKey = Symbol()
-    let res = {} as Fetch2.InterceptorResponse
-    let lastCacheTime = 0
-    const cacheUrl = `${request.method}:${request.url}`
-
-    if (cacheMap[cacheUrl] == null) {
-      if (apiOptions?.cacheTime) {
-				lastCacheTime = Date.now() + apiOptions.cacheTime
-			}
-    } else {
-      const c = cacheMap[cacheUrl]
-      if (apiOptions?.forceRun) {
-        delete cacheMap[cacheUrl]
-      } else if (c.lastCacheTime < Date.now() + (apiOptions?.cacheTime || 0)) {
-        delete cacheMap[cacheUrl]
-      }
-    }
-
-    if (cacheMap[cacheUrl] == null) {
-			controllers[controllerKey] = apiOptions?.controller || new AbortController()
-      request.signal = controllers[controllerKey].signal
-
+  const newFetch = (<R>(url: string, init?: Fetch2.RequestInit, apiOptions?: Fetch2.ApiOptions) => {
+    return new Promise<R>(async (resolve, reject) => {
       try {
-        let originRes = await fetch(request.url, request)
+        let config: Fetch2.Config = {
+          ...init,
+          url,
+        }
 
-        res = originRes as unknown as Fetch2.InterceptorResponse
-
-        if (lastCacheTime > 0) {
-          cacheMap[cacheUrl] = {
-            lastCacheTime,
-            res,
+        if (interceptors.requestUses.length) {
+          for (let i = 0; i < interceptors.requestUses.length; i++) {
+            config = interceptors.requestUses[i](config)
           }
         }
 
-        res.data = await res[config?.resType || 'json']()
-      }
-      catch (e) {
-        if ((e as Error).name === 'AbortError') {
-          return 'abort'
+        const { prefix: apiPrefix, controller: apiController, cacheTime, forceRun, mark } = apiOptions || {}
+        const request = _toRequest(apiPrefix || prefix, config)
+        const controllerKey = Symbol()
+        let res = {} as Fetch2.InterceptorResponse
+        let lastCacheTime = 0
+        const cacheUrl = `${request.method}:${request.url}`
+        let _mark = typeof mark === 'boolean' ? cacheUrl : mark
+
+        if (mark) {
+          if (repeatMarkMap[_mark!] != null) {
+            repeatMarkMap[_mark!].push((result) => resolve(result))
+          } else {
+            repeatMarkMap[_mark!] = [(result) => resolve(result)]
+          }
+
+          if (repeatMarkMap[_mark!].length > 1) {
+            return
+          }
         }
-      }
-      finally {
-        delete controllers[controllerKey]
-        res.req = request as Fetch2.ResReq
-        res.req.origin = {
-          url: config.url,
-          body: config.body as object,
+
+        if (cacheMap[cacheUrl] == null) {
+          if (cacheTime) {
+            lastCacheTime = Date.now() + cacheTime
+          }
+        } else {
+          const c = cacheMap[cacheUrl]
+          if (forceRun) {
+            delete cacheMap[cacheUrl]
+          } else if (c.lastCacheTime < Date.now() + (cacheTime || 0)) {
+            delete cacheMap[cacheUrl]
+          }
         }
+
+        if (cacheMap[cacheUrl] == null) {
+          controllers[controllerKey] = apiController || new AbortController()
+          request.signal = controllers[controllerKey].signal
+
+          try {
+            let originRes = await fetch(request.url, request)
+
+            res = originRes as unknown as Fetch2.InterceptorResponse
+
+            if (lastCacheTime > 0) {
+              cacheMap[cacheUrl] = {
+                lastCacheTime,
+                res,
+              }
+            }
+
+            res.data = await res[config?.resType || 'json']()
+          }
+          catch (e) {
+            if ((e as Error).name === 'AbortError') {
+              return 'abort'
+            }
+          }
+          finally {
+            delete controllers[controllerKey]
+            res.req = request as Fetch2.ResReq
+            res.req.origin = {
+              url: config.url,
+              body: config.body as object,
+            }
+          }
+        } else {
+          res = cacheMap[cacheUrl].res
+        }
+
+        resolveRes(res, interceptors.responseUses, mark ? repeatMarkMap[_mark!] : null, resolve)
+
+        if (mark && repeatMarkMap[_mark!].length) {
+          delete repeatMarkMap[_mark!]
+        }
+      } catch (err) {
+        reject(err)
       }
-		} else {
-      res = cacheMap[cacheUrl].res
-    }
-
-    let result: R
-
-    if (interceptors.responseUses.length) {
-      for (let i = 0; i < interceptors.responseUses.length; i++) {
-        result = interceptors.responseUses[i](res)
-      }
-    }
-
-    return result!
+    })
   }) as Fetch2.Instance
 
   newFetch.cancel = (controller: AbortController) => {

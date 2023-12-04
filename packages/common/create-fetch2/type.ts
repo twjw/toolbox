@@ -11,22 +11,11 @@ module Fetch2 {
     cacheTime?: number
     // 是否無視緩存強制執行(會清除緩存)
     forceRun?: boolean
+    // 用於處理重複請求的標記，如果路徑相同且標記一致只會發起一次請求
+    mark?: symbol | string | number | boolean
   }
 
   export type Method = 'get' | 'post' | 'put' | 'delete'
-
-  export type Url<S extends string> = S extends `${infer M}:${infer U
-    }`
-    ? M extends 'get'
-      ? string
-      : M extends 'post'
-        ? string
-        : M extends 'put'
-          ? string
-          : M extends 'delete'
-            ? string
-            : never
-    : never
 
   export type RequestInit = Omit<NodeJS.fetch.RequestInit, 'body'> & {
     body?: object
