@@ -1,4 +1,5 @@
 export * from "./create-callback-watcher"
+export * from "./create-fetch2/compete-enum"
 export * from "./create-fetch2"
 export type * from "./create-fetch2/type"
 export * from "./create-log";

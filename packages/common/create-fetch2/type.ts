@@ -1,13 +1,15 @@
+import { Fetch2CompeteEnum } from "./compete-enum";
+
 module Fetch2 {
   export type Options = {
     // 路由前綴
     prefix?: string
     // 就timeout(毫秒)
     timeout?: number
-    // retry 重複次數
-    // retry?: number
-    // 競態(取最新，取前者)
-
+    // 重複次數 TODO
+    retry?: number
+    // 競態 TODO
+    compete?: Fetch2CompeteEnum
   }
 
   export type ApiOptions = Options & {

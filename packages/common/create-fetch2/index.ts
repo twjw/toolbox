@@ -1,6 +1,5 @@
 import queryString from 'query-string'
 import { Fetch2 } from './type'
-import {CacheMap, ControllerMap, Mark, RepeatMarkMap, ResetStatusMap} from "./type.ts";
 
 const _maxMethodTextLength = 'DELETE'.length - 1
 
