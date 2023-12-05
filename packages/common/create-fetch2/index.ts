@@ -1,8 +1,24 @@
 import queryString from 'query-string'
 import { Fetch2 } from './type'
-import {InterceptorResponse} from "./type.ts";
+import {CacheMap, ControllerMap, Mark, RepeatMarkMap, ResetStatusMap} from "./type.ts";
 
-const _maxMethodLength = 'DELETE'.length - 1
+const _maxMethodTextLength = 'DELETE'.length - 1
+
+class _Fetch2BaseError extends Error {
+  static clone(err: Error) {
+    const self = new this()
+    self.message = err.message
+    self.name = this.name;
+    self.stack = err.stack;
+    return self
+  }
+}
+
+class Fetch2AbortError extends _Fetch2BaseError {}
+
+class Fetch2TimeoutError extends _Fetch2BaseError {}
+
+class Fetch2UnknownError extends _Fetch2BaseError {}
 
 function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
   const { url, params, body } = config
@@ -17,7 +33,7 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
       _url += url.substring(i + 1)
       break
     }
-    else if (i === _maxMethodLength) {
+    else if (i === _maxMethodTextLength) {
       _url += url
       break
     }
@@ -74,34 +90,46 @@ const _resolveRes = <R>(res: Fetch2.InterceptorResponse, responseUses: Fetch2.In
   }
 }
 
-class _Fetch2BaseError extends Error {
-  static clone(err: Error) {
-    const self = new this()
-    self.message = err.message
-    self.name = this.name;
-    self.stack = err.stack;
-    return self
+const _resetStatus =
+  ({
+     timoutInstance,
+
+     mark,
+     repeatMarkMap,
+
+     controllerKey,
+     controllerMap,
+   }: Fetch2.ResetStatusMap) => {
+  if (timoutInstance != null) {
+    clearTimeout(timoutInstance)
+  }
+
+  if (mark != null && repeatMarkMap[mark].length) {
+    delete repeatMarkMap[mark]
+  }
+
+  if (controllerKey != null && controllerMap[controllerKey] != null) {
+    delete controllerMap[controllerKey]
   }
 }
 
-class Fetch2AbortError extends _Fetch2BaseError {}
-
-class Fetch2TimeoutError extends _Fetch2BaseError {}
-
-class Fetch2UnknownError extends _Fetch2BaseError {}
-
-// TODO retry, 競態, timeout
+// TODO retry, 競態
 const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
   const { prefix = '', timeout = 0 } = options || {}
   const interceptors = {
     requestUses: [] as Fetch2.InterceptorUseRequestCallback[],
     responseUses: [] as Fetch2.InterceptorUseResponseCallback[],
   }
-  const cacheMap = {} as Record<string, { lastCacheTime: number, res: Fetch2.InterceptorResponse }>
-  const controllers = {} as Record<symbol, AbortController>
-  const repeatMarkMap = {} as Record<symbol | string | number, ((result: any) => void)[]>
+  const cacheMap = {} as Fetch2.CacheMap
+  const controllerMap = {} as Fetch2.ControllerMap
+  const repeatMarkMap = {} as Fetch2.RepeatMarkMap
 
   const newFetch = (<R>(url: string, init?: Fetch2.RequestInit, apiOptions?: Fetch2.ApiOptions) => {
+    const resetMap: Fetch2.ResetStatusMap = {
+      controllerMap,
+      repeatMarkMap,
+    }
+
     return new Promise<R>(async (resolve, reject) => {
       try {
         let config: Fetch2.Config = {
@@ -115,22 +143,31 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
           }
         }
 
-        const { prefix: apiPrefix, controller: apiController, cacheTime, forceRun, mark, timeout } = apiOptions || {}
+        const { prefix: apiPrefix, controller: apiController, cacheTime, forceRun, mark, timeout: apiTimeout } = apiOptions || {}
         const request = _toRequest(apiPrefix || prefix, config)
         const controllerKey = Symbol()
         let res = {} as Fetch2.InterceptorResponse
         let lastCacheTime = 0
         const cacheUrl = `${request.method}:${request.url}`
-        let _mark = typeof mark === 'boolean' ? cacheUrl : mark
+        let _timeout = apiTimeout || timeout
 
-        if (mark) {
-          if (repeatMarkMap[_mark!] != null) {
-            repeatMarkMap[_mark!].push((result) => resolve(result))
+        resetMap.mark = typeof mark === 'boolean' ? cacheUrl : mark
+        resetMap.controllerKey = controllerKey
+
+        if (_timeout > 0) {
+          resetMap.timoutInstance = setTimeout(() => {
+            throw new Fetch2TimeoutError(`fetch timeout ${_timeout}ms`)
+          }, _timeout)
+        }
+
+        if (resetMap.mark != null) {
+          if (repeatMarkMap[resetMap.mark] != null) {
+            repeatMarkMap[resetMap.mark].push((result) => resolve(result))
           } else {
-            repeatMarkMap[_mark!] = [(result) => resolve(result)]
+            repeatMarkMap[resetMap.mark] = [(result) => resolve(result)]
           }
 
-          if (repeatMarkMap[_mark!].length > 1) {
+          if (repeatMarkMap[resetMap.mark].length > 1) {
             return
           }
         }
@@ -139,18 +176,13 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
           if (cacheTime) {
             lastCacheTime = Date.now() + cacheTime
           }
-        } else {
-          const c = cacheMap[cacheUrl]
-          if (forceRun) {
-            delete cacheMap[cacheUrl]
-          } else if (c.lastCacheTime < Date.now() + (cacheTime || 0)) {
-            delete cacheMap[cacheUrl]
-          }
+        } else if (forceRun || cacheMap[cacheUrl].lastCacheTime < Date.now() + (cacheTime || 0)) {
+          delete cacheMap[cacheUrl]
         }
 
         if (cacheMap[cacheUrl] == null) {
-          controllers[controllerKey] = apiController || new AbortController()
-          request.signal = controllers[controllerKey].signal
+          controllerMap[controllerKey] = apiController || new AbortController()
+          request.signal = controllerMap[controllerKey].signal
 
           try {
             let originRes = await fetch(request.url, request)
@@ -168,12 +200,10 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
           }
           catch (e) {
             if ((e as Error).name === 'AbortError') {
-              delete controllers[controllerKey]
               throw new Fetch2AbortError('fetch abort')
             }
           }
           finally {
-            delete controllers[controllerKey]
             res.req = request as Fetch2.ResReq
             res.req.origin = {
               url: config.url,
@@ -184,12 +214,11 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
           res = cacheMap[cacheUrl].res
         }
 
-        _resolveRes(res, interceptors.responseUses, mark ? repeatMarkMap[_mark!] : null, resolve)
-
-        if (mark && repeatMarkMap[_mark!].length) {
-          delete repeatMarkMap[_mark!]
-        }
+        _resolveRes(res, interceptors.responseUses, resetMap.mark != null ? repeatMarkMap[resetMap.mark] : null, resolve)
+        _resetStatus(resetMap)
       } catch (err) {
+        _resetStatus(resetMap)
+
         if (err instanceof Fetch2AbortError || err instanceof Fetch2TimeoutError) {
           reject(err)
         } else if (err instanceof Error) {
@@ -206,11 +235,11 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
   }
 
   newFetch.cancelAll = () => {
-    const names = Object.getOwnPropertySymbols(controllers)
+    const names = Object.getOwnPropertySymbols(controllerMap)
 
     for (const name of names) {
-      controllers[name]?.abort?.()
-      delete controllers[name]
+      controllerMap[name]?.abort?.()
+      delete controllerMap[name]
     }
   }
 

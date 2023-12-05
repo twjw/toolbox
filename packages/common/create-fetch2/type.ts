@@ -14,8 +14,10 @@ module Fetch2 {
     // 是否無視緩存強制執行(會清除緩存)
     forceRun?: boolean
     // 用於處理重複請求的標記，如果路徑相同且標記一致只會發起一次請求
-    mark?: symbol | string | number | boolean
+    mark?: Mark
   }
+
+  export type Mark = symbol | string | number | boolean
 
   export type Method = 'get' | 'post' | 'put' | 'delete'
 
@@ -25,7 +27,23 @@ module Fetch2 {
     resType?: ResType
   }
 
+  export type ResetStatusMap = {
+    timoutInstance?: NodeJS.Timeout
+
+    mark?: symbol | string | number
+    repeatMarkMap: Fetch2.RepeatMarkMap
+
+    controllerKey?: symbol
+    controllerMap: Fetch2.ControllerMap
+  }
+
   export type ResType = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text'
+
+  export type CacheMap = Record<string, { lastCacheTime: number, res: InterceptorResponse }>
+
+  export type RepeatMarkMap = Record<symbol | string | number, ((result: any) => void)[]>
+
+  export type ControllerMap = Record<symbol, AbortController>
 
   export type InterceptorUseRequestCallback = (res: Config) => Config
 
