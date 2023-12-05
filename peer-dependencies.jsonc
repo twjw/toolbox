@@ -1,0 +1,42 @@
+{
+  // 通用的
+  "_all": {
+    "devDependencies": {
+      "@types/node": "^20.9.0",
+      "typescript": "^5.2.2"
+    }
+  },
+
+  // wtbx/comon
+  "common": {
+    // wtbx/comon/create-fetch2
+    "createFetch2": {
+      "dependencies": {
+        "query-string": "^8.1.0"
+      }
+    }
+  },
+
+  // wtbx/vite
+  "vite": {
+    // wtbx/vite/react
+    "react": {
+      "dependencies": {
+        "lodash-es": "^4.17.21"
+      },
+      "devDependencies": {
+        "@types/lodash-es": "^4.17.12",
+        "@types/react": "^18.2.15",
+        "@unocss/core": "^0.57.7",
+        "@unocss/reset": "^0.57.7",
+        "@vitejs/plugin-react": "^4.2.0",
+        "json5": "^2.2.3",
+        "jsonc-parser": "^3.2.0",
+        "unocss": "0.57.7",
+        "vite": "^4.5.0",
+        "vite-plugin-html": "^3.2.0",
+        "vite-plugin-svgr": "^4.1.0"
+      }
+    }
+  }
+}
