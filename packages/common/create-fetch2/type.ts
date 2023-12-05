@@ -4,6 +4,10 @@ module Fetch2 {
     prefix?: string
     // 就timeout(毫秒)
     timeout?: number
+    // retry 重複次數
+    // retry?: number
+    // 競態(取最新，取前者)
+
   }
 
   export type ApiOptions = Options & {

@@ -23,6 +23,12 @@ module wObject {
       ? `${K}` | `${K}${Sep}${RecursiveKeyOf<Obj[K]>}`
       : `${K}`;
   }[keyof Obj & (string | number)]
+
+  export type IgnoreKeyPrefix<Obj extends object, Prefix extends string = '_'> = {
+    [K in keyof Obj as K extends `${Prefix}${infer Rest}` ? Rest : K]: Obj[K] extends object
+      ? IgnoreKeyPrefix<Obj[K], Prefix>
+      : Obj[K]
+  }
 }
 
 module wString {
