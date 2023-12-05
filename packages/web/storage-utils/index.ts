@@ -13,7 +13,6 @@ const parseStorage = <T>(key: string, defaultValue: T, driver: Storage = localSt
 	const type = _parseType(defaultValue)
 	const value = driver.getItem(key)
 
-	console.log(key, type, value)
 	switch (type) {
 		case 'number': {
 			const n = Number(value)

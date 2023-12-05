@@ -1,7 +1,8 @@
 import queryString from 'query-string'
 import { Fetch2 } from './type'
 
-const _maxMethodTextLength = 'DELETE'.length - 1
+const _maxMethodTextLength = 'delete'.length - 1
+const _minMethodTextLength = 'get'.length - 1
 
 class _Fetch2BaseError extends Error {
   static clone(err: Error) {
@@ -26,15 +27,20 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
   let contentType = 'text/plain'
   let _body: NodeJS.fetch.RequestInit['body']
 
-  for (let i = 0; i < url.length; i++) {
-    if (url[i] === ':') {
-      method = url.substring(0, i) as Fetch2.Method
-      _url += url.substring(i + 1)
-      break
+  if (url[_minMethodTextLength] === ':') {
+    method = url.substring(0, _minMethodTextLength) as Fetch2.Method
+    _url += url.substring(_minMethodTextLength + 1)
+  } else {
+    for (let i = _minMethodTextLength + 1; i < _maxMethodTextLength + 2; i++) {
+      if (url[i] === ':') {
+        method = url.substring(0, i) as Fetch2.Method
+        _url += url.substring(i + 1)
+        break
+      }
     }
-    else if (i === _maxMethodTextLength) {
+
+    if (_url.length === prefix.length) {
       _url += url
-      break
     }
   }
 
