@@ -1,5 +1,5 @@
 import UnoCSS from 'unocss/vite'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
 import { createHtmlPlugin } from 'vite-plugin-html'
 import { PluginOption } from 'vite'

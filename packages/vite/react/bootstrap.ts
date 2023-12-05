@@ -10,26 +10,37 @@ type BootstrapOptions<Env, Mode> = {
 	envTransform?: TransformEnvConfig<Env & { mode: Mode }, Mode>
 }
 
-type UserConfigCallback<Env, Mode> = (env: Env & { mode: Mode }) => {
-	env?: { transform: TransformEnvConfig<Env, Mode>, ext: ConfigExt }
-} & UserConfig
+type UserConfigCallback<Env, Mode> = (env: Env) => UserConfig
 
-async function bootstrap<Env extends RequireEnv = RequireEnv, Mode = string>({ mode, envExt, envTransform }: BootstrapOptions<Env, Mode>, userConfigCallback: UserConfigCallback<Env, Mode>) {
-	const envConfig = await createEnvConfig<Env, Mode>(mode, envExt, envTransform)
-	const { plugins = [], resolve, server, ...userConfig } = userConfigCallback(envConfig)
+function bootstrap<Env extends RequireEnv, Mode = string>(options?: BootstrapOptions<Env, Mode>, userConfigCallback?: UserConfigCallback<Env & { mode: Mode }, Mode>) {
+	return async ({ mode }: { mode: Mode }) => {
+		const { envExt, envTransform } = options || {}
+		const envConfig = await createEnvConfig<Env, Mode>(mode, envExt, envTransform)
+		const basePlugins = pluginsConfig(envConfig)
+		const baseResolve = await resolveConfig(envConfig)
 
-	return defineConfig({
-		plugins: [
-			...pluginsConfig(envConfig),
-			...plugins,
-		],
-		resolve: {
-			...await resolveConfig(envConfig),
-			...resolve,
-		},
-		server,
-		...userConfig,
-	})
+		if (!userConfigCallback) {
+			return {
+				plugins: basePlugins,
+				resolve: baseResolve,
+			}
+		}
+
+		const { plugins = [], resolve = {}, server, ...userConfig } = userConfigCallback(envConfig)
+
+		return defineConfig({
+			plugins: [
+				...basePlugins,
+				...plugins,
+			],
+			resolve: {
+				...baseResolve,
+				...resolve,
+			},
+			server,
+			...userConfig,
+		})
+	}
 }
 
 export { bootstrap }

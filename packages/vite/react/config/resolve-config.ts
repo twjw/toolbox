@@ -25,11 +25,9 @@ async function getIdeaPaths() {
 	}
 }
 
-async function resolveConfig<Env>(envConfig: Env): Promise<
-	ResolveOptions & {
-		alias?: AliasOptions
-	}
-> {
+async function resolveConfig<Env>(envConfig: Env): Promise<{
+	alias: AliasOptions
+}> {
 	const alias = await getIdeaPaths()
 
 	log.info(`通過 ${tsConfigJsonName} 生成的 alias:`)

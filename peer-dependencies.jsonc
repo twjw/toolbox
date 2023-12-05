@@ -29,7 +29,7 @@
         "@types/react": "^18.2.15",
         "@unocss/core": "^0.57.7",
         "@unocss/reset": "^0.57.7",
-        "@vitejs/plugin-react": "^4.2.0",
+        "@vitejs/plugin-react-swc": "^3.5.0",
         "json5": "^2.2.3",
         "jsonc-parser": "^3.2.0",
         "unocss": "0.57.7",
