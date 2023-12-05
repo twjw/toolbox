@@ -75,10 +75,12 @@ const _resolveRes = <R>(res: Fetch2.InterceptorResponse, responseUses: Fetch2.In
 }
 
 class _Fetch2BaseError extends Error {
-  constructor(err: Error) {
-    super(err.message);
-    this.name = 'Fetch2AbortError';
-    this.stack = err.stack;
+  static clone(err: Error) {
+    const self = new this()
+    self.message = err.message
+    self.name = this.name;
+    self.stack = err.stack;
+    return self
   }
 }
 
@@ -88,7 +90,7 @@ class Fetch2TimeoutError extends _Fetch2BaseError {}
 
 class Fetch2UnknownError extends _Fetch2BaseError {}
 
-// TODO retry, 競態, timeout, error 攔截拋自定義
+// TODO retry, 競態, timeout
 const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
   const { prefix = '', timeout = 0 } = options || {}
   const interceptors = {
@@ -166,7 +168,8 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
           }
           catch (e) {
             if ((e as Error).name === 'AbortError') {
-              return 'abort'
+              delete controllers[controllerKey]
+              throw new Fetch2AbortError('fetch abort')
             }
           }
           finally {
@@ -187,7 +190,13 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
           delete repeatMarkMap[_mark!]
         }
       } catch (err) {
-        reject(new Fetch2UnknownError(err as Error))
+        if (err instanceof Fetch2AbortError || err instanceof Fetch2TimeoutError) {
+          reject(err)
+        } else if (err instanceof Error) {
+          reject(Fetch2UnknownError.clone(err))
+        } else {
+          reject(err)
+        }
       }
     })
   }) as Fetch2.Instance

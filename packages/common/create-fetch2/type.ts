@@ -35,7 +35,7 @@ module Fetch2 {
 
   export type InterceptorUseResponse = (callback: InterceptorUseResponseCallback) => void
 
-  export type InterceptorResponse = Omit<Response, 'body' | 'headers'> & { data: any, req: ResReq }
+  export type InterceptorResponse = Omit<Response, 'body' | 'headers'> & { data?: any, req?: ResReq }
 
   export type Config = Fetch2.RequestInit
     & {
