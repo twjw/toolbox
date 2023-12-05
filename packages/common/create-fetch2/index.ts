@@ -149,11 +149,11 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
         }
 
         const { prefix: apiPrefix, controller: apiController, cacheTime, forceRun, mark, timeout: apiTimeout } = apiOptions || {}
-        const request = _toRequest(apiPrefix || prefix, config)
+        const fetchConfig = _toRequest(apiPrefix || prefix, config)
         const controllerKey = Symbol()
         let res = {} as Fetch2.InterceptorResponse
         let lastCacheTime = 0
-        const cacheUrl = `${request.method}:${request.url}`
+        const cacheUrl = `${fetchConfig.method}:${fetchConfig.url}`
         let _timeout = apiTimeout || timeout
 
         resetMap.mark = typeof mark === 'boolean' ? cacheUrl : mark
@@ -187,10 +187,10 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 
         if (cacheMap[cacheUrl] == null) {
           controllerMap[controllerKey] = apiController || new AbortController()
-          request.signal = controllerMap[controllerKey].signal
+          fetchConfig.signal = controllerMap[controllerKey].signal
 
           try {
-            let originRes = await fetch(request.url, request)
+            let originRes = await fetch(fetchConfig.url, fetchConfig)
 
             res = originRes as unknown as Fetch2.InterceptorResponse
 
@@ -209,8 +209,8 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
             }
           }
           finally {
-            res.req = request as Fetch2.ResReq
-            res.req.origin = {
+            res.config = fetchConfig as Fetch2.ResReq
+            res.config.origin = {
               url: config.url,
               body: config.body as object,
             }
