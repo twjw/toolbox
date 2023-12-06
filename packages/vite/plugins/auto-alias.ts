@@ -3,7 +3,7 @@ import { log } from '../../../utils/log'
 import fs from 'fs'
 import jsonc from 'jsonc-parser'
 import type { Plugin } from "vite";
-import { buildFolderName, envConfigFilename, envConfigModuleFromName, envConfigModuleName } from '../../../constants'
+import { buildFolderName, envConfigFilename, envConfigModuleFromName } from '../../../constants'
 
 type AutoAliasOptions = {
 	filename?: string
