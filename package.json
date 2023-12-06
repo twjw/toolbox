@@ -1,6 +1,6 @@
 {
   "name": "wtbx",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "main": "packages",
   "module": "packages",
@@ -14,7 +14,8 @@
   },
   "scripts": {
     "lint": "eslint --fix --max-warnings=0",
-    "format": "prettier --cache --write"
+    "format": "prettier --cache --write",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
