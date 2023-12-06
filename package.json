@@ -6,6 +6,7 @@
   "module": "packages",
   "exports": {
     "./common": "./packages/common/index.ts",
+    "./node": "./packages/node/index.ts",
     "./react": "./packages/react/index.ts",
     "./type": "./packages/type/index.ts",
     "./vite": "./packages/web/index.ts",

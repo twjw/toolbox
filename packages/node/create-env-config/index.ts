@@ -2,12 +2,11 @@ import path from 'path'
 import fs from 'fs/promises'
 import JSON5 from 'json5'
 import { cloneDeep, isObject, merge } from 'lodash-es'
-import { getBuildPath } from './get-build-path'
-import { checkCreateBuildPath } from './check-create-build-path'
-import { log } from '../../../../utils/log'
+import { log } from '../../../utils/log'
+import { checkNewBuildGitIgnore, getBuildPath } from '../../../utils/node/build-path.ts'
 
 type ConfigExt = 'json' | 'ts'
-type TransformEnvConfig<Result, Mode> = (envConfig: Result & { mode: Mode }) => Result & { mode: Mode }
+type TransformEnvConfig<Env> = <R>(envConfig: Env) => R
 
 const extJson = 'json'
 const extTs = 'ts'
@@ -71,11 +70,11 @@ const _passParentKeys = (parentKeys: string[] | undefined, key: string) => {
 }
 
 const _privateKeyToPublic = ({
-	obj,
-	prefix = '_',
-	privateKeys = {},
-	parentKeys,
-}: {
+															 obj,
+															 prefix = '_',
+															 privateKeys = {},
+															 parentKeys,
+														 }: {
 	obj: Record<string, any>
 	prefix?: string
 	privateKeys?: Record<string, any>
@@ -139,19 +138,19 @@ const _removePrivateKeyValue = (obj: Record<string, any>, removeKeyObj: any) => 
 	}
 }
 
-const _dontTransform = <T>(e: T) => e
+const _dontTransform = <R>(e: any) => e as R
 
-const createEnvConfig = async <Result, Mode = string>(
+const createEnvConfig = async <Env, Mode = string>(
 	mode = 'development' as Mode,
 	dirPath: string = process.cwd() /* absolute path */,
 	extension: ConfigExt = extTs,
-	transform: TransformEnvConfig<Result & { mode: Mode }, Mode> = _dontTransform,
-): Promise<Result & { mode: Mode }> => {
+	transform: TransformEnvConfig<Env & { mode: Mode }> = _dontTransform,
+): Promise<Env & { mode: Mode }> => {
 	log.info('開始創建環境變數...')
 
 	let config = {
 		mode,
-	} as Result & { mode: Mode }
+	} as Env & { mode: Mode }
 	let privateKeys = {} as Record<string, any>
 
 	if (supportExtensions.includes(extension)) {
@@ -172,7 +171,7 @@ const createEnvConfig = async <Result, Mode = string>(
 		const viteConfig = cloneDeep(config)
 		_removePrivateKeyValue(viteConfig, privateKeys)
 
-		await checkCreateBuildPath()
+		await checkNewBuildGitIgnore()
 		await fs.writeFile(outputPath, `export default ${JSON.stringify(viteConfig, null, 2)}`)
 	}
 

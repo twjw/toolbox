@@ -1,5 +1,6 @@
-import { ConfigExt, createEnvConfig, TransformEnvConfig } from './utils/create-env-config'
-import {createViteAliasFromTsconfig} from "./utils/create-vite-alias-from-tsconfig.ts";
+
+import { createViteAliasFromTsconfig } from "./utils/create-vite-alias-from-tsconfig.ts";
+import { ConfigExt, createEnvConfig, TransformEnvConfig } from '../../node'
 
 type BootstrapOptions<Env, Mode> = {
 	mode: Mode
@@ -7,7 +8,7 @@ type BootstrapOptions<Env, Mode> = {
 	tsconfigFilepath?: string
 	envDirPath?: string
 	envExt?: ConfigExt
-	envTransform?: TransformEnvConfig<Env & { mode: Mode }, Mode>
+	envTransform?: TransformEnvConfig<Env & { mode: Mode }>
 }
 
 type CreateUserConfig<Env> = (params: {
