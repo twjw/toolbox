@@ -17,6 +17,7 @@ specifiers:
   prettier: ^3.1.0
   query-string: ^8.1.0
   react: ^18.2.0
+  react-dom: ^18.2.0
   react-router-dom: ^6.3.0
   typescript: ^5.2.2
   vite: ^4.5.0
@@ -39,7 +40,8 @@ devDependencies:
   prettier: 3.1.0
   query-string: 8.1.0
   react: 18.2.0
-  react-router-dom: 6.20.1_react@18.2.0
+  react-dom: 18.2.0_react@18.2.0
+  react-router-dom: 6.20.1_biqbaboplfbrettd7655fr4n2y
   typescript: 5.3.2
   vite: 4.5.1_@types+node@20.9.4
   zustand: 4.4.7_qjur23isozgejic6xjvb76mkmm
@@ -1393,7 +1395,17 @@ packages:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
     dev: true
 
-  /react-router-dom/6.20.1_react@18.2.0:
+  /react-dom/18.2.0_react@18.2.0:
+    resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
+    peerDependencies:
+      react: ^18.2.0
+    dependencies:
+      loose-envify: 1.4.0
+      react: 18.2.0
+      scheduler: 0.23.0
+    dev: true
+
+  /react-router-dom/6.20.1_biqbaboplfbrettd7655fr4n2y:
     resolution: {integrity: sha512-npzfPWcxfQN35psS7rJgi/EW0Gx6EsNjfdJSAk73U/HqMEJZ2k/8puxfwHFgDQhBGmS3+sjnGbMdMSV45axPQw==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
@@ -1402,6 +1414,7 @@ packages:
     dependencies:
       '@remix-run/router': 1.13.1
       react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
       react-router: 6.20.1_react@18.2.0
     dev: true
 
@@ -1463,6 +1476,12 @@ packages:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
     dependencies:
       queue-microtask: 1.2.3
+    dev: true
+
+  /scheduler/0.23.0:
+    resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
+    dependencies:
+      loose-envify: 1.4.0
     dev: true
 
   /semver/7.5.4:

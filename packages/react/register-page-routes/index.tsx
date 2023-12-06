@@ -1,30 +1,47 @@
 import { Route } from 'react-router-dom'
-import { lazy, LazyExoticComponent, FC, ReactNode } from 'react'
+import {lazy, LazyExoticComponent, FC, ReactNode, createContext, useContext} from 'react'
 import type { Log } from "../../common";
 
 type Route = {
   path: string
+  meta: any
   LazyPage: LazyExoticComponent<any>
   children?: Route[]
 }
 
-type Wrap = FC<{ path: string; children: ReactNode }>
+type Wrap = FC<{ children: ReactNode }>
 
-type RegisterOptions<Meta = any> = {
-  log: Log,
+type EagerModule<T = any> = { default: T }
+
+type MetaModule = Record<string, EagerModule>
+
+type ImportModule = <T = any>() => Promise<T>
+
+type PageModule = Record<string, ImportModule>
+
+type RegisterOptions = {
+  log?: Log,
   ignorePrefixes: string[]
-  defaultMeta?: Meta
-  metaModules?: Record<string, () => Meta>
-  pageModules: Record<string, () => Promise<any>>
+  defaultMeta?: any
+  metaModules?: MetaModule[]
+  pageModules: PageModule[]
   Wrap: Wrap
 }
 
-let _routes: Route[] = []
-let _Wrap: FC<{ path: string; children: ReactNode }>
-let pageRoutes: ReactNode = null
-const _OUTLET = '(outlet)'
+type MergeModulesMap<M extends EagerModule | ImportModule, R = M> = (modulePath: string, module: M) => R
 
-/**
+type CommonRouteContext = { path: string }
+
+let _routes: Route[] = []
+let _Wrap: Wrap
+let pageRoutes: ReactNode = null
+const _OUTLET = 'outlet'
+const context = createContext<any>(null)
+function useRoute<T>() {
+  return useContext<T & CommonRouteContext>(context)
+}
+
+  /**
  * @return 表示是否有該 outlet
  */
 function _passRouteChildren(
@@ -77,26 +94,49 @@ function _flatRoutePaths(routes: Record<string, Route> = {}) {
   return routePaths
 }
 
-function registerPageRoutes<Meta = any>({
+function _mergeModules<M extends EagerModule | ImportModule, R = M> (ignorePrefixReg: RegExp, modules: Record<string, M>[], map?: MergeModulesMap<M, R>) {
+  const moduleMap: Record<string, any> = {}
+
+  for (let i = 0; i < modules.length; i++) {
+    const currentModuleMap = modules[i]
+    for (const modulePath in currentModuleMap) {
+      const noPrefixPath = modulePath.replace(ignorePrefixReg, '')
+      moduleMap[noPrefixPath] = map ? map(noPrefixPath, currentModuleMap[modulePath]) : currentModuleMap[modulePath]
+    }
+  }
+
+  return moduleMap as Record<string, R>
+}
+
+function registerPageRoutes({
                                 log,
                                 ignorePrefixes,
                                 defaultMeta,
                                 metaModules,
                                 pageModules,
                                 Wrap,
-                              }: RegisterOptions<Meta>) {
+                              }: RegisterOptions) {
   const outlets: Record<string, Route[]> = {}
   const routes: Record<string, Route> = {}
-  const ignorePrefixReg = new RegExp(`^(${ignorePrefixes.join('|')})*`)
+  const ignorePrefixStr = `(${ignorePrefixes.join('|')})*`
+  const bracketOutlet = `\/\\(${_OUTLET}\\)`
+  const isOutletAll = new RegExp(`^${ignorePrefixStr}${bracketOutlet}`).test(Object.keys(pageModules?.[0] || {})[0] || '')
+  const ignorePrefixReg = new RegExp(`^${ignorePrefixStr}${isOutletAll ? bracketOutlet : ''}`)
+  const metaModuleMap = _mergeModules<EagerModule>(ignorePrefixReg, metaModules || [])
+  const pageModuleMap = _mergeModules<ImportModule, { meta: any, module: ImportModule }>(ignorePrefixReg, pageModules, (modulePath, module) => {
+    const metaPath = modulePath.replace(/page\.tsx$/, 'page.meta.ts')
 
-  console.log(metaModules, 123)
-  console.log(pageModules, 456)
+    return {
+      meta: metaModuleMap[metaPath]?.default,
+      module,
+    }
+  })
 
-  for (const modulePath in pageModules) {
+  for (const modulePath in pageModuleMap) {
     const noPrefixPath = modulePath.replace(ignorePrefixReg, '')
-    const spByOutlets = noPrefixPath.split(`/${_OUTLET}`)
+    const spByOutlets = noPrefixPath.split(`/(${_OUTLET})`)
 
-    // 如果含 (outlet) 做特殊處理
+    // 如果含 (outlet) 且非全局 (outlet) 做特殊處理(子級處理)
     if (spByOutlets.length > 1) {
       let path = ''
 
@@ -110,7 +150,8 @@ function registerPageRoutes<Meta = any>({
 
       outlets[path].push({
         path: spByOutlets[spByOutlets.length - 1].replace(/^\/?(.+)\/page\.tsx$/, '$1'),
-        LazyPage: lazy(() => pageModules[modulePath]()),
+        meta: pageModuleMap[modulePath].meta,
+        LazyPage: lazy(() => pageModuleMap[modulePath].module()),
       })
 
       continue
@@ -135,7 +176,8 @@ function registerPageRoutes<Meta = any>({
     const routePath = _path || '/'
     routes[routePath] = {
       path: routePath,
-      LazyPage: lazy(() => pageModules[modulePath]()),
+      meta: pageModuleMap[modulePath].meta,
+      LazyPage: lazy(() => pageModuleMap[modulePath].module()),
     }
   }
 
@@ -149,13 +191,28 @@ function registerPageRoutes<Meta = any>({
     exec++
   }
   if (exec >= max) {
-    log.warn('路由生成比對次數超過上限，請排查...')
+    ;(log || console).warn('路由生成比對次數超過上限，請排查...')
   }
 
-  if (log.isDebug) {
+  if (log && log.isDebug) {
     const flatRoutePaths = _flatRoutePaths(routes)
     log.info(`項目 pages 生成的路由(length: ${flatRoutePaths.length})`)
     log.info(flatRoutePaths)
+  }
+  console.log(outlets, routes)
+
+  if (isOutletAll) {
+    let index = routes['/']
+    delete routes['/']
+    if (index) {
+      const children = [] as Route[]
+      for (const path in routes) {
+        children.push(routes[path])
+        delete routes[path]
+      }
+      index.children = children
+    }
+    routes['/'] = index
   }
 
   _Wrap = Wrap
@@ -163,20 +220,25 @@ function registerPageRoutes<Meta = any>({
   pageRoutes = mapRoutes(_routes)
 }
 
-function mapRoutes(routes: Route[] = [], parentPath = '') {
-  return routes.map(e => (
-    <Route
-      key={e.path}
-      path={e.path}
-      element={
-        <_Wrap path={`${parentPath ? `${parentPath}/` : parentPath}${e.path}`}>
-          <e.LazyPage />
-        </_Wrap>
-      }
-    >
-      {e.children ? mapRoutes(e.children, e.path) : null}
-    </Route>
-  ))
+function mapRoutes(routes: Route[] = [], parentPath = '/') {
+  return routes.map(e => {
+    const nextPath = parentPath === '/' ? e.path : `${parentPath}/${e.path}`
+
+		return (<Route
+			key={e.path}
+			path={e.path}
+			element={
+        <context.Provider key={nextPath} value={{ path: nextPath, meta: e.meta }}>
+          <_Wrap>
+            <e.LazyPage />
+          </_Wrap>
+        </context.Provider>
+			}
+		>
+			{e.children ? mapRoutes(e.children, nextPath) : null}
+		</Route>)
+	})
 }
 
-export { registerPageRoutes, pageRoutes }
+export type { CommonRouteContext }
+export { registerPageRoutes, pageRoutes, useRoute }
