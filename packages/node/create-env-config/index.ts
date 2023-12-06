@@ -4,6 +4,7 @@ import JSON5 from 'json5'
 import { cloneDeep, isObject, merge } from 'lodash-es'
 import { log } from '../../../utils/log'
 import { checkNewBuildGitIgnore, getBuildPath } from '../../../utils/node/build-path.ts'
+import { envConfigFilename, envConfigModuleName } from '../../../constants'
 
 type ConfigExt = 'json' | 'ts'
 type TransformEnvConfig<Env> = <R>(envConfig: Env) => R
@@ -12,6 +13,7 @@ type CreateEnvConfigOptions<Env, Mode> = {
 	dirPath?: string /* absolute path */
 	extension?: ConfigExt
 	transform?: TransformEnvConfig<Env>
+	moduleName?: string
 }
 
 const extJson = 'json'
@@ -19,8 +21,7 @@ const extTs = 'ts'
 const supportExtensions = [extJson, extTs]
 const tsSym = '// --- ---'
 const outputDirPath = getBuildPath()
-const outputFileName = 'env.config.ts'
-const outputPath = path.resolve(process.cwd(), `${outputDirPath}/${outputFileName}`)
+const outputPath = path.resolve(process.cwd(), `${outputDirPath}/${envConfigFilename}`)
 
 const _passConfig = async (
 	dirPath: string,
@@ -149,7 +150,7 @@ const _dontTransform = <R>(e: any) => e as R
 const createEnvConfig = async <Env, Mode = string>(
 	options: CreateEnvConfigOptions<Env & { mode: Mode }, Mode>,
 ): Promise<Env & { mode: Mode }> => {
-	const { mode, dirPath = process.cwd(), extension= extTs, transform = _dontTransform } = options
+	const { mode, dirPath = process.cwd(), extension= extTs, transform = _dontTransform, moduleName = envConfigModuleName } = options
 
 	log.info('開始創建環境變數...')
 
@@ -177,7 +178,7 @@ const createEnvConfig = async <Env, Mode = string>(
 		_removePrivateKeyValue(viteConfig, privateKeys)
 
 		await checkNewBuildGitIgnore()
-		await fs.writeFile(outputPath, `export default ${JSON.stringify(viteConfig, null, 2)}`)
+		await fs.writeFile(outputPath, `export const ${moduleName} = ${JSON.stringify(viteConfig, null, 2)}`)
 	}
 
 	log.info('環境變數創建完畢！環境變數為：')

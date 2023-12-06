@@ -1,5 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
+import { buildFolderName } from '../../constants'
 
 async function checkNewBuildGitIgnore() {
 	const buildPath = getBuildPath()
@@ -20,7 +21,7 @@ async function checkNewBuildGitIgnore() {
 }
 
 function getBuildPath() {
-	return path.resolve(process.cwd(), `./node_modules/.wtbx-build`)
+	return path.resolve(process.cwd(), `./node_modules/${buildFolderName}`)
 }
 
 export { getBuildPath, checkNewBuildGitIgnore }
