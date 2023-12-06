@@ -1,0 +1,5 @@
+function reactPagePlugin (): Plugin {
+  return {
+
+  }
+}
