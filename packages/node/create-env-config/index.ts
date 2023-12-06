@@ -7,6 +7,12 @@ import { checkNewBuildGitIgnore, getBuildPath } from '../../../utils/node/build-
 
 type ConfigExt = 'json' | 'ts'
 type TransformEnvConfig<Env> = <R>(envConfig: Env) => R
+type CreateEnvConfigOptions<Env, Mode> = {
+	mode: Mode
+	dirPath?: string /* absolute path */
+	extension?: ConfigExt
+	transform?: TransformEnvConfig<Env>
+}
 
 const extJson = 'json'
 const extTs = 'ts'
@@ -141,11 +147,10 @@ const _removePrivateKeyValue = (obj: Record<string, any>, removeKeyObj: any) => 
 const _dontTransform = <R>(e: any) => e as R
 
 const createEnvConfig = async <Env, Mode = string>(
-	mode = 'development' as Mode,
-	dirPath: string = process.cwd() /* absolute path */,
-	extension: ConfigExt = extTs,
-	transform: TransformEnvConfig<Env & { mode: Mode }> = _dontTransform,
+	options: CreateEnvConfigOptions<Env & { mode: Mode }, Mode>,
 ): Promise<Env & { mode: Mode }> => {
+	const { mode, dirPath = process.cwd(), extension= extTs, transform = _dontTransform } = options
+
 	log.info('開始創建環境變數...')
 
 	let config = {
@@ -181,5 +186,5 @@ const createEnvConfig = async <Env, Mode = string>(
 	return config
 }
 
-export type { ConfigExt, TransformEnvConfig }
+export type { ConfigExt, TransformEnvConfig, CreateEnvConfigOptions }
 export { createEnvConfig }
