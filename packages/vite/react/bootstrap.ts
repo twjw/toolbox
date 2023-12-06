@@ -1,44 +1,30 @@
 import { defineConfig, UserConfig } from 'vite'
 import { ConfigExt, createEnvConfig, TransformEnvConfig } from './utils/create-env-config'
-import { pluginsConfig } from './config/plugins-config'
-import { resolveConfig } from './config/resolve-config'
-import { RequireEnv } from './type'
+import {createViteAliasFromTsconfig} from "./utils/create-vite-alias-from-tsconfig.ts";
 
 type BootstrapOptions<Env, Mode> = {
-	mode: Mode
+	tsconfigFilename?: string
+	tsconfigFilepath?: string
+	envDirPath?: string
 	envExt?: ConfigExt
 	envTransform?: TransformEnvConfig<Env & { mode: Mode }, Mode>
 }
 
-type UserConfigCallback<Env, Mode> = (env: Env) => UserConfig
+type CreateUserConfig<Env> = (params: {
+	envConfig: Env
+	resolveAlias: Record<string, any>
+}) => Promise<UserConfig>
 
-function bootstrap<Env extends RequireEnv, Mode = string>(options?: BootstrapOptions<Env, Mode>, userConfigCallback?: UserConfigCallback<Env & { mode: Mode }, Mode>) {
-	return async ({ mode }: { mode: Mode }) => {
-		const { envExt, envTransform } = options || {}
-		const envConfig = await createEnvConfig<Env, Mode>(mode, envExt, envTransform)
-		const basePlugins = pluginsConfig(envConfig)
-		const baseResolve = await resolveConfig(envConfig)
+function bootstrap<Env, Mode = string>(options?: BootstrapOptions<Env, Mode>, createUserConfig?: CreateUserConfig<Env & { mode: Mode }>) {
+	return async ({ mode }: { mode: Mode }): Promise<UserConfig> => {
+		const { tsconfigFilename, tsconfigFilepath, envDirPath, envExt, envTransform } = options || {}
+		const envConfig = await createEnvConfig<Env, Mode>(mode, envDirPath, envExt, envTransform)
 
-		if (!userConfigCallback) {
-			return {
-				plugins: basePlugins,
-				resolve: baseResolve,
-			}
-		}
+		if (!createUserConfig) return defineConfig({})
 
-		const { plugins = [], resolve = {}, server, ...userConfig } = userConfigCallback(envConfig)
-
-		return defineConfig({
-			plugins: [
-				...basePlugins,
-				...plugins,
-			],
-			resolve: {
-				...baseResolve,
-				...resolve,
-			},
-			server,
-			...userConfig,
+		return await createUserConfig({
+			envConfig,
+			resolveAlias: await createViteAliasFromTsconfig({ filename: tsconfigFilename, filepath: tsconfigFilepath }),
 		})
 	}
 }

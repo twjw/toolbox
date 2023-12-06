@@ -29,6 +29,12 @@ module wObject {
       ? IgnoreKeyPrefix<Obj[K], Prefix>
       : Obj[K]
   }
+
+  export type DeepPartial<Obj extends Record<string, any>> = {
+    [K in keyof Obj]?: Obj[K] extends Record<string, any>
+      ? DeepPartial<Obj[K]>
+      : Obj[K]
+  }
 }
 
 module wString {

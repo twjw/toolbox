@@ -5,7 +5,6 @@ import { cloneDeep, isObject, merge } from 'lodash-es'
 import { getBuildPath } from './get-build-path'
 import { checkCreateBuildPath } from './check-create-build-path'
 import { log } from '../../../../utils/log'
-import { RequireEnv } from '../type'
 
 type ConfigExt = 'json' | 'ts'
 type TransformEnvConfig<Result, Mode> = (envConfig: Result & { mode: Mode }) => Result & { mode: Mode }
@@ -14,18 +13,18 @@ const extJson = 'json'
 const extTs = 'ts'
 const supportExtensions = [extJson, extTs]
 const tsSym = '// --- ---'
-const envPath = path.resolve(process.cwd(), './env')
 const outputDirPath = getBuildPath()
 const outputFileName = 'env.config.ts'
 const outputPath = path.resolve(process.cwd(), `${outputDirPath}/${outputFileName}`)
 
 const _passConfig = async (
+	dirPath: string,
 	privateKeys: Record<string, any>,
 	config: Record<string, any>,
 	filename: string,
 	extension: ConfigExt,
 ) => {
-	const _configBuffer = await fs.readFile(path.resolve(envPath, filename))
+	const _configBuffer = await fs.readFile(path.resolve(dirPath, filename))
 
 	try {
 		let _config = {}
@@ -142,8 +141,9 @@ const _removePrivateKeyValue = (obj: Record<string, any>, removeKeyObj: any) => 
 
 const _dontTransform = <T>(e: T) => e
 
-const createEnvConfig = async <Result extends RequireEnv, Mode = string>(
+const createEnvConfig = async <Result, Mode = string>(
 	mode = 'development' as Mode,
+	dirPath: string = process.cwd() /* absolute path */,
 	extension: ConfigExt = extTs,
 	transform: TransformEnvConfig<Result & { mode: Mode }, Mode> = _dontTransform,
 ): Promise<Result & { mode: Mode }> => {
@@ -155,17 +155,17 @@ const createEnvConfig = async <Result extends RequireEnv, Mode = string>(
 	let privateKeys = {} as Record<string, any>
 
 	if (supportExtensions.includes(extension)) {
-		const ls = await fs.readdir(envPath)
-		const baseFileName = `env.${extension}`
+		const ls = await fs.readdir(dirPath)
+		const baseFileName = `.env.${extension}`
 		const filterBaseLs = ls.filter(e => e === baseFileName)
 
 		if (ls.length > 0 && filterBaseLs.length !== ls.length)
-			await _passConfig(privateKeys, config, baseFileName, extension)
+			await _passConfig(dirPath, privateKeys, config, baseFileName, extension)
 
 		for (let i = 0; i < ls.length; i++) {
 			const filename = ls[i]
-			const env = filename.match(/^env\.?([A-z0-9-_]+)?\.(ts|json)$/)?.[1]
-			if (env === mode) await _passConfig(privateKeys, config, filename, extension)
+			const env = filename.match(/^\.env\.?([A-z0-9-_]+)?\.(ts|json)$/)?.[1]
+			if (env === mode) await _passConfig(dirPath, privateKeys, config, filename, extension)
 		}
 
 		config = transform(config)
