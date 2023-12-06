@@ -7,12 +7,12 @@ import { checkNewBuildGitIgnore, getBuildPath } from '../../../utils/node/build-
 import { envConfigFilename, envConfigModuleName } from '../../../constants'
 
 type ConfigExt = 'json' | 'ts'
-type TransformEnvConfig<Env> = <R>(envConfig: Env) => R
-type CreateEnvConfigOptions<Env, Mode> = {
+type TransformEnvConfig<Env, Mode, Result> = (envConfig: Env & { mode: Mode }) => Result
+type CreateEnvConfigOptions<Env, Mode, Result> = {
 	mode: Mode
 	dirPath?: string /* absolute path */
 	extension?: ConfigExt
-	transform?: TransformEnvConfig<Env>
+	transform?: TransformEnvConfig<Env, Mode, Result>
 	moduleName?: string
 }
 
@@ -77,11 +77,11 @@ const _passParentKeys = (parentKeys: string[] | undefined, key: string) => {
 }
 
 const _privateKeyToPublic = ({
-															 obj,
-															 prefix = '_',
-															 privateKeys = {},
-															 parentKeys,
-														 }: {
+	obj,
+	prefix = '_',
+	privateKeys = {},
+	parentKeys,
+}: {
 	obj: Record<string, any>
 	prefix?: string
 	privateKeys?: Record<string, any>
@@ -147,16 +147,26 @@ const _removePrivateKeyValue = (obj: Record<string, any>, removeKeyObj: any) => 
 
 const _dontTransform = <R>(e: any) => e as R
 
-const createEnvConfig = async <Env, Mode = string>(
-	options: CreateEnvConfigOptions<Env & { mode: Mode }, Mode>,
-): Promise<Env & { mode: Mode }> => {
-	const { mode, dirPath = process.cwd(), extension= extTs, transform = _dontTransform, moduleName = envConfigModuleName } = options
+const createEnvConfig = async <
+	Env,
+	Mode = string,
+	Result extends Record<string, any> = Env & { mode: Mode },
+>(
+	options: CreateEnvConfigOptions<Env, Mode, Result>,
+): Promise<Result> => {
+	const {
+		mode,
+		dirPath = process.cwd(),
+		extension = extTs,
+		transform = _dontTransform,
+		moduleName = envConfigModuleName,
+	} = options
 
 	log.info('開始創建環境變數...')
 
 	let config = {
 		mode,
-	} as Env & { mode: Mode }
+	} as (Env & { mode: Mode }) | Result
 	let privateKeys = {} as Record<string, any>
 
 	if (supportExtensions.includes(extension)) {
@@ -173,18 +183,21 @@ const createEnvConfig = async <Env, Mode = string>(
 			if (env === mode) await _passConfig(dirPath, privateKeys, config, filename, extension)
 		}
 
-		config = transform(config)
+		config = transform(config as Env & { mode: Mode })
 		const viteConfig = cloneDeep(config)
 		_removePrivateKeyValue(viteConfig, privateKeys)
 
 		await checkNewBuildGitIgnore()
-		await fs.writeFile(outputPath, `export const ${moduleName} = ${JSON.stringify(viteConfig, null, 2)}`)
+		await fs.writeFile(
+			outputPath,
+			`export const ${moduleName} = ${JSON.stringify(viteConfig, null, 2)}`,
+		)
 	}
 
 	log.info('環境變數創建完畢！環境變數為：')
 	log.info(JSON.stringify(config, null, 2))
 
-	return config
+	return config as Result
 }
 
 export type { ConfigExt, TransformEnvConfig, CreateEnvConfigOptions }
