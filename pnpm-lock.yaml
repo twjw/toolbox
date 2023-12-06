@@ -17,6 +17,7 @@ specifiers:
   prettier: ^3.1.0
   query-string: ^8.1.0
   react: ^18.2.0
+  react-router-dom: ^6.3.0
   typescript: ^5.2.2
   vite: ^4.5.0
   zustand: ^4.4.7
@@ -38,6 +39,7 @@ devDependencies:
   prettier: 3.1.0
   query-string: 8.1.0
   react: 18.2.0
+  react-router-dom: 6.20.1_react@18.2.0
   typescript: 5.3.2
   vite: 4.5.1_@types+node@20.9.4
   zustand: 4.4.7_qjur23isozgejic6xjvb76mkmm
@@ -323,6 +325,11 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
+    dev: true
+
+  /@remix-run/router/1.13.1:
+    resolution: {integrity: sha512-so+DHzZKsoOcoXrILB4rqDkMDy7NLMErRdOxvzvOKb507YINKUP4Di+shbTZDhSE/pBZ+vr7XGIpcOO0VLSA+Q==}
+    engines: {node: '>=14.0.0'}
     dev: true
 
   /@types/json-schema/7.0.15:
@@ -1384,6 +1391,28 @@ packages:
 
   /queue-microtask/1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+    dev: true
+
+  /react-router-dom/6.20.1_react@18.2.0:
+    resolution: {integrity: sha512-npzfPWcxfQN35psS7rJgi/EW0Gx6EsNjfdJSAk73U/HqMEJZ2k/8puxfwHFgDQhBGmS3+sjnGbMdMSV45axPQw==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+    dependencies:
+      '@remix-run/router': 1.13.1
+      react: 18.2.0
+      react-router: 6.20.1_react@18.2.0
+    dev: true
+
+  /react-router/6.20.1_react@18.2.0:
+    resolution: {integrity: sha512-ccvLrB4QeT5DlaxSFFYi/KR8UMQ4fcD8zBcR71Zp1kaYTC5oJKYAp1cbavzGrogwxca+ubjkd7XjFZKBW8CxPA==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      react: '>=16.8'
+    dependencies:
+      '@remix-run/router': 1.13.1
+      react: 18.2.0
     dev: true
 
   /react/18.2.0:

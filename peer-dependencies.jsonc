@@ -10,8 +10,22 @@
   // wtbx/comon
   "common": {
     // wtbx/comon/create-fetch2
-    "createFetch2": {
+    "create-fetch2": {
       "dependencies": {
+        "query-string": "^8.1.0"
+      }
+    }
+  },
+
+  // wtbx/react
+  "react": {
+    // wtbx/react/register-page-routes
+    "register-page-routes": {
+      "dependencies": {
+        "react": "^18.2.0",
+        "react-router-dom": "^6.3.0"
+      },
+      "devDependencies": {
         "query-string": "^8.1.0"
       }
     }

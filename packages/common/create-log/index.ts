@@ -81,4 +81,5 @@ function createLog (prefix: string = '', isDebug: boolean = true) {
 	} as Log
 }
 
+export type { Log }
 export { createLog };

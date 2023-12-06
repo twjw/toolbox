@@ -8,8 +8,6 @@ module.exports = {
 	"ignorePatterns": [
 		"dist",
 		".eslintrc.cjs",
-		"core/build-recipe/env",
-		".wtbx-build",
 	],
 	"parser": "@typescript-eslint/parser",
 	"plugins": [
