@@ -2,11 +2,7 @@ const trueValues = ['1', 'True', 'true']
 const emptyValues = ['', 'null', 'undefined']
 
 const _parseType = <T>(value: T) => {
-  return typeof value === 'object'
-		? value == null
-			? 'null'
-			: 'object'
-		: typeof value
+	return typeof value === 'object' ? (value == null ? 'null' : 'object') : typeof value
 }
 
 const parseStorage = <T>(key: string, defaultValue: T, driver: Storage = localStorage) => {
@@ -25,8 +21,7 @@ const parseStorage = <T>(key: string, defaultValue: T, driver: Storage = localSt
 			return defaultValue
 		}
 		default: {
-			if (value == null || emptyValues.includes(value))
-				return defaultValue
+			if (value == null || emptyValues.includes(value)) return defaultValue
 
 			try {
 				return JSON.parse(value)
@@ -60,7 +55,4 @@ const stringifyStorage = <T>(value: T): string => {
 	}
 }
 
-export {
-	parseStorage,
-	stringifyStorage,
-}
+export { parseStorage, stringifyStorage }

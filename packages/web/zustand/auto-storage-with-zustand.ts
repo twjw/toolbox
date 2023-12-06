@@ -3,11 +3,12 @@ import { Storage2 } from '../../web'
 import type { StoreApi, UseBoundStore } from 'zustand'
 
 // 與 Zustand 進行雙向綁定的 Storage2
-class AutoStorageWithZustand <Prefix extends string, PropState extends Storage2PropState> extends Storage2<Prefix, PropState> {
+class AutoStorageWithZustand<
+	Prefix extends string,
+	PropState extends Storage2PropState,
+> extends Storage2<Prefix, PropState> {
 	private storageBindKeyMap = {} as {
-		[K in keyof PropState]: [
-			string, UseBoundStore<StoreApi<any>>
-		][]
+		[K in keyof PropState]: [string, UseBoundStore<StoreApi<any>>][]
 	}
 
 	constructor(prefix: Prefix, state: PropState, driver: Storage = Storage2.defaultDriver) {
@@ -23,14 +24,15 @@ class AutoStorageWithZustand <Prefix extends string, PropState extends Storage2P
 		})
 	}
 
-	bind<StoreState extends object>(store: UseBoundStore<StoreApi<StoreState>>, keyMap: { [K in keyof StoreState]?: keyof PropState }) {
+	bind<StoreState extends object>(
+		store: UseBoundStore<StoreApi<StoreState>>,
+		keyMap: { [K in keyof StoreState]?: keyof PropState },
+	) {
 		for (const storeKey in keyMap) {
 			const storageKey = keyMap[storeKey]!
 
 			if (this.storageBindKeyMap[storageKey] == null) {
-				this.storageBindKeyMap[storageKey] = [
-					[storeKey, store]
-				]
+				this.storageBindKeyMap[storageKey] = [[storeKey, store]]
 			} else {
 				this.storageBindKeyMap[storageKey].push([storeKey, store])
 			}
@@ -48,6 +50,4 @@ class AutoStorageWithZustand <Prefix extends string, PropState extends Storage2P
 	}
 }
 
-export {
-	AutoStorageWithZustand,
-}
+export { AutoStorageWithZustand }

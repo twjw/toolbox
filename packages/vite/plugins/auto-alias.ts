@@ -2,7 +2,7 @@ import path from 'path'
 import { log } from '../../../utils/log'
 import fs from 'fs'
 import jsonc from 'jsonc-parser'
-import type { Plugin } from "vite";
+import type { Plugin } from 'vite'
 import { buildFolderName, envConfigFilename, envConfigModuleFromName } from '../../../constants'
 
 type AutoAliasOptions = {
@@ -31,7 +31,10 @@ function getIdeaPaths(filename: string, filepath: string) {
 }
 
 function createViteAliasFromTsconfig(options?: AutoAliasOptions) {
-	const { filename = 'tsconfig.json', filepath = path.resolve(process.cwd(), `./${filename}`) } = options || {}
+	const {
+		filename = 'tsconfig.json',
+		filepath = path.resolve(process.cwd(), `./${filename}`),
+	} = options || {}
 	const alias = getIdeaPaths(filename, filepath)
 
 	if (options?.hasEnv) {
@@ -44,7 +47,7 @@ function createViteAliasFromTsconfig(options?: AutoAliasOptions) {
 	return alias
 }
 
-function autoAlias (options?: AutoAliasOptions): any {
+function autoAlias(options?: AutoAliasOptions): any {
 	const _options = options || {}
 
 	if (_options.hasEnv == null) {
@@ -64,17 +67,13 @@ function autoAlias (options?: AutoAliasOptions): any {
 			return {
 				resolve: {
 					alias,
-				}
+				},
 			}
-		}
+		},
 	}
 
 	return plugin
 }
 
-export type {
-	AutoAliasOptions,
-}
-export {
-	autoAlias
-}
+export type { AutoAliasOptions }
+export { autoAlias }

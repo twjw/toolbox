@@ -1,9 +1,7 @@
 enum Fetch2CompeteEnum {
-  none,
-  last,
-  before,
+	none,
+	last,
+	before,
 }
 
-export {
-  Fetch2CompeteEnum
-}
+export { Fetch2CompeteEnum }

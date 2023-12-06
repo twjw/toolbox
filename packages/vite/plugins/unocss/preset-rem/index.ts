@@ -12,7 +12,7 @@ const presetRem = definePreset((options?: { baseFontSize: number }) => {
 			util.entries.forEach(e => {
 				const value = e[1]
 				if (typeof value === 'string' && remRE.test(value))
-					e[1] = value.replace(remRE, (_, p1) => `${p1 / baseFontSize * 4}rem`)
+					e[1] = value.replace(remRE, (_, p1) => `${(p1 / baseFontSize) * 4}rem`)
 			})
 		},
 	}

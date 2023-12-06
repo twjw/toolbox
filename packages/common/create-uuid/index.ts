@@ -2,27 +2,27 @@
 const ramdomCode1 = 'abcdefghijklmnopqrstuvwxyz0123456789'
 
 function createRandomStr(length = 36) {
-  let result = '';
+	let result = ''
 
-  for (let i = 0; i < length; i++) {
-    result += ramdomCode1.charAt(Math.floor(Math.random() * ramdomCode1.length));
-  }
+	for (let i = 0; i < length; i++) {
+		result += ramdomCode1.charAt(Math.floor(Math.random() * ramdomCode1.length))
+	}
 
-  return result;
+	return result
 }
 
 const createUuid = () => {
-  const nowString = Date.now().toString()
-  const halfLength = Math.floor(nowString.length / 2)
-  const mid = `-${nowString.substring(0, halfLength)}-${nowString.substring(halfLength + 1, nowString.length)}-`
-  const lessLength = 36 - mid.length
-  const firstLength = Math.floor(lessLength / 2)
-  const lastLength = lessLength - firstLength
+	const nowString = Date.now().toString()
+	const halfLength = Math.floor(nowString.length / 2)
+	const mid = `-${nowString.substring(0, halfLength)}-${nowString.substring(
+		halfLength + 1,
+		nowString.length,
+	)}-`
+	const lessLength = 36 - mid.length
+	const firstLength = Math.floor(lessLength / 2)
+	const lastLength = lessLength - firstLength
 
-  return `${createRandomStr(firstLength)}${mid}${createRandomStr(lastLength)}`
+	return `${createRandomStr(firstLength)}${mid}${createRandomStr(lastLength)}`
 }
 
-export {
-  createRandomStr,
-  createUuid,
-}
+export { createRandomStr, createUuid }
