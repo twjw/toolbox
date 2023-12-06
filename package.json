@@ -9,7 +9,7 @@
     "./node": "./packages/node/index.ts",
     "./react": "./packages/react/index.ts",
     "./type": "./packages/type/index.ts",
-    "./vite": "./packages/web/index.ts",
+    "./vite": "./packages/vite/index.ts",
     "./web": "./packages/web/index.ts"
   },
   "scripts": {

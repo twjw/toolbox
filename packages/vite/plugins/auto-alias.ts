@@ -44,7 +44,7 @@ function createViteAliasFromTsconfig(options?: AutoAliasOptions) {
 	return alias
 }
 
-function autoAlias (options?: AutoAliasOptions): Plugin {
+function autoAlias (options?: AutoAliasOptions): any {
 	const _options = options || {}
 
 	if (_options.hasEnv == null) {
