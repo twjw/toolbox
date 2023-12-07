@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import {isArray, isObject} from "lodash-es";
+import {isObject} from "lodash-es";
 
 type FileRoute = {
   filepath: string
@@ -10,7 +10,7 @@ type FileRoute = {
   layout: boolean // 是否是 (outlet)
   meta: boolean // 是否有 meta
   children: FileRoute[]
-} | null
+}
 
 type ArrayKeyType<T extends object> = {
   [K in keyof T]: T[K] extends Array<any> ? K : never;
@@ -63,7 +63,6 @@ function _getFileRoutes (
       const lst = fs.lstatSync(filepath)
       let parentPath = routePath == null ? dirPath.substring(PAGES_DIR_PATH.length).replace(/\\/g, '/') : routePath
       let _importPath = importPath == null ? `${SRC_ALIAS}${dirPath.substring(PAGES_DIR_PATH.length).replace(/\\/g, '/')}` : importPath
-      const parentLastWord = parentPath.match(LAST_WORD_REG)?.[0]
       let pfile = file.match(/^\[([A-z0-9-_]+)\]$/)?.[1]
         .split('-')
         .reduce(_parameterReduce, ':') || file
@@ -127,20 +126,33 @@ function _getFileRoutes (
   return pages
 }
 
-function _recursiveObjTap<T extends object>(obj: T, key: ArrayKeyType<T>, tap: (e: T, level: number) => void, level = 1) {
-  const el = obj[key] as any[] | null;
+function _recursiveObjTap<T extends object>(obj: T, key: ArrayKeyType<T>, tap: (e: T, level: number, parent: T | null) => (() => void) | void, level = 1, parent = null as T | null) {
+  const el = obj[key] as any[];
 
-  tap(obj, level)
+  const end = tap(obj, level, parent)
 
-  if (el != null) {
-    for (let i = 0; i < (el as T[]).length; i++) {
-      const el2 = el[i] as T;
+  for (let i = 0; i < (el as T[]).length; i++) {
+    const el2 = el[i] as T;
 
-      if (isObject(el2)) {
-        _recursiveObjTap(el2, key, tap, level + 1)
-      }
+    if (isObject(el2)) {
+      _recursiveObjTap(el2, key, tap, level + 1, obj)
     }
   }
+
+  end?.()
+}
+
+function _createCommonRouteJsxString (fileRoute: FileRoute, tab: string, rid: string, mid: string | null, lazyImportString: string) {
+  return `${tab}<Route
+${tab}  key={'${rid}'}
+${tab}  path={'${fileRoute.routePath}'}
+${tab}  element={
+${tab}    <context.Provider key={'${rid}'} value={{ path: '${fileRoute.fullRoutePath}', meta: ${mid || undefined} }}>
+${tab}      <$Wrap>
+${tab}        {lazy(() => ${lazyImportString})}
+${tab}      </$Wrap>
+${tab}    </context.Provider>
+${tab}  }`
 }
 
 // @prettier-ignore
@@ -175,34 +187,33 @@ function _transformRouteJSXString() {
    */
 
   for (let i = 0; i < fileRoutes.length; i++) {
-    _recursiveObjTap(fileRoutes[i]!, 'children', (e, level) => {
+    _recursiveObjTap(fileRoutes[i]!, 'children', (e, level, parent) => {
+      const { mid, metaImportString, lazyImportString } = _getImportInfo(e.importPath, e.meta)
+      const tab = '  ' + Array(level).fill('  ').join('')
+
       ++rid
+      if (mid) {
+        topImportString += `${metaImportString}
+`
+      }
+
+      const commonRouteJsxString = _createCommonRouteJsxString(e, tab, String(rid), mid, lazyImportString);
 
       if (e.layout) {
-
-      } else {
-        const { mid, metaImportString, lazyImportString } = _getImportInfo(e.importPath, e.meta)
-        const tab = '  ' + Array(level).fill('  ').join('')
-
-        if (mid) {
-          topImportString +=
-`${metaImportString}
-`
-        }
-
         jsxString +=
-`${tab}<Route
-${tab}  key={'${rid}'}
-${tab}  path={'${e.routePath}'}
-${tab}  element={
-${tab}    <context.Provider key={'${rid}'} value={{ path: '${e.fullRoutePath}', meta: ${mid || undefined} }}>
-${tab}      <$Wrap>
-${tab}        {${`lazy(() => ${lazyImportString})`}}
-${tab}      </$Wrap>
-${tab}    </context.Provider>
-${tab}  }
-${tab}/>,
+`${commonRouteJsxString}
+${tab}>
 `
+
+        return () => {
+          jsxString +=
+`
+${tab}</Route>${parent?.layout ? '' : ','}`
+				}
+      } else {
+        jsxString +=
+`${commonRouteJsxString}
+${tab}/>${parent?.layout ? '' : ',\n'}`
       }
     })
   }
