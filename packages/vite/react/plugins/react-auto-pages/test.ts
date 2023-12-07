@@ -142,97 +142,92 @@ function _recursiveObjTap<T extends object>(obj: T, key: ArrayKeyType<T>, tap: (
   end?.()
 }
 
-function _createCommonRouteJsxString (fileRoute: FileRoute, tab: string, rid: string, mid: string | null, lazyImportString: string) {
+function _createCommonRouteTsxString (fileRoute: FileRoute, tab: string, rid: string, mid: string | null, lazyImportString: string) {
   return `${tab}<Route
-${tab}  key={'${rid}'}
-${tab}  path={'${fileRoute.routePath}'}
-${tab}  element={
-${tab}    <context.Provider key={'${rid}'} value={{ path: '${fileRoute.fullRoutePath}', meta: ${mid || undefined} }}>
-${tab}      <$Wrap>
-${tab}        {lazy(() => ${lazyImportString})}
-${tab}      </$Wrap>
-${tab}    </context.Provider>
-${tab}  }`
+${tab} key={'${rid}'}
+${tab} path={'${fileRoute.routePath}'}
+${tab} element={
+${tab}   <context.Provider key={'${rid}'} value={{ path: '${fileRoute.fullRoutePath}', meta: ${mid || undefined} }}>
+${tab}     <props.Wrap>
+${tab}       {lazy(() => ${lazyImportString})}
+${tab}     </props.Wrap>
+${tab}   </context.Provider>
+${tab} }`
 }
 
 // @prettier-ignore
-function _transformRouteJSXString() {
+function _transformRoutesTsxString() {
   const fileRoutes = _getFileRoutes()
   let topImportString =
-`import { lazy } from 'react'
-`
-  let jsxString =
-`function Routes() {
-  return [
-`
+`import { lazy, createContext, useContext, type FC, type ComponentType } from 'react'
+import { Route } from 'react-router-dom'`
+
+  let mainString =
+`type RoutesProps = {
+  Wrap: FC<{ children: ComponentType }>
+}
+
+const context = createContext<any>(null)
+
+function useRoute() {
+  return useContext(context)
+}
+
+function Routes(props: RoutesProps) {
+  return [`
+
   let bottomExportString =
 `export {
   Routes,
+  useRoute,
 }`
-  let resultJsxString = ``
-  /*
-    <Route
-      key={$path}
-      path={$path}
-      element={
-        <context.Provider key={$nextPath} value={{ path: $path, meta: $meta }}>
-          <$Wrap>
-            <$LazyPage />
-          </$Wrap>
-        </context.Provider>
-      }
-    >
-      same
-    </Route>
-   */
+  let resultString = ''
+
+  mainString += '\n'
 
   for (let i = 0; i < fileRoutes.length; i++) {
     _recursiveObjTap(fileRoutes[i]!, 'children', (e, level, parent) => {
       const { mid, metaImportString, lazyImportString } = _getImportInfo(e.importPath, e.meta)
-      const tab = '  ' + Array(level).fill('  ').join('')
+      const tab = ' ' + Array(level).fill('  ').join('')
 
       ++rid
       if (mid) {
-        topImportString += `${metaImportString}
-`
+        topImportString += `\n${metaImportString}`
       }
 
-      const commonRouteJsxString = _createCommonRouteJsxString(e, tab, String(rid), mid, lazyImportString);
+      const commonRouteTsxString = _createCommonRouteTsxString(e, tab, String(rid), mid, lazyImportString);
 
       if (e.layout) {
-        jsxString +=
-`${commonRouteJsxString}
-${tab}>
-`
+        mainString +=
+`${parent?.layout ? '\n' : ''}${commonRouteTsxString}
+${tab}>`
 
         return () => {
-          jsxString +=
+          mainString +=
 `
-${tab}</Route>${parent?.layout ? '' : ','}`
+${tab}</Route>${parent?.layout ? '' : ',\n'}`
 				}
       } else {
-        jsxString +=
-`${commonRouteJsxString}
+        mainString +=
+`${parent?.layout ? '\n' : ''}${commonRouteTsxString}
 ${tab}/>${parent?.layout ? '' : ',\n'}`
       }
     })
   }
 
-  jsxString +=
+  mainString +=
 `  ]
 }`
-  resultJsxString = `${topImportString}\n${jsxString}\n\n${bottomExportString}`
-  console.log(JSON.stringify(fileRoutes, null, 2))
+  resultString = `${topImportString}\n\n${mainString}\n\n${bottomExportString}`
+  // console.log(JSON.stringify(fileRoutes, null, 2))
 
-  fs.writeFileSync(path.resolve(__dirname, './result.tsx'), resultJsxString)
+  fs.writeFileSync(path.resolve(__dirname, './result.tsx'), resultString)
 
-  return jsxString
+  return mainString
 }
 
 function run() {
-  _transformRouteJSXString()
+  _transformRoutesTsxString()
 }
-
-console.log('------------------------------------\n------------------------------------')
 
 run()
