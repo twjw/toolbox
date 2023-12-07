@@ -1,0 +1,227 @@
+import path from 'path'
+import fs from 'fs'
+import {isArray, isObject} from "lodash-es";
+
+type FileRoute = {
+  filepath: string
+  routePath: string // ex. /example | /
+  fullRoutePath: string //
+  importPath: string // ex. @/pages/example
+  layout: boolean // 是否是 (outlet)
+  meta: boolean // 是否有 meta
+  children: FileRoute[]
+} | null
+
+type ArrayKeyType<T extends object> = {
+  [K in keyof T]: T[K] extends Array<any> ? K : never;
+}[keyof T];
+
+const OUTLET = '(outlet)'
+const META_NAME = 'page.meta.ts'
+const PAGE_NAME = 'page.tsx'
+const PAGES_DIR_PATH = 'C:\\__c_frank\\codes\\side\\@twjw\\tmpl-react-spa\\src\\pages'
+const LAST_WORD_REG = /[^\/\\]+$/
+const PAGES_DIR_NAME = PAGES_DIR_PATH.match(LAST_WORD_REG)![0]
+const SRC_ALIAS = `@/${PAGES_DIR_NAME}`
+let rid = 0
+let mid = 0
+
+function _getImportInfo(importPath: string, meta = false) {
+  const result = {
+    mid: null as null | string,
+    metaImportString: null as null | string,
+    lazyImportString: `import('${importPath}/${PAGE_NAME}')`,
+  }
+
+  if (meta) {
+    result.mid = `m${++mid}`
+    result.metaImportString = `import ${result.mid} from '${importPath}/${META_NAME}'`
+  }
+
+  return result
+}
+
+function _parameterReduce (p: string, e: string, i: number) {
+  return p + (i > 0 ? `${(e[0] || '').toUpperCase()}${e.substring(1) || ''}` : e)
+}
+
+function _getFileRoutes (
+  dirPath = PAGES_DIR_PATH,
+  routePath: string | null = null,
+  fullRoutePath: string | null = null,
+  importPath: string | null = null,
+  isParentOutlet = false,
+  pages: FileRoute[] = [],
+) {
+  try {
+    const files = fs.readdirSync(dirPath)
+    const hasOutlet = files.some(e => e === OUTLET)
+    let hasMeta = files.some(e => e === META_NAME)
+
+    files.forEach(file => {
+      const filepath = path.join(dirPath, file)
+      const lst = fs.lstatSync(filepath)
+      let parentPath = routePath == null ? dirPath.substring(PAGES_DIR_PATH.length).replace(/\\/g, '/') : routePath
+      let _importPath = importPath == null ? `${SRC_ALIAS}${dirPath.substring(PAGES_DIR_PATH.length).replace(/\\/g, '/')}` : importPath
+      const parentLastWord = parentPath.match(LAST_WORD_REG)?.[0]
+      let pfile = file.match(/^\[([A-z0-9-_]+)\]$/)?.[1]
+        .split('-')
+        .reduce(_parameterReduce, ':') || file
+
+      if (lst.isDirectory()) {
+        let page: FileRoute | undefined
+        const isOutlet = pfile === OUTLET
+        const layoutRoutePath = isOutlet ? '' : isParentOutlet ? pfile : `${parentPath}/${pfile}`
+        const layoutFullRoutePath = fullRoutePath != null
+					? isOutlet
+						? fullRoutePath
+						: `${fullRoutePath}/${pfile}`
+					: `${routePath || ''}/${pfile}`
+        const layoutImportPath = `${_importPath}/${file}`
+
+        if (isOutlet) {
+          page = {
+            filepath,
+            routePath: parentPath || '/',
+            fullRoutePath: layoutFullRoutePath,
+            importPath: _importPath,
+            layout: true,
+            meta: false,
+            children: [],
+          }
+
+          pages.push(page)
+        }
+
+        _getFileRoutes(
+          filepath,
+          layoutRoutePath,
+          layoutFullRoutePath,
+          layoutImportPath,
+          isOutlet,
+          page?.children || pages
+        )
+      } else if (!hasOutlet) {
+        let page: FileRoute | undefined
+
+        if (new RegExp(`${PAGE_NAME}$`).test(file)) {
+          const routePath = parentPath || '/'
+
+          page = {
+            filepath,
+            routePath: routePath,
+            fullRoutePath: fullRoutePath || routePath,
+            importPath: _importPath,
+            layout: false,
+            meta: hasMeta,
+            children: [],
+          }
+          pages.push(page)
+        }
+      }
+    })
+  } catch (err) {
+    console.error(`err from _getFileRoutes`, err)
+  }
+
+  return pages
+}
+
+function _recursiveObjTap<T extends object>(obj: T, key: ArrayKeyType<T>, tap: (e: T, level: number) => void, level = 1) {
+  const el = obj[key] as any[] | null;
+
+  tap(obj, level)
+
+  if (el != null) {
+    for (let i = 0; i < (el as T[]).length; i++) {
+      const el2 = el[i] as T;
+
+      if (isObject(el2)) {
+        _recursiveObjTap(el2, key, tap, level + 1)
+      }
+    }
+  }
+}
+
+// @prettier-ignore
+function _transformRouteJSXString() {
+  const fileRoutes = _getFileRoutes()
+  let topImportString =
+`import { lazy } from 'react'
+`
+  let jsxString =
+`function Routes() {
+  return [
+`
+  let bottomExportString =
+`export {
+  Routes,
+}`
+  let resultJsxString = ``
+  /*
+    <Route
+      key={$path}
+      path={$path}
+      element={
+        <context.Provider key={$nextPath} value={{ path: $path, meta: $meta }}>
+          <$Wrap>
+            <$LazyPage />
+          </$Wrap>
+        </context.Provider>
+      }
+    >
+      same
+    </Route>
+   */
+
+  for (let i = 0; i < fileRoutes.length; i++) {
+    _recursiveObjTap(fileRoutes[i]!, 'children', (e, level) => {
+      ++rid
+
+      if (e.layout) {
+
+      } else {
+        const { mid, metaImportString, lazyImportString } = _getImportInfo(e.importPath, e.meta)
+        const tab = '  ' + Array(level).fill('  ').join('')
+
+        if (mid) {
+          topImportString +=
+`${metaImportString}
+`
+        }
+
+        jsxString +=
+`${tab}<Route
+${tab}  key={'${rid}'}
+${tab}  path={'${e.routePath}'}
+${tab}  element={
+${tab}    <context.Provider key={'${rid}'} value={{ path: '${e.fullRoutePath}', meta: ${mid || undefined} }}>
+${tab}      <$Wrap>
+${tab}        {${`lazy(() => ${lazyImportString})`}}
+${tab}      </$Wrap>
+${tab}    </context.Provider>
+${tab}  }
+${tab}/>,
+`
+      }
+    })
+  }
+
+  jsxString +=
+`  ]
+}`
+  resultJsxString = `${topImportString}\n${jsxString}\n\n${bottomExportString}`
+  console.log(JSON.stringify(fileRoutes, null, 2))
+
+  fs.writeFileSync(path.resolve(__dirname, './result.tsx'), resultJsxString)
+
+  return jsxString
+}
+
+function run() {
+  _transformRouteJSXString()
+}
+
+console.log('------------------------------------\n------------------------------------')
+
+run()
