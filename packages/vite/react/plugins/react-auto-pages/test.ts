@@ -4,12 +4,17 @@ import {isObject} from "lodash-es";
 
 type FileRoute = {
   filepath: string
-  routePath: string // ex. /example | /
-  fullRoutePath: string //
+  routePath: string // 子路由前面不會有父路由
+  fullRoutePath: string // 完整的路由
   importPath: string // ex. @/pages/example
   layout: boolean // 是否是 (outlet)
   meta: boolean // 是否有 meta
   children: FileRoute[]
+}
+
+type RunOptions = {
+  defaultMeta?: any, // 預設的 meta 資料
+  pages: string[], // 頁面目錄的絕對路徑
 }
 
 type ArrayKeyType<T extends object> = {
@@ -19,10 +24,6 @@ type ArrayKeyType<T extends object> = {
 const OUTLET = '(outlet)'
 const META_NAME = 'page.meta.ts'
 const PAGE_NAME = 'page.tsx'
-const PAGES_DIR_PATH = 'C:\\__c_frank\\codes\\side\\@twjw\\tmpl-react-spa\\src\\pages'
-const LAST_WORD_REG = /[^\/\\]+$/
-const PAGES_DIR_NAME = PAGES_DIR_PATH.match(LAST_WORD_REG)![0]
-const SRC_ALIAS = `@/${PAGES_DIR_NAME}`
 let rid = 0
 let mid = 0
 
@@ -46,7 +47,9 @@ function _parameterReduce (p: string, e: string, i: number) {
 }
 
 function _getFileRoutes (
-  dirPath = PAGES_DIR_PATH,
+  alias: string, // 預設的 alias
+  originDirPath: string, // 預設的 pages 路徑
+  dirPath = originDirPath, // 最新的 pages 路徑
   routePath: string | null = null,
   fullRoutePath: string | null = null,
   importPath: string | null = null,
@@ -61,8 +64,8 @@ function _getFileRoutes (
     files.forEach(file => {
       const filepath = path.join(dirPath, file)
       const lst = fs.lstatSync(filepath)
-      let parentPath = routePath == null ? dirPath.substring(PAGES_DIR_PATH.length).replace(/\\/g, '/') : routePath
-      let _importPath = importPath == null ? `${SRC_ALIAS}${dirPath.substring(PAGES_DIR_PATH.length).replace(/\\/g, '/')}` : importPath
+      let parentPath = routePath == null ? dirPath.substring(originDirPath.length).replace(/\\/g, '/') : routePath
+      let _importPath = importPath == null ? `${alias}${dirPath.substring(originDirPath.length).replace(/\\/g, '/')}` : importPath
       let pfile = file.match(/^\[([A-z0-9-_]+)\]$/)?.[1]
         .split('-')
         .reduce(_parameterReduce, ':') || file
@@ -93,6 +96,8 @@ function _getFileRoutes (
         }
 
         _getFileRoutes(
+          alias,
+          originDirPath,
           filepath,
           layoutRoutePath,
           layoutFullRoutePath,
@@ -156,8 +161,7 @@ ${tab} }`
 }
 
 // @prettier-ignore
-function _transformRoutesTsxString() {
-  const fileRoutes = _getFileRoutes()
+function _transformRoutesTsxString(fileRoutes: FileRoute[], defaultMeta?: any) {
   let topImportString =
 `import { lazy, createContext, useContext, type FC, type ComponentType } from 'react'
 import { Route } from 'react-router-dom'`
@@ -168,6 +172,7 @@ import { Route } from 'react-router-dom'`
 }
 
 const context = createContext<any>(null)
+// 要插入 defaultMeta 送到 meta === undefined 的地方裡
 
 function useRoute() {
   return useContext(context)
@@ -226,8 +231,35 @@ ${tab}/>${parent?.layout ? '' : ',\n'}`
   return mainString
 }
 
-function run() {
-  _transformRoutesTsxString()
+function run (
+  {
+    pages,
+    defaultMeta,
+  }: RunOptions
+) {
+  // 之後要改成 process.cwd()
+  const PROJECT_PATH = 'C:\\__c_frank\\codes\\side\\@twjw\\tmpl-react-spa'
+  const PAGES_DIR_PATH = 'C:\\__c_frank\\codes\\side\\@twjw\\tmpl-react-spa\\src\\pages'
+  const LAST_WORD_REG = /[^\/\\]+$/
+  const PAGES_DIR_NAME = PAGES_DIR_PATH.match(LAST_WORD_REG)![0]
+  const SRC_ALIAS = `@/${PAGES_DIR_NAME}`
+  const fileRoutesList: FileRoute[][] = []
+
+  for (let i = 0; i < pages.length; i++) {
+     fileRoutesList.push(_getFileRoutes(
+      SRC_ALIAS,
+      PAGES_DIR_PATH,
+      PAGES_DIR_PATH,
+    ))
+  }
 }
 
-run()
+run({
+  pages: [
+    'C:\\__c_frank\\codes\\side\\@twjw\\tmpl-react-spa\\src\\pages',
+    'C:\\__c_frank\\codes\\side\\@twjw\\tmpl-react-spa\\src\\pages2',
+  ],
+  defaultMeta: {
+    title: 'hello world',
+  }
+})
