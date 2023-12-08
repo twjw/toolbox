@@ -2,7 +2,7 @@ import type { Plugin } from "vite";
 
 function buildDropLog(buildClean = false): any {
   const plugin: Plugin = {
-    name: 'vite-plugin-drop-log',
+    name: 'vite-plugin-build-drop-log',
     enforce: 'pre',
     config(config) {
       if (config.build && buildClean) {
