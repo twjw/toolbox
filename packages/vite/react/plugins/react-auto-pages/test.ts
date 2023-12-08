@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import { isObject } from 'lodash-es'
+import {getBuildPath} from "../../../../../utils/node/build-path.ts";
 
 type FileRoute = {
 	filepath: string
@@ -42,119 +43,6 @@ function _getImportInfo(importPath: string, meta = false) {
 	return result
 }
 
-function _parameterReduce(p: string, e: string, i: number) {
-	return p + (i > 0 ? `${(e[0] || '').toUpperCase()}${e.substring(1) || ''}` : e)
-}
-
-type GetFileRoutesArgs = {
-	alias: string // 預設的 alias
-	originDirPath: string // 預設的 pages 路徑
-	dirPath?: string // 最新的 pages 路徑
-	routePath?: string | null
-	fullRoutePath?: string | null
-	importPath?: string | null
-	isParentOutlet?: boolean
-	pages?: FileRoute[]
-}
-
-function _getFileRoutes({
-	alias,
-	originDirPath,
-	dirPath = originDirPath,
-	routePath = null,
-	fullRoutePath = null,
-	importPath = null,
-	isParentOutlet = false,
-	pages = [],
-}: GetFileRoutesArgs) {
-	try {
-		const files = fs.readdirSync(dirPath)
-		const hasOutlet = files.some(e => e === OUTLET)
-		let hasMeta = files.some(e => e === META_NAME)
-
-		files.forEach(file => {
-			const filepath = path.join(dirPath, file)
-			const lst = fs.lstatSync(filepath)
-			let parentPath =
-				routePath == null
-					? dirPath.substring(originDirPath.length).replace(/\\/g, '/')
-					: routePath
-			let _importPath =
-				importPath == null
-					? `${alias}${dirPath.substring(originDirPath.length).replace(/\\/g, '/')}`
-					: importPath
-			let pfile =
-				file
-					.match(/^\[([A-z0-9-_]+)\]$/)?.[1]
-					.split('-')
-					.reduce(_parameterReduce, ':') || file
-
-			if (lst.isDirectory()) {
-				let page: FileRoute | undefined
-				const isOutlet = pfile === OUTLET
-				const layoutRoutePath = isOutlet
-					? ''
-					: isParentOutlet
-					  ? pfile
-					  : `${parentPath}/${pfile}`
-				const layoutFullRoutePath =
-					fullRoutePath != null
-						? isOutlet
-							? fullRoutePath
-							: `${fullRoutePath}/${pfile}`
-						: `${routePath || ''}/${pfile}`
-				const layoutImportPath = `${_importPath}/${file}`
-
-				if (isOutlet) {
-					page = {
-						filepath,
-						routePath: parentPath || '/',
-						fullRoutePath: layoutFullRoutePath,
-						importPath: _importPath,
-						layout: true,
-						meta: false,
-						children: [],
-					}
-
-					pages.push(page)
-				}
-
-				_getFileRoutes({
-					alias: alias,
-					originDirPath: originDirPath,
-					dirPath: filepath,
-					routePath: layoutRoutePath,
-					fullRoutePath: layoutFullRoutePath,
-					importPath: layoutImportPath,
-					isParentOutlet: isOutlet,
-					pages: page?.children || pages,
-				})
-			} else if (!hasOutlet) {
-				let page: FileRoute | undefined
-
-				if (new RegExp(`${PAGE_NAME}$`).test(file)) {
-					const routePath = parentPath || '/'
-
-					page = {
-						filepath,
-						routePath: routePath,
-						fullRoutePath: fullRoutePath || routePath,
-						importPath: _importPath,
-						layout: false,
-						meta: hasMeta,
-						children: [],
-					}
-					pages.push(page)
-				}
-			}
-		})
-	} catch (err) {
-		console.error(`err from _getFileRoutes`, err)
-	}
-
-	return pages
-}
-
 function _recursiveObjTap<T extends object>(
 	obj: T,
 	key: ArrayKeyType<T>,
@@ -189,7 +77,7 @@ ${tab} key={'${rid}'}
 ${tab} path={'${fileRoute.routePath}'}
 ${tab} element={
 ${tab}   <context.Provider key={'${rid}'} value={{ path: '${fileRoute.fullRoutePath}', meta: ${
-		mid || undefined
+		mid || undefined || 'defaultMeta'
 	} }}>
 ${tab}     <props.Wrap>
 ${tab}       {lazy(() => ${lazyImportString})}
@@ -206,6 +94,8 @@ import { Route } from 'react-router-dom'`
 	let mainString = `type RoutesProps = {
   Wrap: FC<{ children: ComponentType }>
 }
+
+const defaultMeta = ${JSON.stringify(defaultMeta, null, 2)}
 
 const context = createContext<any>(null)
 // 要插入 defaultMeta 送到 meta === undefined 的地方裡
@@ -263,16 +153,24 @@ ${tab}/>${parent?.layout ? '' : ',\n'}`
 	resultString = `${topImportString}\n\n${mainString}\n\n${bottomExportString}`
 	// console.log(JSON.stringify(fileRoutes, null, 2))
 
-	fs.writeFileSync(path.resolve(__dirname, './result.tsx'), resultString)
+	fs.writeFileSync(path.resolve(getBuildPath(), './react-page-routes.tsx'), resultString)
 
 	return mainString
 }
 
 // company
-// const PROJECT_PATH = 'C:\\__c_frank\\codes\\side\\@twjw\\tmpl-react-spa'
+const PROJECT_PATH = 'C:\\__c_frank\\codes\\side\\@twjw\\tmpl-react-spa'
 // home
-const PROJECT_PATH = 'C:\\_frank\\code\\@twjw\\tmpl-react-spa'
+// const PROJECT_PATH = 'C:\\_frank\\code\\@twjw\\tmpl-react-spa'
 const BUILD_PATH = `${PROJECT_PATH}\\node_modules\\.wbtx-build`
+
+function _changeRouteParameter (routePath: string) {
+	return routePath.replace(/\[([^\]]+)\]/g, function(_, key) {
+		return `:${key}`.replace(/-([a-z])/g, function (_, letter: string) {
+			return letter.toUpperCase()
+		})
+	});
+}
 
 function _getFlatRoutes(
 	rootPath: string,
@@ -303,20 +201,25 @@ function _getFlatRoutes(
 					}
 				}
 			} else if (file === PAGE_NAME) {
-				const fullRoutePath = filepath
-					.substring(rootPath.length)
-					.replace(
-						new RegExp(`\\(${OUTLET.substring(1, OUTLET.length - 1)}\\)([\\\\\/]+)`, 'g'),
-						'',
-					)
-					.replace(/\\/g, '/')
-				node = routePathMap[fullRoutePath] = {
+				// /完整路由/page.tsx
+				const fullRoutePagePath = _changeRouteParameter(
+					filepath
+						.substring(rootPath.length)
+						.replace(
+							new RegExp(`\\(${OUTLET.substring(1, OUTLET.length - 1)}\\)([\\\\\/]+)`, 'g'),
+							'',
+						)
+						.replace(/\\/g, '/')
+				)
+				// /完整路由
+				const fullRoutePath = fullRoutePagePath.substring(
+					0,
+					fullRoutePagePath.length - PAGE_NAME.length - 1,
+				) || '/'
+				node = routePathMap[fullRoutePagePath] = {
 					filepath,
-					routePath: `${isParentLayout}`,
-					fullRoutePath: fullRoutePath.substring(
-						0,
-						fullRoutePath.length - PAGE_NAME.length - 1,
-					),
+					routePath: fullRoutePath, // 後續轉物件塞進去
+					fullRoutePath,
 					importPath: path.relative(BUILD_PATH, filepath).replace(/\\/g, '/'),
 					layout: hasOutlet,
 					meta: hasMeta,
@@ -341,8 +244,52 @@ function _getFlatRoutes(
 	return routePathMap
 }
 
+function _toRecordRoutes (flatRouteList: FileRoute[], parentFullRoutePath?: string, resultRoutes: FileRoute[] = []) {
+	const rangeIdxesList = [] as number[][]
+
+	for (let i = 0; i < flatRouteList.length; i++) {
+		const routeInfo = flatRouteList[i]
+		const rangeIdxes = [i] as number[]
+
+		if (parentFullRoutePath != null) {
+			routeInfo.routePath = routeInfo.routePath.substring(parentFullRoutePath.length + 1)
+		}
+
+		if (routeInfo.layout) {
+			for (let j = i + 1; j < flatRouteList.length; j++) {
+				if (!new RegExp(`^${routeInfo.fullRoutePath}`).test(flatRouteList[j].fullRoutePath)) {
+					rangeIdxes.push(j - 1)
+					break
+				}
+			}
+
+			if (rangeIdxes[1]) {
+				i = rangeIdxes[1]
+			}
+		}
+
+		rangeIdxesList.push(rangeIdxes)
+	}
+
+	for (let i = 0; i < rangeIdxesList.length; i++) {
+		const [from, to] = rangeIdxesList[i]
+
+		if (to != null) {
+			const route = flatRouteList[from]
+			const childFlatRouteList = flatRouteList.slice(from + 1, to + 1)
+			resultRoutes.push(route)
+			route.children = _toRecordRoutes(childFlatRouteList, route.fullRoutePath, [])
+		} else {
+			resultRoutes.push(flatRouteList[from])
+		}
+	}
+
+	return resultRoutes
+}
+
 function run({ pages, defaultMeta }: RunOptions) {
-	let flatRoutes: Record<string, { filepath: string; meta: boolean }> | undefined
+	let flatRoutes: Record<string, FileRoute> | undefined
+
 	for (let i = 0; i < pages.length; i++) {
 		if (flatRoutes == null) {
 			flatRoutes = _getFlatRoutes(pages[i])
@@ -355,26 +302,9 @@ function run({ pages, defaultMeta }: RunOptions) {
 			}
 		}
 	}
-	console.log(Object.values(flatRoutes!))
-	return
-	// 之後要改成 getBuildPath()
-	const BUILD_PATH = `${PROJECT_PATH}\\node_modules\\.wbtx-build`
-	// 之後要改成 path.resolve(process.cwd(), './src/pages')
-	const PAGES_DIR_PATH = `${PROJECT_PATH}\\src\\pages`
-	const SRC_ALIAS = path.relative(BUILD_PATH, PAGES_DIR_PATH).replace(/\\/g, '/')
-	const fileRoutesList: FileRoute[][] = []
 
-	for (let i = 0; i < pages.length; i++) {
-		fileRoutesList.push(
-			_getFileRoutes({
-				alias: SRC_ALIAS,
-				originDirPath: PAGES_DIR_PATH,
-				dirPath: PAGES_DIR_PATH,
-			}),
-		)
-	}
-
-	console.log(fileRoutesList)
+	const resultRoutes = _toRecordRoutes(Object.values(flatRoutes!))
+	_transformRoutesTsxString(resultRoutes, defaultMeta)
 }
 
 run({
@@ -383,3 +313,4 @@ run({
 		title: 'hello world',
 	},
 })
+
