@@ -6,7 +6,9 @@ import {DEFAULT_ALIAS_NAME} from "./constants.ts";
 import path from "path";
 import {waitMs} from "../../../../common";
 
-function reactPageRoutes(options: RunOptions & { aliasName?: string }): any {
+type ReactPageRoutesOptions = RunOptions & { aliasName?: string }
+
+function reactPageRoutes(options: ReactPageRoutesOptions): any {
 	const { aliasName = DEFAULT_ALIAS_NAME, ...runOptions } = options
 	const aliasPath = `/node_modules/${buildFolderName}/${RESULT_FILENAME}`
 	const absoluteSlashAliasPath = path.resolve(process.cwd(), `.${aliasPath}`).replace(/[\\]/g, '/')
@@ -61,4 +63,5 @@ function reactPageRoutes(options: RunOptions & { aliasName?: string }): any {
 	return plugin
 }
 
+export type { ReactPageRoutesOptions }
 export { reactPageRoutes }

@@ -16,7 +16,7 @@ type FileRoute = {
 
 type RunOptions = {
 	defaultMeta?: any // 預設的 meta 資料
-	pages: string[] // 頁面目錄的絕對路徑
+	pages: string[] // 頁面目錄的絕對路徑(後蓋前)
 }
 
 type ArrayKeyType<T extends object> = {
