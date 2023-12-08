@@ -3,13 +3,14 @@ import { log } from '../../../utils/log'
 import fs from 'fs'
 import jsonc from 'jsonc-parser'
 import type { Plugin } from 'vite'
-import { buildFolderName, envConfigFilename, envConfigModuleFromName } from '../../../constants'
+import { envConfigFilename, envConfigModuleFromName } from '../../node/create-env-config/constants.ts'
+import { buildFolderName } from "../../../constants";
 
 type AutoAliasOptions = {
 	filename?: string
 	filepath?: string /* absolute path */
 	hasEnv?: boolean
-	envFromName?: string
+	envModuleName?: string
 }
 
 function getIdeaPaths(filename: string, filepath: string) {
@@ -37,12 +38,13 @@ function createViteAliasFromTsconfig(options?: AutoAliasOptions) {
 	} = options || {}
 	const alias = getIdeaPaths(filename, filepath)
 
-	if (options?.hasEnv) {
-		alias[envConfigModuleFromName] = `/node_modules/${buildFolderName}/${envConfigFilename}`
-	}
-
 	log.info(`通過 ${filename} 生成的 alias:`)
 	log.info(alias)
+
+	if (options?.hasEnv) {
+		alias[options.envModuleName!] = `/node_modules/${buildFolderName}/${envConfigFilename}`
+		log.info(`vite-plugin-auto-alias 的 vite.resolve.alias name 為 ${options.envModuleName!}`)
+	}
 
 	return alias
 }
@@ -54,8 +56,8 @@ function autoAlias(options?: AutoAliasOptions): any {
 		_options.hasEnv = true
 	}
 
-	if (_options.envFromName == null) {
-		_options.envFromName = envConfigModuleFromName
+	if (_options.envModuleName == null) {
+		_options.envModuleName = envConfigModuleFromName
 	}
 
 	const plugin: Plugin = {

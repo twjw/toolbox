@@ -2,6 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import { isObject } from 'lodash-es'
 import {getBuildPath} from "../../../../../utils/node/build-path.ts";
+import {log} from "../../../../../utils/log.ts";
 
 type FileRoute = {
 	filepath: string
@@ -25,14 +26,18 @@ type ArrayKeyType<T extends object> = {
 const OUTLET = '(outlet)'
 const META_NAME = 'page.meta.ts'
 const PAGE_NAME = 'page.tsx'
+const RESULT_FILENAME = 'react-page-routes.tsx'
 let rid = 0
 let mid = 0
+let lid = 0
 
 function _getImportInfo(importPath: string, meta = false) {
+	const lcId = `LC${++lid}`
 	const result = {
 		mid: null as null | string,
 		metaImportString: null as null | string,
-		lazyImportString: `import('${importPath}/${PAGE_NAME}')`,
+		lid: lcId,
+		lazyImportString: `const ${lcId} = lazy(() => import('${importPath}/${PAGE_NAME}'))`,
 	}
 
 	if (meta) {
@@ -70,7 +75,7 @@ function _createCommonRouteTsxString(
 	tab: string,
 	rid: string,
 	mid: string | null,
-	lazyImportString: string,
+	LC: string,
 ) {
 	return `${tab}<Route
 ${tab} key={'${rid}'}
@@ -80,36 +85,37 @@ ${tab}   <context.Provider key={'${rid}'} value={{ path: '${fileRoute.fullRouteP
 		mid || undefined || 'defaultMeta'
 	} }}>
 ${tab}     <props.Wrap>
-${tab}       {lazy(() => ${lazyImportString})}
+${tab}       <${LC} />
 ${tab}     </props.Wrap>
 ${tab}   </context.Provider>
 ${tab} }`
 }
 
 // @prettier-ignore
-function _transformRoutesTsxString(fileRoutes: FileRoute[], defaultMeta?: any) {
+function _createRoutesTsxString(fileRoutes: FileRoute[], defaultMeta?: any) {
 	let topImportString = `import { lazy, createContext, useContext, type FC, type ComponentType } from 'react'
 import { Route } from 'react-router-dom'`
 
-	let mainString = `type RoutesProps = {
-  Wrap: FC<{ children: ComponentType }>
+	let topLazyImportString = ''
+
+	let mainString = `type PageRoutesProps = {
+  Wrap: FC<{ children: Element }>
 }
 
 const defaultMeta = ${JSON.stringify(defaultMeta, null, 2)}
 
 const context = createContext<any>(null)
-// 要插入 defaultMeta 送到 meta === undefined 的地方裡
 
-function useRoute() {
+function usePageRoute() {
   return useContext(context)
 }
 
-function Routes(props: RoutesProps) {
-  return [`
+function createPageRoutes(props: PageRoutesProps) {
+  return <>`
 
 	let bottomExportString = `export {
-  Routes,
-  useRoute,
+  createPageRoutes,
+  usePageRoute,
 }`
 	let resultString = ''
 
@@ -117,7 +123,7 @@ function Routes(props: RoutesProps) {
 
 	for (let i = 0; i < fileRoutes.length; i++) {
 		_recursiveObjTap(fileRoutes[i]!, 'children', (e, level, parent) => {
-			const { mid, metaImportString, lazyImportString } = _getImportInfo(e.importPath, e.meta)
+			const { mid, metaImportString, lid, lazyImportString } = _getImportInfo(e.importPath, e.meta)
 			const tab = ' ' + Array(level).fill('  ').join('')
 
 			++rid
@@ -125,12 +131,14 @@ function Routes(props: RoutesProps) {
 				topImportString += `\n${metaImportString}`
 			}
 
+			topLazyImportString += `\n${lazyImportString}`
+
 			const commonRouteTsxString = _createCommonRouteTsxString(
 				e,
 				tab,
 				String(rid),
 				mid,
-				lazyImportString,
+				lid,
 			)
 
 			if (e.layout) {
@@ -148,21 +156,14 @@ ${tab}/>${parent?.layout ? '' : ',\n'}`
 		})
 	}
 
-	mainString += `  ]
+	mainString += `  </>
 }`
-	resultString = `${topImportString}\n\n${mainString}\n\n${bottomExportString}`
+	resultString = `${topImportString}\n${topLazyImportString}\n\n${mainString}\n\n${bottomExportString}`
 	// console.log(JSON.stringify(fileRoutes, null, 2))
 
-	fs.writeFileSync(path.resolve(getBuildPath(), './react-page-routes.tsx'), resultString)
-
-	return mainString
+	fs.writeFileSync(path.resolve(getBuildPath(), `./${RESULT_FILENAME}`), resultString)
+	log.info('react-page-routes 已創建或更新')
 }
-
-// company
-const PROJECT_PATH = 'C:\\__c_frank\\codes\\side\\@twjw\\tmpl-react-spa'
-// home
-// const PROJECT_PATH = 'C:\\_frank\\code\\@twjw\\tmpl-react-spa'
-const BUILD_PATH = `${PROJECT_PATH}\\node_modules\\.wbtx-build`
 
 function _changeRouteParameter (routePath: string) {
 	return routePath.replace(/\[([^\]]+)\]/g, function(_, key) {
@@ -175,7 +176,6 @@ function _changeRouteParameter (routePath: string) {
 function _getFlatRoutes(
 	rootPath: string,
 	dirPath = rootPath,
-	isParentLayout = false,
 	// Record<fullRoutePath, filepath>
 	routePathMap: Record<string, FileRoute> = {},
 ): Record<string, FileRoute> {
@@ -216,11 +216,14 @@ function _getFlatRoutes(
 					0,
 					fullRoutePagePath.length - PAGE_NAME.length - 1,
 				) || '/'
+				const relativeFilepath = path.relative(getBuildPath(), filepath)
+				const importPath = relativeFilepath.substring(0,
+					relativeFilepath.length - PAGE_NAME.length - 1,).replace(/\\/g, '/')
 				node = routePathMap[fullRoutePagePath] = {
 					filepath,
 					routePath: fullRoutePath, // 後續轉物件塞進去
 					fullRoutePath,
-					importPath: path.relative(BUILD_PATH, filepath).replace(/\\/g, '/'),
+					importPath,
 					layout: hasOutlet,
 					meta: hasMeta,
 					children: [],
@@ -235,7 +238,7 @@ function _getFlatRoutes(
 		})
 
 		for (let i = 0; i < childDirPathList.length; i++) {
-			_getFlatRoutes(rootPath, childDirPathList[i], hasOutlet, routePathMap)
+			_getFlatRoutes(rootPath, childDirPathList[i], routePathMap)
 		}
 	} catch (error) {
 		console.error(error)
@@ -243,6 +246,8 @@ function _getFlatRoutes(
 
 	return routePathMap
 }
+
+
 
 function _toRecordRoutes (flatRouteList: FileRoute[], parentFullRoutePath?: string, resultRoutes: FileRoute[] = []) {
 	const rangeIdxesList = [] as number[][]
@@ -287,7 +292,7 @@ function _toRecordRoutes (flatRouteList: FileRoute[], parentFullRoutePath?: stri
 	return resultRoutes
 }
 
-function run({ pages, defaultMeta }: RunOptions) {
+function create({ pages, defaultMeta }: RunOptions) {
 	let flatRoutes: Record<string, FileRoute> | undefined
 
 	for (let i = 0; i < pages.length; i++) {
@@ -304,13 +309,17 @@ function run({ pages, defaultMeta }: RunOptions) {
 	}
 
 	const resultRoutes = _toRecordRoutes(Object.values(flatRoutes!))
-	_transformRoutesTsxString(resultRoutes, defaultMeta)
+	_createRoutesTsxString(resultRoutes, defaultMeta)
 }
 
-run({
-	pages: [`${PROJECT_PATH}\\src\\pages`, `${PROJECT_PATH}\\src\\pages2`],
-	defaultMeta: {
-		title: 'hello world',
-	},
-})
+export type {
+	RunOptions
+}
 
+export {
+	OUTLET,
+	META_NAME,
+	PAGE_NAME,
+	RESULT_FILENAME,
+	create,
+}

@@ -4,7 +4,7 @@ import JSON5 from 'json5'
 import { cloneDeep, isObject, merge } from 'lodash-es'
 import { log } from '../../../utils/log'
 import { checkNewBuildGitIgnore, getBuildPath } from '../../../utils/node/build-path.ts'
-import { envConfigFilename, envConfigModuleName } from '../../../constants'
+import { envConfigFilename, envConfigModuleName } from './constants'
 
 type ConfigExt = 'json' | 'ts'
 type TransformEnvConfig<Env, Mode, Result> = (envConfig: Env & { mode: Mode }) => Result
