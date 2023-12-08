@@ -148,12 +148,12 @@ const _removePrivateKeyValue = (obj: Record<string, any>, removeKeyObj: any) => 
 const _dontTransform = <R>(e: any) => e as R
 
 const createEnvConfig = async <
-	Env,
+	Env extends Record<string, any>,
 	Mode = string,
-	Result extends Record<string, any> = Env & { mode: Mode },
+	Result = '__',
 >(
 	options: CreateEnvConfigOptions<Env, Mode, Result>,
-): Promise<Result> => {
+): Promise<Result extends '__' ? Env & { mode: Mode } : Result> => {
 	const {
 		mode,
 		dirPath = process.cwd(),
@@ -166,7 +166,7 @@ const createEnvConfig = async <
 
 	let config = {
 		mode,
-	} as (Env & { mode: Mode }) | Result
+	} as (Env & { mode: Mode })
 	let privateKeys = {} as Record<string, any>
 
 	if (supportExtensions.includes(extension)) {
@@ -183,7 +183,7 @@ const createEnvConfig = async <
 			if (env === mode) await _passConfig(dirPath, privateKeys, config, filename, extension)
 		}
 
-		config = transform(config as Env & { mode: Mode })
+		config = transform(config) as any
 		const viteConfig = cloneDeep(config)
 		_removePrivateKeyValue(viteConfig, privateKeys)
 
@@ -197,7 +197,7 @@ const createEnvConfig = async <
 	log.info('環境變數創建完畢！環境變數為：')
 	log.info(JSON.stringify(config, null, 2))
 
-	return config as Result
+	return config as any
 }
 
 export type { ConfigExt, TransformEnvConfig, CreateEnvConfigOptions }
