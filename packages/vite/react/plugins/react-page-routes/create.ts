@@ -27,12 +27,14 @@ const OUTLET = '(outlet)'
 const META_NAME = 'page.meta.ts'
 const PAGE_NAME = 'page.tsx'
 const RESULT_FILENAME = 'react-page-routes.tsx'
-let rid = 0
-let mid = 0
-let lid = 0
+const ids = {
+	r: 0, // route key
+	m: 0, // meta
+	l: 0, // lazy component
+}
 
 function _getImportInfo(importPath: string, meta = false) {
-	const lcId = `LC${++lid}`
+	const lcId = `LC${++ids.l}`
 	const result = {
 		mid: null as null | string,
 		metaImportString: null as null | string,
@@ -41,7 +43,7 @@ function _getImportInfo(importPath: string, meta = false) {
 	}
 
 	if (meta) {
-		result.mid = `m${++mid}`
+		result.mid = `m${++ids.m}`
 		result.metaImportString = `import ${result.mid} from '${importPath}/${META_NAME}'`
 	}
 
@@ -126,7 +128,7 @@ function createPageRoutes(props: PageRoutesProps) {
 			const { mid, metaImportString, lid, lazyImportString } = _getImportInfo(e.importPath, e.meta)
 			const tab = ' ' + Array(level).fill('  ').join('')
 
-			++rid
+			ids.r++
 			if (mid) {
 				topImportString += `\n${metaImportString}`
 			}
@@ -136,7 +138,7 @@ function createPageRoutes(props: PageRoutesProps) {
 			const commonRouteTsxString = _createCommonRouteTsxString(
 				e,
 				tab,
-				String(rid),
+				String(ids.r),
 				mid,
 				lid,
 			)
@@ -163,6 +165,9 @@ ${tab}/>${parent?.layout ? '' : ',\n'}`
 
 	fs.writeFileSync(path.resolve(getBuildPath(), `./${RESULT_FILENAME}`), resultString)
 	log.info('react-page-routes 已創建或更新')
+	for (let k in ids) {
+		ids[k as keyof typeof ids] = 0
+	}
 }
 
 function _changeRouteParameter (routePath: string) {
