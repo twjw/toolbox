@@ -41,8 +41,8 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 
 				isCreating = true
 				log.info('捕獲到新的路由頁，即將為您更新路由...')
-				create(runOptions)
 				await waitMs(250)
+				create(runOptions)
 				isCreating = false
 
 				const mod = server.moduleGraph.getModuleById(absoluteSlashAliasPath)
