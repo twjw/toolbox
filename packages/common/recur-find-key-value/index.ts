@@ -1,8 +1,8 @@
-import { wObject } from '../../type'
+import { WObject } from '../../type'
 
 const recurFindKeyValue = <T extends object, Sep extends string = '.'>(
 	obj: T,
-	key: wObject.RecursiveKeyOf<T, Sep>,
+	key: WObject.RecursiveKeyOf<T, Sep>,
 	separator?: Sep,
 ) => {
 	const keys = key.split(separator || '.')

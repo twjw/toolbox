@@ -4,7 +4,7 @@ import fs from 'fs'
 import jsonc from 'jsonc-parser'
 import type { Plugin } from 'vite'
 import { envConfigFilename, envConfigModuleFromName } from '../../../node/create-env-config/constants.ts'
-import { buildFolderName } from "../../../../constants";
+import { VIRTUAL_PATH } from "../../../../constants";
 
 type AutoAliasOptions = {
   filename?: string
@@ -42,7 +42,7 @@ function createViteAliasFromTsconfig(options?: AutoAliasOptions) {
   log.info(alias)
 
   if (options?.hasEnv) {
-    alias[options.envModuleName!] = `/node_modules/${buildFolderName}/${envConfigFilename}`
+    alias[options.envModuleName!] = `/${VIRTUAL_PATH}/${envConfigFilename}`
     log.info(`vite-plugin-auto-alias 的 vite.resolve.alias name 為 ${options.envModuleName!}`)
   }
 

@@ -1,11 +1,20 @@
 import type { Plugin } from "vite";
 
-function buildDropLog(buildClean = false): any {
+type ModuleOptions = {
+  clean?: boolean
+}
+
+const PLUGIN_NAME = 'build-drop-log'
+const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
+
+function buildDropLog(options?: ModuleOptions): any {
+  const { clean = true } = options || {}
+
   const plugin: Plugin = {
-    name: 'vite-plugin-build-drop-log',
+    name: FULL_PLUGIN_NAME,
     enforce: 'pre',
     config(config) {
-      if (config.build && buildClean) {
+      if (config.build && clean) {
         return {
           esbuild: {
             drop: ['console', 'debugger'],

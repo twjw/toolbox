@@ -1,1 +1,1 @@
-export const buildFolderName = '.wtbx-build'
+export const VIRTUAL_PATH = 'node_modules/wtbx/.vb'

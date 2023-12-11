@@ -1,4 +1,4 @@
-import { wString } from '../../type'
+import { WString } from '../../type'
 
 enum Storage2TypeEnum {
 	string,
@@ -18,7 +18,7 @@ type Storage2PropState = Record<string, Storage2DefineResult<any, any>>
 type Storage2ConnectString<
 	S1 extends string,
 	S2 extends string,
-> = `${S1}${wString.FirstUppercase<S2>}`
+> = `${S1}${WString.FirstUppercase<S2>}`
 
 type Storage2Define<Prefix extends string, State extends Storage2PropState> = {
 	[K in keyof State]: Omit<State[K], 'driver'> & {

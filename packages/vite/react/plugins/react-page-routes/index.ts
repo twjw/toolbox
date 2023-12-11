@@ -1,7 +1,7 @@
 import type { Plugin } from 'vite'
 import {META_NAME, PAGE_NAME, create, RunOptions, RESULT_FILENAME} from "./create.ts";
 import {log} from "../../../../../utils/log.ts";
-import {buildFolderName} from "../../../../../constants";
+import {VIRTUAL_PATH} from "../../../../../constants";
 import {DEFAULT_ALIAS_NAME} from "./constants.ts";
 import path from "path";
 import {waitMs} from "../../../../common";
@@ -10,8 +10,8 @@ type ReactPageRoutesOptions = RunOptions & { aliasName?: string }
 
 function reactPageRoutes(options: ReactPageRoutesOptions): any {
 	const { aliasName = DEFAULT_ALIAS_NAME, ...runOptions } = options
-	const aliasPath = `/node_modules/${buildFolderName}/${RESULT_FILENAME}`
-	const absoluteSlashAliasPath = path.resolve(process.cwd(), `.${aliasPath}`).replace(/[\\]/g, '/')
+	const aliasPath = `${VIRTUAL_PATH}/${RESULT_FILENAME}`
+	const absoluteSlashAliasPath = path.resolve(process.cwd(), aliasPath).replace(/[\\]/g, '/')
 
 	const plugin: Plugin = {
 		name: 'vite-plugin-react-page-routes',
