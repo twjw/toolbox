@@ -2,6 +2,7 @@ import type { Plugin } from 'vite'
 import fs from 'fs'
 import path from 'path'
 import { log } from '../../../../../utils/log.ts'
+import {waitMs} from "../../../../common";
 
 type NiceI18nOptions = {
 	dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)
@@ -91,7 +92,10 @@ async function _updateLocale(_locale) {
 }
 
 async function setLocale(_locale) {
-  if (_dictionaryMap[_locale] == null) return
+  if (_dictionaryMap[_locale] == null) {
+    console.warn(\`not found locale \${_locale}\`)
+    return
+  }
   
   await _updateLocale(_locale, _locale)
   _forceUpdate?.()
@@ -135,6 +139,33 @@ function niceI18n(options: NiceI18nOptions): any {
     enforce: 'pre',
     configResolved() {
       globMap = _generateLangGlobPath({ dirs })
+      log.info('已開啟多語系功能，模塊名稱為 ~nice-i18n...')
+    },
+    configureServer(server) {
+      let isUpdating = false
+
+      async function debounceGenerate (filepath: string) {
+        const [, filename] = filepath.split(dirs[0])
+
+        if (isUpdating || !filename || !/^\\[A-z0-9-_]+\.(ts|json)$/.test(filename)) return
+
+        isUpdating = true
+        globMap = _generateLangGlobPath({ dirs })
+        await waitMs(250)
+        isUpdating = false
+
+        const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
+
+        if (mod) {
+          server.moduleGraph.invalidateModule(mod)
+          server.ws.send({
+            type: 'full-reload'
+          })
+        }
+      }
+
+      server.watcher.on('unlink', debounceGenerate)
+      server.watcher.on('add', debounceGenerate)
     },
     resolveId(id) {
       if (id === V_MODULE_NAME) {
