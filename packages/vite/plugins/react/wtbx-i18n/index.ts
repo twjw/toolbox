@@ -4,18 +4,18 @@ import path from 'path'
 import { log } from '../../../../../utils/log.ts'
 import {waitMs} from "../../../../common";
 
-type NiceI18nOptions = {
+type WtbxI18nOptions = {
 	dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)
 }
 
 type _GlobMap = Record<string, string> // <locale, globPath>
 
-const PLUGIN_NAME = 'nice-i18n'
+const PLUGIN_NAME = 'wtbx-i18n'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
-const V_MODULE_NAME = '~nice-i18n'
+const V_MODULE_NAME = '~wtbx-i18n'
 const V_MODULE_ID = `@@${V_MODULE_NAME}`
 
-function _generateLangGlobPath ({ dirs }: Required<NiceI18nOptions>) {
+function _generateLangGlobPath ({ dirs }: Required<WtbxI18nOptions>) {
   const globMap = {} as _GlobMap
   const matchExtReg = /\.(ts|json)$/
 
@@ -103,7 +103,7 @@ async function setLocale(_locale) {
 
 function register({ default: defaultLocale = ${firstLocale ? `'${firstLocale}'` : null} }) {
   if (defaultLocale == null) {
-    throw new Error('[~nice-i18n] not found locale')  
+    throw new Error('[~wtbx-i18n] not found locale')  
   }
   
   let i = 0
@@ -130,7 +130,7 @@ export { dictionary, locale, t, register, setLocale, App }
 `
 }
 
-function niceI18n(options: NiceI18nOptions): any {
+function wtbxI18n(options: WtbxI18nOptions): any {
   const { dirs } = options || {}
   let globMap: _GlobMap = {} // [[relativePath, filename(no-ext)], ...[]]
 
@@ -139,7 +139,7 @@ function niceI18n(options: NiceI18nOptions): any {
     enforce: 'pre',
     configResolved() {
       globMap = _generateLangGlobPath({ dirs })
-      log.info('已開啟多語系功能，模塊名稱為 ~nice-i18n...')
+      log.info('已開啟多語系功能，模塊名稱為 ~wtbx-i18n...')
     },
     configureServer(server) {
       let isUpdating = false
@@ -184,9 +184,9 @@ function niceI18n(options: NiceI18nOptions): any {
 }
 
 export type {
-  NiceI18nOptions,
+  WtbxI18nOptions,
 }
 
 export {
-  niceI18n,
+  wtbxI18n,
 }

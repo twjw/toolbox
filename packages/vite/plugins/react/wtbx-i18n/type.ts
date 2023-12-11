@@ -1,7 +1,7 @@
 import type {FC, ReactNode} from 'react'
 import type {WObject} from "../../../../type";
 
-namespace NiceI18n {
+namespace WtbxI18n {
   export type Translate = <Dictionary extends Record<string, any>>(key: WObject.RecursiveKeyOf<Dictionary>, value?: string[]) => string
 
   export type Register = <Locale>(options: { default: Locale }) => void
@@ -12,5 +12,5 @@ namespace NiceI18n {
 }
 
 export type {
-  NiceI18n
+  WtbxI18n
 }
