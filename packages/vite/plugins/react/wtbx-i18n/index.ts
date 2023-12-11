@@ -12,7 +12,7 @@ type _GlobMap = Record<string, string> // <locale, globPath>
 
 const PLUGIN_NAME = 'wtbx-i18n'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
-const V_MODULE_NAME = '~wtbx-i18n'
+const V_MODULE_NAME = `~${PLUGIN_NAME}`
 const V_MODULE_ID = `@@${V_MODULE_NAME}`
 
 function _generateLangGlobPath ({ dirs }: Required<WtbxI18nOptions>) {
@@ -139,13 +139,18 @@ function wtbxI18n(options: WtbxI18nOptions): any {
     enforce: 'pre',
     configResolved() {
       globMap = _generateLangGlobPath({ dirs })
-      log.info('已開啟多語系功能，模塊名稱為 ~wtbx-i18n...')
+      log.info(`已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
     },
     configureServer(server) {
       let isUpdating = false
 
       async function debounceGenerate (filepath: string) {
-        const [, filename] = filepath.split(dirs[0])
+        let filename = null as string | null
+
+        for (let i = 0; i < dirs.length; i++) {
+          const [, _filename] = filepath.split(dirs[i])
+          if (_filename != null) filename = _filename
+        }
 
         if (isUpdating || !filename || !/^\\[A-z0-9-_]+\.(ts|json)$/.test(filename)) return
 

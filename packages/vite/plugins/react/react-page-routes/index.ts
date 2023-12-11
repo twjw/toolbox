@@ -1,51 +1,46 @@
 import type { Plugin } from 'vite'
-import path from "path";
-import {META_NAME, PAGE_NAME, create, RunOptions, RESULT_FILENAME} from "./create.ts";
+import {META_NAME, PAGE_NAME, generate, RunOptions} from "./generate.ts";
 import {log} from "../../../../../utils/log.ts";
-import {VIRTUAL_PATH} from "../../../../../constants";
-import {DEFAULT_ALIAS_NAME} from "./constants.ts";
 import {waitMs} from "../../../../common";
 
-type ReactPageRoutesOptions = RunOptions & { aliasName?: string }
+type ReactPageRoutesOptions = RunOptions
+
+const PLUGIN_NAME = 'page-routes'
+const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
+const V_MODULE_NAME = `~${PLUGIN_NAME}`
+const V_MODULE_ID = `@@${V_MODULE_NAME}.tsx`
 
 function reactPageRoutes(options: ReactPageRoutesOptions): any {
-	const { aliasName = DEFAULT_ALIAS_NAME, ...runOptions } = options
-	const aliasPath = `${VIRTUAL_PATH}/${RESULT_FILENAME}`
-	const absoluteSlashAliasPath = path.resolve(process.cwd(), aliasPath).replace(/[\\]/g, '/')
+	const { pages, defaultMeta } = options
+	let resultTsx = null as string | null
 
 	const plugin: Plugin = {
-		name: 'vite-plugin-react-page-routes',
+		name: FULL_PLUGIN_NAME,
 		enforce: 'pre',
-		config() {
-			log.info(`vite-plugin-react-page-routes 的 vite.resolve.alias name 為 ${aliasName}`)
-
-			return {
-				resolve: {
-					alias: {
-						[aliasName]: aliasPath,
-					},
-				},
-			}
-		},
 		configResolved() {
-			create(runOptions)
+			resultTsx = generate({pages, defaultMeta})
+			log.info(`已開啟目錄路由功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
 			const matchFiles = [PAGE_NAME, META_NAME]
-			let isCreating = false
+			let isUpdating = false
 
 			async function debounceCreate(filepath: string) {
-				if (isCreating || !matchFiles.includes(filepath.match(/([^\\/]+)$/)?.[0] || '')) {
-					return
+				let filename = null as string | null
+
+				for (let i = 0; i < pages.length; i++) {
+					const [, _filename] = filepath.split(pages[i])
+					if (_filename != null) filename = _filename
 				}
 
-				isCreating = true
-				log.info('捕獲到新的路由頁，即將為您更新路由...')
-				await waitMs(250)
-				create(runOptions)
-				isCreating = false
+				if (isUpdating || !filename || !(new RegExp(`(${PAGE_NAME}|${META_NAME})$`).test(filename))) return
 
-				const mod = server.moduleGraph.getModuleById(absoluteSlashAliasPath)
+				isUpdating = true
+				resultTsx = generate({pages, defaultMeta})
+				await waitMs(250)
+				isUpdating = false
+
+				const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
 
 				if (mod) {
 					server.moduleGraph.invalidateModule(mod)
@@ -58,6 +53,17 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 			server.watcher.on('unlink', debounceCreate)
 			server.watcher.on('add', debounceCreate)
 		},
+		resolveId(id) {
+			if (id === V_MODULE_NAME) {
+				return V_MODULE_ID
+			}
+		},
+		load(id) {
+			if (id === V_MODULE_ID) {
+				if (resultTsx == null) return
+				return resultTsx
+			}
+		}
 	}
 
 	return plugin

@@ -26,7 +26,6 @@ type ArrayKeyType<T extends object> = {
 const OUTLET = '(outlet)'
 const META_NAME = 'page.meta.ts'
 const PAGE_NAME = 'page.tsx'
-const RESULT_FILENAME = 'react-page-routes.tsx'
 const ids = {
 	r: 0, // route key
 	m: 0, // meta
@@ -94,7 +93,7 @@ ${tab} }`
 }
 
 // @prettier-ignore
-function _createRoutesTsxString(fileRoutes: FileRoute[], defaultMeta?: any) {
+function _generateRoutesTsxString(fileRoutes: FileRoute[], defaultMeta?: any) {
 	let topImportString = `import { lazy, createContext, useContext, type FC, type ComponentType } from 'react'
 import { Route } from 'react-router-dom'`
 
@@ -161,13 +160,16 @@ ${tab}/>${parent?.layout ? '' : ',\n'}`
 	mainString += `  </>
 }`
 	resultString = `${topImportString}\n${topLazyImportString}\n\n${mainString}\n\n${bottomExportString}`
-	// console.log(JSON.stringify(fileRoutes, null, 2))
 
-	fs.writeFileSync(path.resolve(getBuildPath(), `./${RESULT_FILENAME}`), resultString)
+	// console.log(JSON.stringify(fileRoutes, null, 2))
+	// fs.writeFileSync(path.resolve(getBuildPath(), `./${RESULT_FILENAME}`), resultString)
+
 	log.info('react-page-routes 已創建或更新')
 	for (let k in ids) {
 		ids[k as keyof typeof ids] = 0
 	}
+
+	return resultString
 }
 
 function _changeRouteParameter (routePath: string) {
@@ -221,7 +223,7 @@ function _getFlatRoutes(
 					0,
 					fullRoutePagePath.length - PAGE_NAME.length - 1,
 				) || '/'
-				const relativeFilepath = path.relative(getBuildPath(), filepath)
+				const relativeFilepath = `./${path.relative(process.cwd(), filepath)}`
 				const importPath = relativeFilepath.substring(0,
 					relativeFilepath.length - PAGE_NAME.length - 1,).replace(/\\/g, '/')
 				node = routePathMap[fullRoutePagePath] = {
@@ -297,7 +299,7 @@ function _toRecordRoutes (flatRouteList: FileRoute[], parentFullRoutePath?: stri
 	return resultRoutes
 }
 
-function create({ pages, defaultMeta }: RunOptions) {
+function generate({ pages, defaultMeta }: RunOptions) {
 	let flatRoutes: Record<string, FileRoute> | undefined
 
 	for (let i = 0; i < pages.length; i++) {
@@ -314,7 +316,7 @@ function create({ pages, defaultMeta }: RunOptions) {
 	}
 
 	const resultRoutes = _toRecordRoutes(Object.values(flatRoutes!))
-	_createRoutesTsxString(resultRoutes, defaultMeta)
+	return _generateRoutesTsxString(resultRoutes, defaultMeta)
 }
 
 export type {
@@ -325,6 +327,5 @@ export {
 	OUTLET,
 	META_NAME,
 	PAGE_NAME,
-	RESULT_FILENAME,
-	create,
+	generate,
 }
