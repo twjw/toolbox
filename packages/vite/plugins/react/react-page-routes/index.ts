@@ -1,9 +1,9 @@
 import type { Plugin } from 'vite'
+import path from "path";
 import {META_NAME, PAGE_NAME, create, RunOptions, RESULT_FILENAME} from "./create.ts";
 import {log} from "../../../../../utils/log.ts";
 import {VIRTUAL_PATH} from "../../../../../constants";
 import {DEFAULT_ALIAS_NAME} from "./constants.ts";
-import path from "path";
 import {waitMs} from "../../../../common";
 
 type ReactPageRoutesOptions = RunOptions & { aliasName?: string }
