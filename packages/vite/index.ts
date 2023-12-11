@@ -1,5 +1,11 @@
 export { presetRem as unoPresetRemPlugin } from './plugins/unocss/preset-rem'
+
 export * from './plugins/auto-alias'
+
 export * from './plugins/build-drop-log'
-export type * from './plugins/react/react-page-routes/type.ts'
+
+export * from './plugins/react/nice-i18n'
+export type * from './plugins/react/nice-i18n/type'
+
 export * from './plugins/react/react-page-routes'
+export type * from './plugins/react/react-page-routes/type'

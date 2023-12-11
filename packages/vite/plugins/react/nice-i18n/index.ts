@@ -1,7 +1,7 @@
 import type { Plugin } from 'vite'
 import fs from 'fs'
 import path from 'path'
-import { log } from '../../../../utils/log.ts'
+import { log } from '../../../../../utils/log.ts'
 
 type NiceI18nOptions = {
 	dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)

@@ -10,11 +10,7 @@
 		"./react": "./packages/react/index.ts",
 		"./type": "./packages/type/index.ts",
 		"./vite": "./packages/vite/index.ts",
-		"./web": "./packages/web/index.ts",
-
-		"./v-d-nice-i18n": "./.vb/.d/nice-i18n.d.ts",
-		"./v-d-env-config": "./.vb/.d/env-config.d.ts",
-		"./v-d-page-routes": "./.vb/.d/page-routes.d.ts"
+		"./web": "./packages/web/index.ts"
 	},
 	"scripts": {
 		"lint": "eslint --fix --max-warnings=0",
