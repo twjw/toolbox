@@ -1,12 +1,13 @@
-import type {Context, FC} from "react";
+import type { FC, ReactNode } from "react";
 
-type CreatePageRouteProps = {
-  Wrap: FC<{ children: Element }>
+namespace ReactPageRoutes {
+  export type CreatePageRoutes = (props: {
+    Wrap: FC<{ children: ReactNode }>
+  }) => ReactNode
+
+  export type UsePageRute<T = undefined> = () => { path: string } & { meta: T }
 }
 
-type PageRouteContext<T> = Context<Partial<T>>
-
 export type {
-  CreatePageRouteProps,
-  PageRouteContext,
+  ReactPageRoutes
 }

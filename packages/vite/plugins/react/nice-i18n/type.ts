@@ -1,17 +1,16 @@
-import type { ReactNode } from 'react'
+import type {FC, ReactNode} from 'react'
 import type {WObject} from "../../../../type";
 
-type NiceI18nTranslate = <Dictionary extends Record<string, any>>(key: WObject.RecursiveKeyOf<Dictionary>, value?: string[]) => string
+namespace NiceI18n {
+  export type Translate = <Dictionary extends Record<string, any>>(key: WObject.RecursiveKeyOf<Dictionary>, value?: string[]) => string
 
-type NiceI18nRegister = <Locale>(options: { default: Locale }) => void
+  export type Register = <Locale>(options: { default: Locale }) => void
 
-type NiceI18nSetLocale = <Locale>(locale: Locale) => Promise<void>
+  export type SetLocale = <Locale>(locale: Locale) => Promise<void>
 
-type NiceI18nApp = ReactNode
+  export type App = FC<{ children: ReactNode }>
+}
 
 export type {
-  NiceI18nTranslate,
-  NiceI18nRegister,
-  NiceI18nSetLocale,
-  NiceI18nApp,
+  NiceI18n
 }
