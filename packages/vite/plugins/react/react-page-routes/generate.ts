@@ -161,9 +161,6 @@ ${tab}/>${parent?.layout ? '' : ',\n'}`
 }`
 	resultString = `${topImportString}\n${topLazyImportString}\n\n${mainString}\n\n${bottomExportString}`
 
-	// console.log(JSON.stringify(fileRoutes, null, 2))
-	// fs.writeFileSync(path.resolve(getBuildPath(), `./${RESULT_FILENAME}`), resultString)
-
 	log.info('react-page-routes 已創建或更新')
 	for (let k in ids) {
 		ids[k as keyof typeof ids] = 0
@@ -264,13 +261,21 @@ function _toRecordRoutes (flatRouteList: FileRoute[], parentFullRoutePath?: stri
 		const rangeIdxes = [i] as number[]
 
 		if (parentFullRoutePath != null) {
-			routeInfo.routePath = routeInfo.routePath.substring(parentFullRoutePath.length + 1)
+			if (parentFullRoutePath === '/') {
+				routeInfo.routePath = routeInfo.routePath.substring(1)
+			} else {
+				routeInfo.routePath = routeInfo.routePath.substring(parentFullRoutePath.length + 1)
+			}
 		}
 
 		if (routeInfo.layout) {
 			for (let j = i + 1; j < flatRouteList.length; j++) {
-				if (!new RegExp(`^${routeInfo.fullRoutePath}`).test(flatRouteList[j].fullRoutePath)) {
+				const matchLayout = new RegExp(`^${routeInfo.fullRoutePath}`).test(flatRouteList[j].fullRoutePath)
+				if (!matchLayout) {
 					rangeIdxes.push(j - 1)
+					break
+				} else if (matchLayout && j === flatRouteList.length - 1) {
+					rangeIdxes.push(j)
 					break
 				}
 			}
