@@ -43,7 +43,9 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
 				_body = JSON.stringify(body) as NodeJS.fetch.RequestInit['body']
 			} catch (err) {
 				console.error(`${_url} body json stringify fail`, err)
-				_body = `body type not JSON, check body please. ${String(body)}` as NodeJS.fetch.RequestInit['body']
+				_body = `body type not JSON, check body please. ${String(
+					body,
+				)}` as NodeJS.fetch.RequestInit['body']
 			}
 		}
 	}
@@ -123,105 +125,115 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 			repeatMarkMap,
 		}
 
-		return await new Promise<{ __markResolve?: 1, response: Fetch2.InterceptorResponse }>(async (resolve, reject) => {
-			try {
-				let config: Fetch2.Config = {
-					...init,
-					url,
-				}
-
-				if (interceptors.useRequest) {
-					config = interceptors.useRequest(config)
-				}
-
-				const {
-					prefix: apiPrefix,
-					controller: apiController,
-					cacheTime,
-					forceRun,
-					mark,
-					timeout: apiTimeout,
-				} = apiOptions || {}
-				const fetchConfig = _toRequest(apiPrefix || prefix, config)
-				const controllerKey = Symbol()
-				let res = {} as Fetch2.InterceptorResponse
-				let lastCacheTime = 0
-				const cacheUrl = `${fetchConfig.method}:${fetchConfig.url}`
-				let _timeout = apiTimeout || timeout
-
-				resetMap.mark = typeof mark === 'boolean' ? cacheUrl : mark
-				resetMap.controllerKey = controllerKey
-
-				if (_timeout > 0) {
-					resetMap.timoutInstance = setTimeout(() => {
-						reject(new Fetch2TimeoutError(`fetch timeout ${_timeout}ms`))
-					}, _timeout)
-				}
-
-				if (resetMap.mark != null) {
-					if (repeatMarkMap[resetMap.mark] != null) {
-						repeatMarkMap[resetMap.mark].push(result => resolve(result))
-					} else {
-						repeatMarkMap[resetMap.mark] = [result => resolve(result)]
+		return await new Promise<{ __markResolve?: 1; response: Fetch2.InterceptorResponse }>(
+			async (resolve, reject) => {
+				try {
+					let config: Fetch2.Config = {
+						...init,
+						url,
 					}
 
-					if (repeatMarkMap[resetMap.mark].length > 1) {
-						return
+					if (interceptors.useRequest) {
+						config = interceptors.useRequest(config)
 					}
-				}
 
-				if (cacheMap[cacheUrl] == null) {
-					if (cacheTime) {
-						lastCacheTime = Date.now() + cacheTime
+					const {
+						prefix: apiPrefix,
+						controller: apiController,
+						cacheTime,
+						forceRun,
+						mark,
+						timeout: apiTimeout,
+					} = apiOptions || {}
+					const fetchConfig = _toRequest(apiPrefix || prefix, config)
+					const controllerKey = Symbol()
+					let res = {} as Fetch2.InterceptorResponse
+					let lastCacheTime = 0
+					const cacheUrl = `${fetchConfig.method}:${fetchConfig.url}`
+					let _timeout = apiTimeout || timeout
+
+					resetMap.mark = (
+						mark === true || (mark == null && fetchConfig.method === 'get')
+							? cacheUrl
+							: mark === false
+							  ? null
+							  : mark
+					) as string | symbol | number
+					resetMap.controllerKey = controllerKey
+
+					if (_timeout > 0) {
+						resetMap.timoutInstance = setTimeout(() => {
+							reject(new Fetch2TimeoutError(`fetch timeout ${_timeout}ms`))
+						}, _timeout)
 					}
-				} else if (
-					forceRun ||
-					cacheMap[cacheUrl].lastCacheTime < Date.now() + (cacheTime || 0)
-				) {
-					delete cacheMap[cacheUrl]
-				}
 
-				if (cacheMap[cacheUrl] == null) {
-					controllerMap[controllerKey] = apiController || new AbortController()
-					fetchConfig.signal = controllerMap[controllerKey].signal
+					if (resetMap.mark != null) {
+						if (repeatMarkMap[resetMap.mark] != null) {
+							repeatMarkMap[resetMap.mark].push(result => resolve(result))
+						} else {
+							repeatMarkMap[resetMap.mark] = [result => resolve(result)]
+						}
 
-					try {
-						let originRes = await fetch(fetchConfig.url, fetchConfig)
+						if (repeatMarkMap[resetMap.mark].length > 1) {
+							return
+						}
+					}
 
-						res = originRes as unknown as Fetch2.InterceptorResponse
+					if (cacheMap[cacheUrl] == null) {
+						if (cacheTime) {
+							lastCacheTime = Date.now() + cacheTime
+						}
+					} else if (
+						forceRun ||
+						cacheMap[cacheUrl].lastCacheTime < Date.now() + (cacheTime || 0)
+					) {
+						delete cacheMap[cacheUrl]
+					}
 
-						if (lastCacheTime > 0) {
-							cacheMap[cacheUrl] = {
-								lastCacheTime,
-								res,
+					if (cacheMap[cacheUrl] == null) {
+						controllerMap[controllerKey] = apiController || new AbortController()
+						fetchConfig.signal = controllerMap[controllerKey].signal
+
+						try {
+							let originRes = await fetch(fetchConfig.url, fetchConfig)
+
+							res = originRes as unknown as Fetch2.InterceptorResponse
+
+							if (lastCacheTime > 0) {
+								cacheMap[cacheUrl] = {
+									lastCacheTime,
+									res,
+								}
+							}
+
+							res.data = await res[config?.resType || 'json']()
+						} catch (e) {
+							if ((e as Error).name === 'AbortError') {
+								throw new Fetch2AbortError('fetch abort')
+							}
+						} finally {
+							res.config = fetchConfig as Fetch2.ResReq
+							res.config.origin = {
+								url: config.url,
+								body: config.body as object,
 							}
 						}
-
-						res.data = await res[config?.resType || 'json']()
-					} catch (e) {
-						if ((e as Error).name === 'AbortError') {
-							throw new Fetch2AbortError('fetch abort')
-						}
-					} finally {
-						res.config = fetchConfig as Fetch2.ResReq
-						res.config.origin = {
-							url: config.url,
-							body: config.body as object,
-						}
+					} else {
+						res = cacheMap[cacheUrl].res
 					}
-				} else {
-					res = cacheMap[cacheUrl].res
-				}
 
-				resolve({ response: res })
-			} catch (err) {
-				reject(err instanceof Fetch2AbortError || err instanceof Fetch2TimeoutError
-					? err
-					: err instanceof Error
-						? Fetch2UnknownError.clone(err)
-						: new Fetch2UnknownError((err as Error)?.message || 'unknown'))
-			}
-		})
+					resolve({ response: res })
+				} catch (err) {
+					reject(
+						err instanceof Fetch2AbortError || err instanceof Fetch2TimeoutError
+							? err
+							: err instanceof Error
+							  ? Fetch2UnknownError.clone(err)
+							  : new Fetch2UnknownError((err as Error)?.message || 'unknown'),
+					)
+				}
+			},
+		)
 			.then(response => {
 				if (response.__markResolve === 1) return response.response
 
@@ -282,8 +294,8 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 		error: {
 			use: callback => {
 				interceptors.useError = callback
-			}
-		}
+			},
+		},
 	}
 
 	return fetch2
