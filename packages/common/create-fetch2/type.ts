@@ -1,5 +1,5 @@
 import { Fetch2CompeteEnum } from './compete-enum'
-import { Fetch2AbortError, Fetch2TimeoutError, Fetch2UnknownError  } from './error'
+import { Fetch2AbortError, Fetch2TimeoutError, Fetch2UnknownError } from './error'
 
 module Fetch2 {
 	export type Options = {
@@ -40,10 +40,10 @@ module Fetch2 {
 		timoutInstance?: NodeJS.Timeout
 
 		mark?: symbol | string | number
-		repeatMarkMap: Fetch2.RepeatMarkMap
+		repeatMarkMap: RepeatMarkMap
 
 		controllerKey?: symbol
-		controllerMap: Fetch2.ControllerMap
+		controllerMap: ControllerMap
 	}
 
 	export type ResType = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text'
@@ -62,11 +62,14 @@ module Fetch2 {
 
 	export type InterceptorUseResponse = (callback: InterceptorUseResponseCallback) => void
 
-	export type InterceptorUseErrorCallback = (error: FetchErrors, userConfig: {
-		url: string
-		init: RequestInit | null
-		apiOptions: ApiOptions | null
-	}) => any
+	export type InterceptorUseErrorCallback = (
+		error: FetchErrors,
+		userConfig: {
+			url: string
+			init: RequestInit | null
+			apiOptions: ApiOptions | null
+		},
+	) => any
 
 	export type InterceptorUseError = (callback: InterceptorUseErrorCallback) => void
 
@@ -75,7 +78,7 @@ module Fetch2 {
 		config?: ResReq
 	}
 
-	export type Config = Fetch2.RequestInit & {
+	export type Config = RequestInit & {
 		url: string
 	}
 
@@ -89,11 +92,7 @@ module Fetch2 {
 	}
 
 	export type Instance = {
-		<R = Fetch2.InterceptorResponse>(
-			url: string,
-			init?: Fetch2.RequestInit,
-			options?: ApiOptions,
-		): Promise<R>
+		<R = InterceptorResponse>(url: string, init?: RequestInit, options?: ApiOptions): Promise<R>
 		cancel: (controller: AbortController) => void
 		cancelAll: () => void
 		interceptors: {
