@@ -15,13 +15,11 @@ function createEnum<KS extends readonly string[] | undefined, VS extends readonl
 		: (typeof _DEFAULT_DATA_KEYS)[number] | (KS & readonly string[])[number]
 
 	return {
-		_isInit: false,
+		_isInit: 0,
 		_dataKeyIdxes: {} as Record<NumberKS, number>,
 		_labelIdxes: {} as Record<Enum.values<VS>[number][0], number>,
 		_valueIdxes: {} as Record<Enum.values<VS>[number][1], number>,
 		_init() {
-			if (this._isInit) return
-
 			const _dataKeys = (_DEFAULT_DATA_KEYS as any).concat(dataKeys || [])
 			for (let i = 0; i < values.length; i++) {
 				if (i === 0) {
@@ -34,18 +32,18 @@ function createEnum<KS extends readonly string[] | undefined, VS extends readonl
 				this._valueIdxes[values[i][1] as Enum.values<VS>[number][1]] = i
 			}
 
-			this._isInit = true
+			this._isInit = 1
 		},
 		getByLabel(label: Enum.values<VS>[number][0], dataKey?: NumberKS) {
-			this._init()
+			if (this._isInit === 0) this._init()
 			return values[this._labelIdxes[label]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
 		},
 		getByValue(value: Enum.values<VS>[number][1], dataKey?: NumberKS) {
-			this._init()
+			if (this._isInit === 0) this._init()
 			return values[this._valueIdxes[value]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
 		},
 		map<U>(callback: (value: Enum.values<VS>[number], index: number) => U): U[] {
-			this._init()
+			if (this._isInit === 0) this._init()
 
 			let result: U[] = []
 			for (let i = 0; i < values.length; i++) {
@@ -58,16 +56,3 @@ function createEnum<KS extends readonly string[] | undefined, VS extends readonl
 }
 
 export { createEnum }
-/* example
-const a = createEnum(
-	['color'] as const,
-	[
-		['ERROR', 1, 'red'],
-		['OK', 2, 'green'],
-	] as const
-)
-
-a.getByLabel('ERROR', 'color')
-a.getByValue(1, 'label')
-a.map(e => e[0])
-*/
