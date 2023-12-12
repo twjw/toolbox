@@ -1,4 +1,5 @@
 import { Fetch2CompeteEnum } from './compete-enum'
+import { Fetch2AbortError, Fetch2TimeoutError, Fetch2UnknownError  } from './error'
 
 module Fetch2 {
 	export type Options = {
@@ -26,6 +27,8 @@ module Fetch2 {
 	export type Mark = symbol | string | number | boolean
 
 	export type Method = 'get' | 'post' | 'put' | 'delete'
+
+	export type FetchErrors = Fetch2AbortError | Fetch2TimeoutError | Fetch2UnknownError
 
 	export type RequestInit = Omit<NodeJS.fetch.RequestInit, 'body'> & {
 		body?: object
@@ -59,6 +62,14 @@ module Fetch2 {
 
 	export type InterceptorUseResponse = (callback: InterceptorUseResponseCallback) => void
 
+	export type InterceptorUseErrorCallback = (error: FetchErrors, userConfig: {
+		url: string
+		init: RequestInit | null
+		apiOptions: ApiOptions | null
+	}) => any
+
+	export type InterceptorUseError = (callback: InterceptorUseErrorCallback) => void
+
 	export type InterceptorResponse = Omit<Response, 'body' | 'headers'> & {
 		data?: any
 		config?: ResReq
@@ -88,6 +99,7 @@ module Fetch2 {
 		interceptors: {
 			request: { use: InterceptorUseRequest }
 			response: { use: InterceptorUseResponse }
+			error: { use: InterceptorUseError }
 		}
 	}
 }

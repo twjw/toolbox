@@ -1,30 +1,15 @@
 import queryString from 'query-string'
 import { Fetch2 } from './type'
+import { Fetch2AbortError, Fetch2TimeoutError, Fetch2UnknownError } from './error'
 
 const _maxMethodTextLength = 'delete'.length - 1
 const _minMethodTextLength = 'get'.length - 1
-
-class _Fetch2BaseError extends Error {
-	static clone(err: Error) {
-		const self = new this()
-		self.message = err.message
-		self.name = this.name
-		self.stack = err.stack
-		return self
-	}
-}
-
-class Fetch2AbortError extends _Fetch2BaseError {}
-
-class Fetch2TimeoutError extends _Fetch2BaseError {}
-
-class Fetch2UnknownError extends _Fetch2BaseError {}
 
 function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
 	const { url, params, body } = config
 	let method: Fetch2.Method = 'get'
 	let _url = prefix
-	let contentType = 'text/plain'
+	// let contentType = 'text/plain'
 	let _body: NodeJS.fetch.RequestInit['body']
 
 	if (url[_minMethodTextLength] === ':') {
@@ -50,22 +35,17 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
 
 	if ((method === 'post' || method === 'put') && body != null) {
 		if (body instanceof FormData) {
-			contentType = 'multipart/form-data'
+			// contentType = 'multipart/form-data'
 			_body = body
 		} else if (typeof body === 'object') {
-			contentType = 'application/json'
+			// contentType = 'application/json'
 			try {
 				_body = JSON.stringify(body) as NodeJS.fetch.RequestInit['body']
 			} catch (err) {
-				console.error(`${_url} body json stringify 失敗`, err)
-				_body = `數據非JSON，請檢查: ${String(body)}` as NodeJS.fetch.RequestInit['body']
+				console.error(`${_url} body json stringify fail`, err)
+				_body = `body type not JSON, check body please. ${String(body)}` as NodeJS.fetch.RequestInit['body']
 			}
 		}
-	}
-
-	const headers = {
-		'content-type': contentType,
-		...config.headers,
 	}
 
 	return {
@@ -73,31 +53,30 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
 		method,
 		url: _url,
 		body: _body,
-		headers,
+		headers: config.headers,
 	}
 }
 
-const _resolveRes = <R>(
+const _transformRes = <R>(
 	res: Fetch2.InterceptorResponse,
 	responseUses: Fetch2.InterceptorUseResponseCallback[],
 	markResolveList: ((result: any) => void)[] | null,
-	resolve: (r: R) => void,
 ) => {
 	let result = res as R
 
-	if (responseUses.length) {
+	if (responseUses.length > 0) {
 		for (let i = 0; i < responseUses.length; i++) {
 			result = responseUses[i](res)
 		}
 	}
-
-	resolve(result)
 
 	if (markResolveList != null) {
 		for (let i = 1; i < markResolveList.length; i++) {
 			markResolveList[i](result)
 		}
 	}
+
+	return result
 }
 
 const _resetStatus = ({
@@ -113,7 +92,7 @@ const _resetStatus = ({
 		clearTimeout(timoutInstance)
 	}
 
-	if (mark != null && repeatMarkMap[mark].length) {
+	if (mark != null && repeatMarkMap[mark]?.length) {
 		delete repeatMarkMap[mark]
 	}
 
@@ -126,14 +105,15 @@ const _resetStatus = ({
 const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 	const { prefix = '', timeout = 0 } = options || {}
 	const interceptors = {
-		requestUses: [] as Fetch2.InterceptorUseRequestCallback[],
-		responseUses: [] as Fetch2.InterceptorUseResponseCallback[],
+		useRequest: null as Fetch2.InterceptorUseRequestCallback | null,
+		useResponse: null as Fetch2.InterceptorUseResponseCallback | null,
+		useError: null as Fetch2.InterceptorUseErrorCallback | null,
 	}
 	const cacheMap = {} as Fetch2.CacheMap
 	const controllerMap = {} as Fetch2.ControllerMap
 	const repeatMarkMap = {} as Fetch2.RepeatMarkMap
 
-	const newFetch = (<R>(
+	const fetch2 = (async <R>(
 		url: string,
 		init?: Fetch2.RequestInit,
 		apiOptions?: Fetch2.ApiOptions,
@@ -143,17 +123,15 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 			repeatMarkMap,
 		}
 
-		return new Promise<R>(async (resolve, reject) => {
+		return await new Promise<{ __markResolve?: 1, response: Fetch2.InterceptorResponse }>(async (resolve, reject) => {
 			try {
 				let config: Fetch2.Config = {
 					...init,
 					url,
 				}
 
-				if (interceptors.requestUses.length) {
-					for (let i = 0; i < interceptors.requestUses.length; i++) {
-						config = interceptors.requestUses[i](config)
-					}
+				if (interceptors.useRequest) {
+					config = interceptors.useRequest(config)
 				}
 
 				const {
@@ -176,7 +154,7 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 
 				if (_timeout > 0) {
 					resetMap.timoutInstance = setTimeout(() => {
-						throw new Fetch2TimeoutError(`fetch timeout ${_timeout}ms`)
+						reject(new Fetch2TimeoutError(`fetch timeout ${_timeout}ms`))
 					}, _timeout)
 				}
 
@@ -235,32 +213,53 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 					res = cacheMap[cacheUrl].res
 				}
 
-				_resolveRes(
-					res,
-					interceptors.responseUses,
-					resetMap.mark != null ? repeatMarkMap[resetMap.mark] : null,
-					resolve,
-				)
-				_resetStatus(resetMap)
+				resolve({ response: res })
 			} catch (err) {
-				_resetStatus(resetMap)
-
-				if (err instanceof Fetch2AbortError || err instanceof Fetch2TimeoutError) {
-					reject(err)
-				} else if (err instanceof Error) {
-					reject(Fetch2UnknownError.clone(err))
-				} else {
-					reject(err)
-				}
+				reject(err instanceof Fetch2AbortError || err instanceof Fetch2TimeoutError
+					? err
+					: err instanceof Error
+						? Fetch2UnknownError.clone(err)
+						: new Fetch2UnknownError((err as Error)?.message || 'unknown'))
 			}
 		})
+			.then(response => {
+				if (response.__markResolve === 1) return response.response
+
+				let result = response.response as R
+
+				if (interceptors.useResponse != null) {
+					result = interceptors.useResponse(response.response)
+				}
+
+				if (resetMap.mark != null && repeatMarkMap[resetMap.mark] != null) {
+					for (let i = 1; i < repeatMarkMap[resetMap.mark].length; i++) {
+						repeatMarkMap[resetMap.mark][i]({ __markResolve: 1, response: result })
+					}
+				}
+
+				return result
+			})
+			.catch(error => {
+				if (interceptors.useError != null) {
+					return interceptors.useError(error, {
+						url,
+						init: init || null,
+						apiOptions: apiOptions || null,
+					})
+				}
+
+				throw error
+			})
+			.finally(() => {
+				_resetStatus(resetMap)
+			})
 	}) as Fetch2.Instance
 
-	newFetch.cancel = (controller: AbortController) => {
+	fetch2.cancel = (controller: AbortController) => {
 		controller.abort()
 	}
 
-	newFetch.cancelAll = () => {
+	fetch2.cancelAll = () => {
 		const names = Object.getOwnPropertySymbols(controllerMap)
 
 		for (const name of names) {
@@ -269,20 +268,25 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 		}
 	}
 
-	newFetch.interceptors = {
+	fetch2.interceptors = {
 		request: {
 			use: callback => {
-				interceptors.requestUses.push(callback)
+				interceptors.useRequest = callback
 			},
 		},
 		response: {
 			use: callback => {
-				interceptors.responseUses.push(callback)
+				interceptors.useResponse = callback
 			},
 		},
+		error: {
+			use: callback => {
+				interceptors.useError = callback
+			}
+		}
 	}
 
-	return newFetch
+	return fetch2
 }
 
 export { Fetch2AbortError, Fetch2TimeoutError, Fetch2UnknownError, createFetch2 }
