@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { isObject } from 'lodash-es'
+import {isArray, isObject} from 'lodash-es'
 import {getBuildPath} from "../../../../../utils/node/build-path.ts";
 import {log} from "../../../../../utils/log.ts";
 
@@ -178,6 +178,7 @@ function _changeRouteParameter (routePath: string) {
 }
 
 function _getFlatRoutes(
+	vbPathRecord: Record<string, string> | null,
 	rootPath: string,
 	dirPath = rootPath,
 	// Record<fullRoutePath, filepath>
@@ -220,7 +221,9 @@ function _getFlatRoutes(
 					0,
 					fullRoutePagePath.length - PAGE_NAME.length - 1,
 				) || '/'
-				const relativeFilepath = `./${path.relative(process.cwd(), filepath)}`
+				const originFilepath = vbPathRecord != null ? filepath.substring(rootPath.length) : ''
+				const sourceFilepath = vbPathRecord != null ? vbPathRecord[originFilepath] : filepath
+				const relativeFilepath = `./${path.relative(process.cwd(), `${sourceFilepath}${originFilepath}`)}`
 				const importPath = relativeFilepath.substring(0,
 					relativeFilepath.length - PAGE_NAME.length - 1,).replace(/\\/g, '/')
 				node = routePathMap[fullRoutePagePath] = {
@@ -230,7 +233,7 @@ function _getFlatRoutes(
 					importPath,
 					layout: hasOutlet,
 					meta: hasMeta,
-					children: [],
+					children: [], // 後續轉物件塞進去
 				}
 			} else if (file === META_NAME) {
 				if (node != null) {
@@ -242,10 +245,12 @@ function _getFlatRoutes(
 		})
 
 		for (let i = 0; i < childDirPathList.length; i++) {
-			_getFlatRoutes(rootPath, childDirPathList[i], routePathMap)
+			_getFlatRoutes(vbPathRecord, rootPath, childDirPathList[i], routePathMap)
 		}
 	} catch (error) {
+		console.error(`目錄路由轉換失敗`)
 		console.error(error)
+		process.exit(0)
 	}
 
 	return routePathMap
@@ -304,23 +309,63 @@ function _toRecordRoutes (flatRouteList: FileRoute[], parentFullRoutePath?: stri
 	return resultRoutes
 }
 
-function generate({ pages, defaultMeta }: RunOptions) {
-	let flatRoutes: Record<string, FileRoute> | undefined
+function _mergePages (dirPathList: string[], rootPath = null as string | null, result = {} as Record<string, string>) {
+  if (isArray(dirPathList) && dirPathList.length > 0) {
+		for (let i = 0; i < dirPathList.length; i++) {
+			const dirPath = dirPathList[i]
+			const files = fs.readdirSync(dirPath, { withFileTypes: true })
+			const dirs = [] as string[]
 
-	for (let i = 0; i < pages.length; i++) {
-		if (flatRoutes == null) {
-			flatRoutes = _getFlatRoutes(pages[i])
-		} else {
-			const nextFlatRoutes = _getFlatRoutes(pages[i])
-			for (let fullRoutePath in nextFlatRoutes) {
-				if (flatRoutes[fullRoutePath] != null) {
-					flatRoutes[fullRoutePath] = nextFlatRoutes[fullRoutePath]
+			for (let j = 0; j < files.length; j++) {
+				const file = files[j]
+				const filepath = path.resolve(dirPath, file.name)
+
+				if (file.isDirectory()) {
+					dirs.push(filepath)
+				} else if (file.name === PAGE_NAME || file.name === META_NAME) {
+					const sourceRootPath = rootPath || dirPath
+					result[filepath.substring(sourceRootPath.length)] = sourceRootPath
 				}
 			}
+
+			_mergePages(dirs, rootPath == null ? dirPath : rootPath, result)
 		}
 	}
 
-	const resultRoutes = _toRecordRoutes(Object.values(flatRoutes!))
+	return result
+}
+
+function _createTmpFiles (pathRecord: Record<string, string>) {
+	const vbRootFolderPath = path.join(getBuildPath(), '.prpages')
+
+	fs.rmSync(vbRootFolderPath, { recursive: true, force: true })
+	fs.mkdirSync(vbRootFolderPath, { recursive: true })
+
+	for (const filepath in pathRecord) {
+		const sourcePath = pathRecord[filepath]
+		const vbFilepath = path.resolve(vbRootFolderPath, `.${filepath.replace(/[\\]/g, '/')}`)
+		const shortVbFolderPath = filepath.replace(/[^\\/]+$/, '').substring(1)
+
+		if (shortVbFolderPath.length > 0) {
+			const exists = fs.existsSync(vbFilepath)
+			if (!exists) {
+				fs.mkdirSync(path.resolve(vbRootFolderPath, shortVbFolderPath), { recursive: true })
+			}
+		}
+
+		fs.writeFileSync(vbFilepath, '')
+	}
+
+	return vbRootFolderPath
+}
+
+function generate({ pages, defaultMeta }: RunOptions) {
+	// 多個合併放到 node_modules 裡，否則直接 run
+	const pathRecord = pages.length > 1 ? _mergePages(pages) : null
+	const rootPath = pages.length > 1 ? _createTmpFiles(pathRecord!) : pages[0]
+	const flatRoutes = _getFlatRoutes(pathRecord, rootPath)
+	const flatRoutesValues = Object.values(flatRoutes)
+	const resultRoutes = _toRecordRoutes(flatRoutesValues)
 	return _generateRoutesTsxString(resultRoutes, defaultMeta)
 }
 
