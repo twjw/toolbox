@@ -43,7 +43,7 @@ function createViteAliasFromTsconfig(options?: AutoAliasOptions) {
 
   if (options?.hasEnv) {
     alias[options.envModuleName!] = `/${VIRTUAL_PATH}/${envConfigFilename}`
-    log.info(`vite-plugin-auto-alias 的 vite.resolve.alias name 為 ${options.envModuleName!}`)
+    log.info(`環境變數 alias name 為 ${options.envModuleName!}`)
   }
 
   return alias
