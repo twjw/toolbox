@@ -15,7 +15,7 @@ function createEnum<KS extends readonly string[] | undefined, VS extends readonl
 		: (typeof _DEFAULT_DATA_KEYS)[number] | (KS & readonly string[])[number]
 
 	return {
-		_isInit: 0,
+		_isInit: 0, // 0 | 1
 		_dataKeyIdxes: {} as Record<NumberKS, number>,
 		_labelIdxes: {} as Record<Enum.values<VS>[number][0], number>,
 		_valueIdxes: {} as Record<Enum.values<VS>[number][1], number>,
