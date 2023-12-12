@@ -1,4 +1,4 @@
-export { presetRem as unoPresetRemPlugin } from './plugins/unocss/preset-rem'
+export { presetRem as unoPresetRem } from './unocss/presets/preset-rem'
 
 export * from './plugins/auto-alias'
 
