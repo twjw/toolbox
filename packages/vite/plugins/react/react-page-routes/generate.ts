@@ -82,9 +82,7 @@ function _createCommonRouteTsxString(
 ${tab} key={'${rid}'}
 ${tab} path={'${fileRoute.routePath}'}
 ${tab} element={
-${tab}   <context.Provider key={'${rid}'} value={{ path: '${fileRoute.fullRoutePath}', meta: ${
-		mid || 'defaultMeta' || undefined
-	} }}>
+${tab}   <context.Provider key={'${rid}'} value={{ path: '${fileRoute.fullRoutePath}', meta: ${mid || 'defaultMeta'} }}>
 ${tab}     <props.Wrap>
 ${tab}       <${LC} />
 ${tab}     </props.Wrap>
@@ -93,22 +91,28 @@ ${tab} }`
 }
 
 // @prettier-ignore
-function _generateRoutesTsxString(fileRoutes: FileRoute[], defaultMeta?: any) {
+function _generateRoutesTsxString(flatRouteList: FileRoute[], defaultMeta?: any) {
+	const fileRoutes = _toRecordRoutes(flatRouteList)
 	let topImportString = `import { lazy, createContext, useContext, type FC, type ComponentType } from 'react'
 import { Route } from 'react-router-dom'`
 
 	let topLazyImportString = ''
 
+	let fullRouteMetaMapString = 'const fullRouteMetaMap: Record<string, any> = {\n'
+	const fullRouteMetaMapStringOriginLength = fullRouteMetaMapString.length
+
 	let mainString = `type PageRoutesProps = {
   Wrap: FC<{ children: Element }>
 }
 
-const defaultMeta = ${JSON.stringify(defaultMeta, null, 2)}
+const defaultMeta = ${defaultMeta == null ? undefined : JSON.stringify(defaultMeta, null, 2)}
 
 const context = createContext<any>(null)
 
-function usePageRoute() {
-  return useContext(context)
+function usePageRoute(fullRoutePath: string) {
+  const ctx = useContext(context)
+  if (fullRoutePath == null) return ctx
+  return { path: fullRoutePath, meta: fullRouteMetaMap[fullRoutePath] || defaultMeta }
 }
 
 function createPageRoutes(props: PageRoutesProps) {
@@ -130,6 +134,7 @@ function createPageRoutes(props: PageRoutesProps) {
 			ids.r++
 			if (mid) {
 				topImportString += `\n${metaImportString}`
+				fullRouteMetaMapString += `'${e.fullRoutePath}': ${mid},\n`
 			}
 
 			topLazyImportString += `\n${lazyImportString}`
@@ -159,7 +164,7 @@ ${tab}/>${parent?.layout ? '' : ',\n'}`
 
 	mainString += `  </>
 }`
-	resultString = `${topImportString}\n${topLazyImportString}\n\n${mainString}\n\n${bottomExportString}`
+	resultString = `${topImportString}\n${topLazyImportString}\n${fullRouteMetaMapString.length === fullRouteMetaMapStringOriginLength ? '' : `${fullRouteMetaMapString}}`}\n\n${mainString}\n\n${bottomExportString}`
 
 	log.info('react-page-routes 已創建或更新')
 	for (let k in ids) {
@@ -365,8 +370,7 @@ function generate({ pages, defaultMeta }: RunOptions) {
 	const rootPath = pages.length > 1 ? _createTmpFiles(pathRecord!) : pages[0]
 	const flatRoutes = _getFlatRoutes(pathRecord, rootPath)
 	const flatRoutesValues = Object.values(flatRoutes)
-	const resultRoutes = _toRecordRoutes(flatRoutesValues)
-	return _generateRoutesTsxString(resultRoutes, defaultMeta)
+	return _generateRoutesTsxString(flatRoutesValues, defaultMeta)
 }
 
 export type {

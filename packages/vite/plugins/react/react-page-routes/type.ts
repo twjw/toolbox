@@ -5,7 +5,7 @@ namespace ReactPageRoutes {
     Wrap: FC<{ children: ReactNode }>
   }) => ReactNode
 
-  export type UsePageRute<T = undefined> = () => { path: string } & { meta: T }
+  export type UsePageRute<T = undefined> = (fullPath?: string) => { path: string } & { meta: T }
 }
 
 export type {
