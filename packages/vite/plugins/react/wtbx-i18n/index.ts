@@ -13,7 +13,7 @@ type _GlobMap = Record<string, string> // <locale, globPath>
 const PLUGIN_NAME = 'wtbx-i18n'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~${PLUGIN_NAME}`
-const V_MODULE_ID = `@@${V_MODULE_NAME}`
+const V_MODULE_ID = `@@${V_MODULE_NAME}.jsx`
 
 function _generateLangGlobPath ({ dirs }: Required<WtbxI18nOptions>) {
   const globMap = {} as _GlobMap
@@ -58,7 +58,7 @@ function _generateStringModule ({ globMap }: { globMap: _GlobMap }) {
   const mapToList = (kv: 'keys' | 'values') => `[${Object[kv](globMap).map(e => `'${e}'`).join(', ')}]`
 
   return `
-import { useState, useEffect, createElement, Fragment } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { recurFindKeyStrValue } from 'wtbx/common'
 
 let _globMap = import.meta.glob(${mapToList('values')}) // Record{string, Promise{any} | any} 字典檔
@@ -115,15 +115,18 @@ function register({ default: defaultLocale = ${firstLocale ? `'${firstLocale}'` 
   _globMap = null
 }
 
-function App({ children }) {
+function App({ fallback, children }) {
   const [i, update] = useState(0)
   
   useEffect(() => {
-    _forceUpdate = () => update(i => i + 1)
-    _updateLocale(locale)
+    _updateLocale(locale).then(() => {
+      _forceUpdate = () => update(i => i + 1)
+      _forceUpdate()
+    })
   }, [])
-   
-  return createElement(Fragment, { key: locale }, children)
+  
+  if (i === 0) return fallback || <></>
+  return <Fragment key={locale}>{children}</Fragment>
 }
 
 export { dictionary, locale, t, register, setLocale, App }

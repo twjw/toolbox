@@ -40,7 +40,7 @@ function _commonLog(prefix: string, type: LogType): CommonLogReturnFunction {
 		if (this.logLevel > typeLevel[type]) return
 
 		const d = new Date()
-		const hms = `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
+		const hms = `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`
 
 		if (banners.length) {
 			console.log(...banners, hms, ...args)

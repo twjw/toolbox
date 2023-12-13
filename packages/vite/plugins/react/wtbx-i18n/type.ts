@@ -8,7 +8,7 @@ namespace WtbxI18n {
 
   export type SetLocale = <Locale>(locale: Locale) => Promise<void>
 
-  export type App = FC<{ children: ReactNode }>
+  export type App = FC<{ fallback?: ReactNode, children: ReactNode }>
 }
 
 export type {

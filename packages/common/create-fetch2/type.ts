@@ -58,20 +58,20 @@ module Fetch2 {
 
 	export type InterceptorUseRequest = (callback: InterceptorUseRequestCallback) => void
 
-	export type InterceptorUseResponseCallback = (res: InterceptorResponse) => any
+	export type InterceptorUseResponseCallback<R = any> = (res: InterceptorResponse) => R
 
-	export type InterceptorUseResponse = (callback: InterceptorUseResponseCallback) => void
+	export type InterceptorUseResponse = <R = any>(callback: InterceptorUseResponseCallback<R>) => void
 
-	export type InterceptorUseErrorCallback = (
+	export type InterceptorUseErrorCallback<R = any> = (
 		error: FetchErrors,
 		userConfig: {
 			url: string
 			init: RequestInit | null
 			apiOptions: ApiOptions | null
 		},
-	) => any
+	) => R
 
-	export type InterceptorUseError = (callback: InterceptorUseErrorCallback) => void
+	export type InterceptorUseError = <R = any>(callback: InterceptorUseErrorCallback<R>) => void
 
 	export type InterceptorResponse = Omit<Response, 'body' | 'headers'> & {
 		data?: any
