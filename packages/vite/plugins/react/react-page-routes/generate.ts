@@ -83,7 +83,7 @@ ${tab} key={'${rid}'}
 ${tab} path={'${fileRoute.routePath}'}
 ${tab} element={
 ${tab}   <context.Provider key={'${rid}'} value={{ path: '${fileRoute.fullRoutePath}', meta: ${
-		mid || undefined || 'defaultMeta'
+		mid || 'defaultMeta' || undefined
 	} }}>
 ${tab}     <props.Wrap>
 ${tab}       <${LC} />
