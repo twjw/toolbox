@@ -42,7 +42,7 @@ function autoIncrement(text?: string) {
 				if (idxes[0] >= text.length) {
 					idxes[0] = 0
 					idxes.push(0)
-					current = idxes.length
+					current = idxes.length - 1
 				}
 			} else {
 			}
