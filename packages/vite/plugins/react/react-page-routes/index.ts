@@ -8,7 +8,7 @@ type ReactPageRoutesOptions = RunOptions
 const PLUGIN_NAME = 'page-routes'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~${PLUGIN_NAME}`
-const V_MODULE_ID = `@@${V_MODULE_NAME}.tsx`
+const V_MODULE_ID = `@@${V_MODULE_NAME}.jsx`
 
 function reactPageRoutes(options: ReactPageRoutesOptions): any {
 	const { pages, defaultMeta } = options
@@ -22,7 +22,6 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 			log.info(`已開啟目錄路由功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
-			const matchFiles = [PAGE_NAME, META_NAME]
 			let isUpdating = false
 
 			async function debounceCreate(filepath: string) {

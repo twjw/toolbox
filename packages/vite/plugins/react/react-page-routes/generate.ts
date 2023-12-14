@@ -82,7 +82,7 @@ function _createCommonRouteTsxString(
 ${tab} key={'${rid}'}
 ${tab} path={'${fileRoute.routePath}'}
 ${tab} element={
-${tab}   <context.Provider key={'${rid}'} value={{ path: '${fileRoute.fullRoutePath}', meta: ${mid || 'defaultMeta'} }}>
+${tab}   <context.Provider value={{ path: '${fileRoute.fullRoutePath}', meta: ${mid || 'defaultMeta'} }}>
 ${tab}     <props.Wrap>
 ${tab}       <${LC} />
 ${tab}     </props.Wrap>
@@ -93,35 +93,32 @@ ${tab} }`
 // @prettier-ignore
 function _generateRoutesTsxString(flatRouteList: FileRoute[], defaultMeta?: any) {
 	const fileRoutes = _toRecordRoutes(flatRouteList)
-	let topImportString = `import { lazy, createContext, useContext, type FC, type ComponentType } from 'react'
+	let topImportString = `import { lazy, createContext, useContext } from 'react'
 import { Route } from 'react-router-dom'`
 
 	let topLazyImportString = ''
 
-	let fullRouteMetaMapString = 'const fullRouteMetaMap: Record<string, any> = {\n'
+	let fullRouteMetaMapString = 'const fullRouteMetaMap = {\n'
 	const fullRouteMetaMapStringOriginLength = fullRouteMetaMapString.length
 
-	let mainString = `type PageRoutesProps = {
-  Wrap: FC<{ children: Element }>
-}
+	let mainString = `const defaultMeta = ${defaultMeta == null ? undefined : JSON.stringify(defaultMeta, null, 2)}
 
-const defaultMeta = ${defaultMeta == null ? undefined : JSON.stringify(defaultMeta, null, 2)}
+const context = createContext(null)
 
-const context = createContext<any>(null)
-
-function usePageRoute(fullRoutePath: string) {
+function usePageRoute(fullRoutePath) {
   const ctx = useContext(context)
   if (fullRoutePath == null) return ctx
   return { path: fullRoutePath, meta: fullRouteMetaMap[fullRoutePath] || defaultMeta }
 }
 
-function createPageRoutes(props: PageRoutesProps) {
-  return <>`
+function createPageRoutes(props) {
+  return (${fileRoutes.length > 1 ? '<>' : ''}`
 
 	let bottomExportString = `export {
   createPageRoutes,
   usePageRoute,
 }`
+
 	let resultString = ''
 
 	mainString += '\n'
@@ -153,16 +150,16 @@ ${tab}>`
 
 				return () => {
 					mainString += `
-${tab}</Route>${parent?.layout ? '' : ',\n'}`
+${tab}</Route>${parent?.layout ? '' : '\n'}`
 				}
 			} else {
 				mainString += `${parent?.layout ? '\n' : ''}${commonRouteTsxString}
-${tab}/>${parent?.layout ? '' : ',\n'}`
+${tab}/>${parent?.layout ? '' : '\n'}`
 			}
 		})
 	}
 
-	mainString += `  </>
+	mainString += `  ${fileRoutes.length > 1 ? '</>' : ''})
 }`
 	resultString = `${topImportString}\n${topLazyImportString}\n${fullRouteMetaMapString.length === fullRouteMetaMapStringOriginLength ? '' : `${fullRouteMetaMapString}}`}\n\n${mainString}\n\n${bottomExportString}`
 
