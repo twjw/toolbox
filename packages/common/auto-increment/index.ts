@@ -17,48 +17,37 @@ function autoIncrement(text?: string) {
 		}
 	}
 
-	const idxes = [0] as number[]
-	let current = 0
+	const idxes = [] as number[]
+	let current = 0 // 為索引+1
 
 	return {
 		value: text[0],
 		next(): string {
 			/*
 			ab
-			a b
-			aa ab ba bb
-			aaa aab aba abb baa bab bba bbb
+			-
+			a   b
+			[0] [1]
+			-
+			aa     ab      ba      bb
+			[0, 0] [0, 1], [1, 0], [1, 1]
+			-
+			aaa        aab        aba        abb        baa        bab        bba        bbb
+			[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]
 			*/
-			console.log(idxes, idxes.length - 1, current)
-			for (let i = idxes.length - 1; i >= current; i--) {
-				if (idxes[i] >= text.length) {
-					if (i === current) {
-						current--
-
-						if (current < 0) {
-							for (let i = 0; i < idxes.length; i++) {
-								idxes[i] = 0
-							}
-
-							idxes.push(0)
-							current = idxes.length - 1
-						} else {
-							idxes[current]++
-							for (let i = current + 1; i < idxes.length; i++) {
-								idxes[i] = 0
-							}
-						}
-
-						return _result(text, idxes)
-					} else {
-						continue
-					}
-				} else {
-					idxes[i]++
+			if (idxes.length === 0) {
+				idxes.push(0)
+			} else if (idxes.length === 1) {
+				idxes[0]++
+				if (idxes[0] >= text.length) {
+					idxes[0] = 0
+					idxes.push(0)
+					current = idxes.length
 				}
+			} else {
 			}
 
-			return _result(text, idxes)
+			return idxes.reduce((p, i) => p + text[i], '')
 		},
 	}
 }
@@ -68,10 +57,13 @@ function _result(text: string, idxes: number[]) {
 }
 
 const id = autoIncrement('ab')
-console.log(id.value)
+console.log('id.value ', id.value)
 // 6 | 15
 for (let i = 0; i < 15; i++) {
-	console.log(id.next())
+	const value = id.next()
+	if (i >= 0) {
+		console.log('id.next()', i, value)
+	}
 }
 
 export { autoIncrement }
