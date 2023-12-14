@@ -4,7 +4,8 @@ import type { WObject } from '../../../../type'
 namespace WtbxI18n {
 	export type Translate<Dictionary extends Record<string, any>> = (
 		key: WObject.RecursiveKeyOf<Dictionary>,
-		value?: string[],
+		idxValList?: (string | number)[],
+		keyValMap?: Record<string, string | number>,
 	) => string
 
 	export type SetLocale<Locale> = (locale: Locale) => Promise<void>

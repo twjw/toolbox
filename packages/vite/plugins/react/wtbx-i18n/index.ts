@@ -58,7 +58,6 @@ function _generateStringModule({ globMap }: { globMap: _GlobMap }) {
 
 	return `
 import { useState, useEffect, Fragment } from 'react'
-import { recurFindKeyStrValue } from 'wtbx/common'
 
 const _dictionaryMap = {
   ${Object.entries(globMap)
@@ -74,16 +73,104 @@ let locale = localeList[0] // 當前語系
 
 let _forceUpdate // 強刷 APP 組件
 
-function t(key, values = []) {
-  let result = recurFindKeyStrValue(dictionary, key)
+function _recurFindKeyValue (
+	obj,
+	key,
+	separator = '.',
+) {
+	const keys = key.split(separator)
+	let result = obj
+	let k
 
-  if (!values.length) return result
+	while ((k = keys.shift()) != null) {
+		result = result[k]
+		if (typeof result !== 'object') break
+	}
 
-  for (let i = 0; i < values.length; i++) {
-    result = result.replace(/\\{[0-9]+}/, values[i])
+	if (keys.length > 0) return undefined
+
+	return result
+}
+
+function _parseValue(text, idxValList, keyValMap) {
+	if (!idxValList?.length && keyValMap == null) return text
+
+  const matchList = []
+  let result = ''
+  let isSkip = false
+  let start = -1
+  
+  idxValList = idxValList || []
+  keyValMap = keyValMap || {}
+  
+  for (let i = 0; i < text.length; i++) {
+    const e = text[i]
+    
+    if (start > -1) {
+      if (e === '}') {
+        const k = text.substring(start + 1, i)
+        const isIdx = /^\\d+$/.test(k)
+        matchList.push([isSkip, isIdx, isIdx ? Number(k) : k, start, i])
+        
+        isSkip = false
+        start = -1
+      }
+    } else if (e === '{') {
+      isSkip = text[i - 1] === '\\\\'
+      start = i
+    }
   }
+  
+  if (matchList.length === 0) {
+    result = text
+  } else {
+    // 3 start, 4 end
+    if (matchList[0][3] > 0) {
+      if (matchList[0][0]) {
+        result += text.substring(0, matchList[0][3] - 1)
+      } else {
+        result += text.substring(0, matchList[0][3])
+      }
+    }
+    
+    for (let i = 0; i < matchList.length; i++) {
+      const [isSkip, isIdx, key, start] = matchList[i]
 
+      if (i > 0) {
+        if (isSkip) {
+          result += text.substring(matchList[i - 1][4] + 1, start - 1) 
+        } else {
+          result += text.substring(matchList[i - 1][4] + 1, start) 
+        }
+      }
+      
+      if (isSkip) {
+        result += \`{\${key}}\`
+      } else {
+        if (isIdx) {
+          const replaceText = idxValList[key]
+          result += ((typeof replaceText === 'number' ? String(replaceText) : replaceText) || \`{\${key}}\`)
+        } else {
+          const replaceText = keyValMap[key]
+          result += ((typeof replaceText === 'number' ? String(replaceText) : replaceText) || \`{\${key}}\`)
+        }
+      }
+    }
+    
+    if (matchList[matchList.length - 1][4] < text.length - 1) {
+      result += text.substring(matchList[matchList.length - 1][4] + 1, text.length)
+    }
+  }
+  
   return result
+}
+
+function t(key, idxValList, keyValMap) {
+  const result = _recurFindKeyValue(dictionary, key)
+  
+  if (result === undefined) return key
+  
+  return _parseValue(result, idxValList, keyValMap)
 }
 
 async function _updateLocale(_locale) {
