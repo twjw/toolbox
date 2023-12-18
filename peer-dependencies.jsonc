@@ -56,6 +56,12 @@
 					"jsonc": "^4.17.21"
 				}
 			},
+			// wtbx/vite/plugins/convert-to-webp
+			"convert-to-webp": {
+				"devDependencies": {
+					"sharp": "^0.33.1"
+				}
+			},
 			// wtbx/vite/plugins/react
 			"react": {
 				// wtbx/vite/plugins/react/react-page-routes

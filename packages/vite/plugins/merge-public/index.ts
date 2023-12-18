@@ -57,18 +57,18 @@ function mergePublic(options: MergePublicOptions): any {
 			_createMp(buildPath)
 			fs.writeFileSync(path.resolve(buildPath, './.gitignore'), '*')
 
-			function onEvent(type: 'unlink' | 'other') {
+			function onEvent(type: 'unlink' | 'add' | 'change') {
 				return (filepath: string) => {
 					if (!filepath.includes(publicRootPath)) return
 
-					const firstWordReg = /^[\/\\]([A-z0-9_-]+)[\/\\]/
+					const firstWordReg = /^[\/\\]([^\\\/]+)/
 					const noRootFilepath = filepath.substring(publicRootPath.length)
 					const fileDir = noRootFilepath.match(firstWordReg)?.[1]
 					const dirIdx = dirNames.findIndex(e => e === fileDir)
 
 					if (dirIdx === -1) return
 
-					const noDirFilepath = noRootFilepath.replace(firstWordReg, '')
+					const noDirFilepath = noRootFilepath.substring(1).substring(fileDir!.length + 1)
 
 					if (type === 'unlink') {
 						if (dirIdx === 0) {
@@ -104,8 +104,8 @@ function mergePublic(options: MergePublicOptions): any {
 				}
       }
 
-			server.watcher.on('change', onEvent('other'))
-			server.watcher.on('add', onEvent('other'))
+			server.watcher.on('change', onEvent('change'))
+			server.watcher.on('add', onEvent('add'))
 			server.watcher.on('unlink', onEvent('unlink'))
 		},
 	}

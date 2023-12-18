@@ -4,6 +4,8 @@ export * from './plugins/auto-alias'
 
 export * from './plugins/build-drop-log'
 
+export * from './plugins/convert-to-webp'
+
 export * from './plugins/merge-public'
 
 export * from './plugins/react/i18n'
