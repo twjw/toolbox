@@ -17,50 +17,45 @@ function mergePublic(options: MergePublicOptions): any {
 	const { distDir = 'dist', publicDir = 'public', mergeDir = 'mp', dirNames } = options || {}
 	const publicRootPath = path.resolve(process.cwd(), publicDir)
 	const absDirs = dirNames.map(e => path.resolve(publicRootPath, e))
-	let isBuild = false
-	let buildPath = path.resolve(publicRootPath, mergeDir)
+	let buildPath: string
+
+	function _createMp (buildPath: string) {
+		const exists = fs.existsSync(buildPath)
+
+		if (exists) {
+			fs.rmSync(buildPath, { recursive: true, force: true })
+		} else {
+			fs.mkdirSync(buildPath, { recursive: true })
+		}
+
+		for (let i = 0; i < absDirs.length; i++) {
+			try {
+				fs.cpSync(absDirs[i], buildPath, { recursive: true, force: true })
+			} catch (err) {
+				log.throw(err as Error, `找不到 ${publicDir}/${dirNames[i]} 目錄，無法合併資源`)
+				process.exit(0)
+			}
+		}
+
+	}
 
 	const plugin: Plugin = {
 		name: FULL_PLUGIN_NAME,
 		enforce: 'pre',
 		config(config) {
-			isBuild = !!config.build
-
-			if (isBuild) {
-				buildPath = path.resolve(process.cwd(), distDir, mergeDir)
-			}
+			log.info(`已開啟靜態資源合併功能...`)
 
 			return {
-				publicDir: isBuild ? false : publicDir,
+				publicDir: config.build ? false : publicDir,
 			}
 		},
-		configResolved() {
-			const exists = fs.existsSync(buildPath)
-
-			if (exists) {
-				fs.rmSync(buildPath, { recursive: true, force: true })
-			} else {
-				fs.mkdirSync(buildPath, { recursive: true })
-			}
-
-			for (let i = 0; i < absDirs.length; i++) {
-				try {
-					fs.cpSync(absDirs[i], buildPath, { recursive: true, force: true })
-				} catch (err) {
-					log.throw(err as Error, `找不到 ${publicDir}/${dirNames[i]} 目錄，無法合併資源`)
-					process.exit(0)
-				}
-			}
-
-			if (!isBuild) {
-				const gitIgnorePath = path.resolve(buildPath, './.gitignore')
-				fs.writeFileSync(gitIgnorePath, '*')
-			}
-
-			log.info(`已開啟靜態資源合併功能...`)
+		closeBundle() {
+			_createMp(path.resolve(process.cwd(), distDir, mergeDir))
 		},
 		configureServer(server) {
-			if (isBuild) return
+			buildPath = path.resolve(publicRootPath, mergeDir)
+			_createMp(buildPath)
+			fs.writeFileSync(path.resolve(buildPath, './.gitignore'), '*')
 
 			function onEvent(type: 'unlink' | 'other') {
 				return (filepath: string) => {
