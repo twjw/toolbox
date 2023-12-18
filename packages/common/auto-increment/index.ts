@@ -39,18 +39,7 @@ function autoIncrement(text?: string) {
 			if (idxes.length === 0) {
 				idxes.push(0)
 			} else {
-				idxes[y]++
-
-				if (idxes[y] >= text.length) {
-					if (x === 0) {
-						for (let i = 0; i < idxes.length; i++) {
-							idxes[i] = 0
-						}
-						idxes.push(0)
-						x = y = text.length - 1
-					} else {
-					}
-				}
+				const textIdxLength = text.length - 1
 			}
 
 			return idxes.reduce((p, i) => p + text[i], '')
@@ -58,14 +47,10 @@ function autoIncrement(text?: string) {
 	}
 }
 
-function _result(text: string, idxes: number[]) {
-	return idxes.reduce((p, i) => p + text[i], '')
-}
-
 const id = autoIncrement('ab')
 console.log('id.value ', id.value)
 // 6 | 15
-for (let i = 0; i <= 15; i++) {
+for (let i = 0; i < 15; i++) {
 	const value = id.next()
 	if (i >= 0) {
 		console.log('id.next()', i, value)
