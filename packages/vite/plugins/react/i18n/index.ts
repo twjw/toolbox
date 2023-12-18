@@ -4,18 +4,18 @@ import path from 'path'
 import { log } from '../../../../../utils/log.ts'
 import { waitMs } from '../../../../common'
 
-type WtbxI18nOptions = {
+type ReactI18nOptions = {
 	dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)
 }
 
 type _GlobMap = Record<string, string> // <locale, globPath>
 
-const PLUGIN_NAME = 'wtbx-i18n'
-const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
+const PLUGIN_NAME = 'i18n'
+const FULL_PLUGIN_NAME = `vite-plugin-wtbx-react-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~${PLUGIN_NAME}`
 const V_MODULE_ID = `@@${V_MODULE_NAME}.jsx`
 
-function _generateLangGlobPath({ dirs }: Required<WtbxI18nOptions>) {
+function _generateLangGlobPath({ dirs }: Required<ReactI18nOptions>) {
 	const globMap = {} as _GlobMap
 	const matchExtReg = /\.(ts|json)$/
 
@@ -222,7 +222,7 @@ export { dictionary, locale, t, setLocale, App }
 `
 }
 
-function wtbxI18n(options: WtbxI18nOptions): any {
+function reactI18n(options: ReactI18nOptions): any {
 	const { dirs } = options || {}
 	let globMap: _GlobMap = {} // [[relativePath, filename(no-ext)], ...[]]
 
@@ -280,6 +280,6 @@ function wtbxI18n(options: WtbxI18nOptions): any {
 	return plugin
 }
 
-export type { WtbxI18nOptions }
+export type { ReactI18nOptions }
 
-export { wtbxI18n }
+export { reactI18n }

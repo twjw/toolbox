@@ -18,7 +18,8 @@ function autoIncrement(text?: string) {
 	}
 
 	const idxes = [] as number[]
-	let current = 0 // 為索引+1
+	let x = 0 // 前指針
+	let y = 0 // 後指針
 
 	return {
 		value: text[0],
@@ -37,14 +38,19 @@ function autoIncrement(text?: string) {
 			*/
 			if (idxes.length === 0) {
 				idxes.push(0)
-			} else if (idxes.length === 1) {
-				idxes[0]++
-				if (idxes[0] >= text.length) {
-					idxes[0] = 0
-					idxes.push(0)
-					current = idxes.length - 1
-				}
 			} else {
+				idxes[y]++
+
+				if (idxes[y] >= text.length) {
+					if (x === 0) {
+						for (let i = 0; i < idxes.length; i++) {
+							idxes[i] = 0
+						}
+						idxes.push(0)
+						x = y = text.length - 1
+					} else {
+					}
+				}
 			}
 
 			return idxes.reduce((p, i) => p + text[i], '')
@@ -59,7 +65,7 @@ function _result(text: string, idxes: number[]) {
 const id = autoIncrement('ab')
 console.log('id.value ', id.value)
 // 6 | 15
-for (let i = 0; i < 15; i++) {
+for (let i = 0; i <= 15; i++) {
 	const value = id.next()
 	if (i >= 0) {
 		console.log('id.next()', i, value)

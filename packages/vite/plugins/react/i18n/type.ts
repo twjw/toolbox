@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { WObject } from '../../../../type'
 
-namespace WtbxI18n {
+namespace ReactI18n {
 	export type Translate<Dictionary extends Record<string, any>> = (
 		key: WObject.RecursiveKeyOf<Dictionary>,
 		idxValList?: (string | number)[],
@@ -17,4 +17,4 @@ namespace WtbxI18n {
 	}) => ReactNode
 }
 
-export type { WtbxI18n }
+export type { ReactI18n }

@@ -6,7 +6,7 @@ import {waitMs} from "../../../../common";
 type ReactPageRoutesOptions = RunOptions
 
 const PLUGIN_NAME = 'page-routes'
-const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
+const FULL_PLUGIN_NAME = `vite-plugin-wtbx-react-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~${PLUGIN_NAME}`
 const V_MODULE_ID = `@@${V_MODULE_NAME}.jsx`
 

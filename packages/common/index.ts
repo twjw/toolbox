@@ -16,8 +16,4 @@ export * from './create-uuid'
 
 export * from './range-loop'
 
-export * from './recur-find-key-str-value'
-
-export * from './recur-find-key-value'
-
 export * from './wait-ms'

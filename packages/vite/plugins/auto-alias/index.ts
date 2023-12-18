@@ -61,7 +61,7 @@ function autoAlias(options?: AutoAliasOptions): any {
   }
 
   const plugin: Plugin = {
-    name: 'vite-plugin-auto-alias',
+    name: 'vite-plugin-wtbx-auto-alias',
     enforce: 'pre',
     config() {
       const alias = createViteAliasFromTsconfig(_options)

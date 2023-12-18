@@ -1,11 +1,11 @@
 import type { Plugin } from "vite";
 
-type ModuleOptions = {}
+type PassPathOptions = {}
 
-const PLUGIN_NAME = 'PLUGIN_NAME'
+const PLUGIN_NAME = 'pass-path'
 const FULL_PLUGIN_NAME = `vite-plugin-wtbx-${PLUGIN_NAME}`
 
-function MODULE_NAME(options?: ModuleOptions): any {
+function passPath(options?: PassPathOptions): any {
   const _options = options || {}
 
   const plugin: Plugin = {
@@ -16,9 +16,9 @@ function MODULE_NAME(options?: ModuleOptions): any {
 }
 
 export type {
-  ModuleOptions,
+  PassPathOptions,
 }
 
 export {
-  MODULE_NAME,
+  passPath,
 }

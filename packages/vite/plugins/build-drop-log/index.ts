@@ -5,7 +5,7 @@ type ModuleOptions = {
 }
 
 const PLUGIN_NAME = 'build-drop-log'
-const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
+const FULL_PLUGIN_NAME = `vite-plugin-wtbx-${PLUGIN_NAME}`
 
 function buildDropLog(options?: ModuleOptions): any {
   const { clean = true } = options || {}
