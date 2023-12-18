@@ -153,7 +153,7 @@ function _convertToCompleteFileRoutes(
 
 			result.push(completeFileRoute)
 
-			const outletName = `\\${OUTLET_NAME}`
+			const outletName = `${SL}${OUTLET_NAME}`
 			if (e.children[outletName] != null) {
 				_convertToCompleteFileRoutes(
 					e.children[outletName].children,
