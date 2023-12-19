@@ -72,7 +72,18 @@ function mergePublic(options: MergePublicOptions): any {
 
 					if (type === 'unlink') {
 						if (dirIdx === 0) {
-							fs.rmSync(path.resolve(buildPath, noDirFilepath))
+							if (dirNames.length === 0) {
+								fs.rmSync(path.resolve(buildPath, noDirFilepath))
+							} else {
+								for (let i = 1; i < dirNames.length; i++) {
+									if (fs.existsSync(path.resolve(publicRootPath, dirNames[i], noDirFilepath))) {
+										break
+									}
+									else if (i === dirNames.length - 1) {
+										fs.rmSync(path.resolve(buildPath, noDirFilepath))
+									}
+								}
+							}
 							return
 						}
 
