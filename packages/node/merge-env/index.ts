@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { SL } from '../../../constants'
-import { isArray, isObject, merge } from 'lodash-es'
+import { merge } from 'lodash-es'
 import { log } from '../../../utils/log.ts'
 import { importDynamicTs } from '../../../utils/node/import-dynamic-ts.ts'
 
@@ -9,7 +9,7 @@ type MergeEnvOptions = {
 	dirs: string[] // absolute path
 }
 
-async function mergeEnv <Env = undefined>(options: MergeEnvOptions): Promise<Env> {
+async function mergeEnv <Env extends Record<string, any>, Mode = string>(options: MergeEnvOptions): Promise<Env & { mode: Mode }> {
   try {
     if (options.mode == null) options.mode = 'development'
 
@@ -20,7 +20,7 @@ async function mergeEnv <Env = undefined>(options: MergeEnvOptions): Promise<Env
       [`.env.${options.mode}.ts`]: 2,
       [`.env.${options.mode}.local.ts`]: 3,
     }
-    let resultEnv = undefined as Env
+    let resultEnv = { mode: options.mode } as Env & { mode: Mode }
 
     for (let i = 0; i < options.dirs.length; i++) {
       if (!fs.existsSync(options.dirs[i])) continue
@@ -42,13 +42,7 @@ async function mergeEnv <Env = undefined>(options: MergeEnvOptions): Promise<Env
         const env = envList[j];
 
         if (env != null) {
-          if (isObject(env)) {
-            resultEnv = merge(resultEnv || {}, env)
-          } else if (isArray(env)) {
-            resultEnv = merge(resultEnv || [], env)
-          } else {
-            resultEnv = env
-          }
+          resultEnv = merge(resultEnv, env)
         }
       }
     }
