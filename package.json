@@ -1,6 +1,7 @@
 {
 	"name": "wtbx",
 	"version": "0.0.0",
+	"type": "module",
 	"description": "",
 	"main": "packages",
 	"module": "packages",
