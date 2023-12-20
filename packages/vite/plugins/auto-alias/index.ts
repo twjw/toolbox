@@ -3,14 +3,10 @@ import { log } from '../../../../utils/log'
 import fs from 'fs'
 import jsonc from 'jsonc-parser'
 import type { Plugin } from 'vite'
-import { envConfigFilename, envConfigModuleFromName } from '../../../node/create-env-config/constants.ts'
-import { VIRTUAL_PATH } from "../../../../constants";
 
 type AutoAliasOptions = {
   filename?: string
   filepath?: string /* absolute path */
-  hasEnv?: boolean
-  envModuleName?: string
 }
 
 function getIdeaPaths(filename: string, filepath: string) {
@@ -41,24 +37,11 @@ function createViteAliasFromTsconfig(options?: AutoAliasOptions) {
   log.info(`通過 ${filename} 生成的 alias:`)
   log.info(alias)
 
-  if (options?.hasEnv) {
-    alias[options.envModuleName!] = `/${VIRTUAL_PATH}/${envConfigFilename}`
-    log.info(`環境變數 alias name 為 ${options.envModuleName!}`)
-  }
-
   return alias
 }
 
 function autoAlias(options?: AutoAliasOptions): any {
   const _options = options || {}
-
-  if (_options.hasEnv == null) {
-    _options.hasEnv = true
-  }
-
-  if (_options.envModuleName == null) {
-    _options.envModuleName = envConfigModuleFromName
-  }
 
   const plugin: Plugin = {
     name: 'vite-plugin-wtbx-auto-alias',
