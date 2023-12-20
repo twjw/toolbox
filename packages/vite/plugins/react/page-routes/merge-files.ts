@@ -1,21 +1,11 @@
-import path from 'path'
 import fs from 'fs'
+import {META_NAME, PAGE_IDX, PAGE_NAME} from "./constants.ts";
+import {SL} from "../../../../../constants";
 
-type SimpleFileRoute = {
+type FileRoute = {
 	rootDir: string
 	relateFiles: RouteRelateFiles
-	children: Record<string, SimpleFileRoute>
-}
-
-type CompleteFileRoute = {
-	filename: string
-	rootDir: string
-	parentPathList: string[]
-	includesFile: {
-		page: boolean
-		meta: boolean
-	}
-	children: CompleteFileRoute[]
+	children: Record<string, FileRoute>
 }
 
 type RouteRelateFiles = [
@@ -28,18 +18,11 @@ type MergeOptions = {
 }
 
 type RecursivePassSimpleFileRouteOptions = {
-	routeMap: Record<string, SimpleFileRoute>
+	routeMap: Record<string, FileRoute>
 	dir: string
 	rootDir: string
 	parentDir?: string
 }
-
-const SL = path.normalize('/')
-const PAGE_NAME = 'page.tsx'
-const META_NAME = 'page.meta.ts'
-const OUTLET_NAME = '(outlet)'
-const PAGE_IDX = 0
-const META_IDX = 1
 
 function _recursivePassSimpleFileRoute({
 	routeMap,
@@ -83,9 +66,9 @@ function _recursivePassSimpleFileRoute({
 }
 
 function _mergeSimpleFileRouteMap(
-	a: Record<string, SimpleFileRoute>,
-	b: Record<string, SimpleFileRoute>,
-): Record<string, SimpleFileRoute> {
+	a: Record<string, FileRoute>,
+	b: Record<string, FileRoute>,
+): Record<string, FileRoute> {
 	for (const k in b) {
 		if (a[k] != null) {
 			if (b[k].relateFiles[PAGE_IDX] === 1) {
@@ -103,11 +86,11 @@ function _mergeSimpleFileRouteMap(
 	return a
 }
 
-function _convertToSimpleFileRouteMap(options: MergeOptions) {
-	const simpleFileRouteMapList: Record<string, SimpleFileRoute>[] = Array.from(
+function mergeFiles(options: MergeOptions) {
+	const simpleFileRouteMapList: Record<string, FileRoute>[] = Array.from(
 		Array(options.dirs.length),
 	).map(e => ({}))
-	let resultSimpleFileRouteMap: Record<string, SimpleFileRoute> = {}
+	let resultSimpleFileRouteMap: Record<string, FileRoute> = {}
 
 	for (let i = 0; i < options.dirs.length; i++) {
 		_recursivePassSimpleFileRoute({
@@ -131,53 +114,5 @@ function _convertToSimpleFileRouteMap(options: MergeOptions) {
 	return resultSimpleFileRouteMap
 }
 
-function _convertToCompleteFileRoutes(
-	simpleFileRouteMap: Record<string, SimpleFileRoute>,
-	parentPathList = [] as string[],
-	result = [] as CompleteFileRoute[],
-) {
-	for (const k in simpleFileRouteMap) {
-		const e = simpleFileRouteMap[k]
-
-		if (e.relateFiles[PAGE_IDX] === 1) {
-			const completeFileRoute: CompleteFileRoute = {
-				filename: k,
-				rootDir: e.rootDir,
-				parentPathList: parentPathList,
-				includesFile: {
-					page: !!e.relateFiles[PAGE_IDX],
-					meta: !!e.relateFiles[META_IDX],
-				},
-				children: [],
-			}
-
-			result.push(completeFileRoute)
-
-			const outletName = `${SL}${OUTLET_NAME}`
-			if (e.children[outletName] != null) {
-				_convertToCompleteFileRoutes(
-					e.children[outletName].children,
-					parentPathList,
-					completeFileRoute.children,
-				)
-				continue
-			}
-		}
-
-		_convertToCompleteFileRoutes(e.children, [...parentPathList, k], result)
-	}
-
-	return result
-}
-
-function merge(options: MergeOptions) {
-	const simpleFileRouteMap = _convertToSimpleFileRouteMap(options)
-	const completeFileRoutes = _convertToCompleteFileRoutes(simpleFileRouteMap)
-
-	return {
-		simpleFileRouteMap,
-		completeFileRoutes,
-	}
-}
-
-export { PAGE_NAME, META_NAME, OUTLET_NAME, PAGE_IDX, META_IDX, merge }
+export type { FileRoute }
+export { mergeFiles }
