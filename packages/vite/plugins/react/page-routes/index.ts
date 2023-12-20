@@ -1,9 +1,13 @@
 import type { Plugin } from 'vite'
-import {META_NAME, PAGE_NAME, generate, RunOptions} from "./generate.ts";
+import {generate} from "./generate.ts";
 import {log} from "../../../../../utils/log.ts";
 import {waitMs} from "../../../../common";
+import {META_NAME, PAGE_NAME} from "./constants.ts";
 
-type ReactPageRoutesOptions = RunOptions
+type ReactPageRoutesOptions = {
+	defaultMeta?: any // 預設的 meta 資料
+	pages: string[] // 頁面目錄的絕對路徑(後蓋前)
+}
 
 const PLUGIN_NAME = 'page-routes'
 const FULL_PLUGIN_NAME = `vite-plugin-wtbx-react-${PLUGIN_NAME}`
@@ -19,6 +23,7 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 		enforce: 'pre',
 		configResolved() {
 			resultTsx = generate({pages, defaultMeta})
+			console.log(resultTsx)
 			log.info(`已開啟目錄路由功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {

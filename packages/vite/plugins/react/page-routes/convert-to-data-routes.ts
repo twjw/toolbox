@@ -5,7 +5,8 @@ import {SL} from "../../../../../constants";
 type DataRoute = {
   filename: string
   rootDir: string
-  parentPathList: string[]
+  parentFilenames: string[]
+  parentFilenameIdx: number | undefined // 父層的路由指到 parentPathList 的第 i 個
   includesFile: {
     page: boolean
     meta: boolean
@@ -15,7 +16,8 @@ type DataRoute = {
 
 function convertToDataRoutes(
   simpleFileRouteMap: Record<string, FileRoute>,
-  parentPathList = [] as string[],
+  parentFilenameIdx: number | undefined = undefined,
+  parentFilenames = [] as string[],
   result = [] as DataRoute[],
 ) {
   for (const k in simpleFileRouteMap) {
@@ -25,7 +27,8 @@ function convertToDataRoutes(
       const completeFileRoute: DataRoute = {
         filename: k,
         rootDir: e.rootDir,
-        parentPathList: parentPathList,
+        parentFilenames,
+        parentFilenameIdx,
         includesFile: {
           page: !!e.relateFiles[PAGE_IDX],
           meta: !!e.relateFiles[META_IDX],
@@ -39,14 +42,15 @@ function convertToDataRoutes(
       if (e.children[outletName] != null) {
         convertToDataRoutes(
           e.children[outletName].children,
-          parentPathList,
+          parentFilenames.length,
+          [...parentFilenames, k, outletName],
           completeFileRoute.children,
         )
         continue
       }
     }
 
-    convertToDataRoutes(e.children, [...parentPathList, k], result)
+    convertToDataRoutes(e.children, parentFilenameIdx, [...parentFilenames, k], result)
   }
 
   return result
