@@ -23,6 +23,8 @@ function _generateLangGlobPath({ dirs }: Required<ReactI18nOptions>) {
 		const filePathMap = {} as Record<string, 1> // <relativeFilepath>
 
 		for (let i = 0; i < dirs.length; i++) {
+			if (i > 0 && !fs.existsSync(dirs[i])) continue
+
 			const dir = dirs[i]
 			const files = fs.readdirSync(dir)
 
