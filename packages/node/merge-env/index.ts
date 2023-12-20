@@ -25,7 +25,7 @@ async function mergeEnv <Env extends Record<string, any>, Mode = string>(options
     for (let i = 0; i < options.dirs.length; i++) {
       if (!fs.existsSync(options.dirs[i])) continue
 
-      const envList: Env[] = Array(4).fill(undefined)
+      const envPathList: string[] = Array(4).fill(undefined)
       const filenames = fs.readdirSync(options.dirs[i], {withFileTypes: true})
 
       for (let j = 0; j < filenames.length; j++) {
@@ -33,19 +33,21 @@ async function mergeEnv <Env extends Record<string, any>, Mode = string>(options
         if (lstat.isFile()) {
           const envIdx = envIdxMap[lstat.name]
           if (envIdx != null) {
-            envList[envIdx] = (await importDynamicTs(`${options.dirs[i]}${SL}${lstat.name}`)).default
+            envPathList[envIdx] = `${options.dirs[i]}${SL}${lstat.name}`
           }
         }
       }
 
-      for (let j = 0; j < envList.length; j++) {
-        const env = envList[j];
+      for (let j = 0; j < envPathList.length; j++) {
+        const envPath = envPathList[j];
 
-        if (env != null) {
-          resultEnv = merge(resultEnv, env)
+        if (envPath != null) {
+          resultEnv = merge(resultEnv, (await importDynamicTs(envPath)).default)
         }
       }
     }
+
+    log.info(`最終合併的 env 為：\n`, JSON.stringify(resultEnv, null, 2))
 
     return resultEnv
   } catch (error) {

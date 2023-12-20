@@ -29,7 +29,7 @@ function injectEnv(options: InjectEnvOptions): any {
         const propName = options.rootPropNames![i]
         result[propName] = options.env[propName]
       }
-      log.info(`已開啟環境注入功能，模塊名為 ${options.importModuleName}，export 名為 ${options.exportModuleName}`)
+      log.info(`已開啟環境注入功能，模塊名為 ${options.importModuleName}；export 名為 ${options.exportModuleName}；注入的環境為：\n`, JSON.stringify(result, null, 2))
     },
     resolveId(id) {
       if (id === V_MODULE_NAME) {
