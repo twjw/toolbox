@@ -78,6 +78,8 @@ function _recurFindKeyValue (
 	key,
 	separator = '.',
 ) {
+	if (typeof key !== 'string') return undefined
+
 	const keys = key.split(separator)
 	let result = obj
 	let k
