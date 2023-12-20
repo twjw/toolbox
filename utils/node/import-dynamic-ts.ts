@@ -12,8 +12,15 @@ async function importDynamicTs <T = any>(filepath: string): Promise<T> {
   const jsFilepath = filepath.replace(/\.ts$/, '.js')
   const jsImportPath = importPath.replace(/\.ts$/, '.js')
   await fs.promises.writeFile(jsFilepath, jsText)
-  const result = await import(jsImportPath) as T
-  fs.promises.rm(jsFilepath)
+  let result: T
+  try {
+    result = await import(jsImportPath) as T
+  } catch (error) {
+    result = error as T
+  } finally {
+    await fs.promises.rm(jsFilepath)
+  }
+
   return result
 }
 

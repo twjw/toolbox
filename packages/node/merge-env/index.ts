@@ -43,6 +43,12 @@ async function mergeEnv <Env extends Record<string, any>, Mode = string>(options
 
         if (envPath != null) {
           resultEnv = merge(resultEnv, (await importDynamicTs(envPath)).default)
+
+          if (resultEnv instanceof Error) {
+            log.error('wtbx/node mergeEnv ERROR')
+            log.error(resultEnv)
+            process.exit(0)
+          }
         }
       }
     }
