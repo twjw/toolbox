@@ -10,8 +10,6 @@ export * from './plugins/inject-env'
 
 export * from './plugins/merge-public'
 
-export * from './plugins/merge-uno-css'
-
 export * from './plugins/react/i18n'
 export type * from './plugins/react/i18n/type'
 
