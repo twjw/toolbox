@@ -1,18 +1,7 @@
-import {type FileRoute} from "./merge-files.ts";
-import {META_IDX, OUTLET_NAME, PAGE_IDX} from "./constants.ts";
-import {SL} from "../../../../../constants";
-
-type DataRoute = {
-  filename: string
-  rootDir: string
-  parentFilenames: string[]
-  parentFilenameIdx: number | undefined // 父層的路由指到 parentPathList 的第 i 個
-  includesFile: {
-    page: boolean
-    meta: boolean
-  }
-  children: DataRoute[]
-}
+import {type FileRoute} from "../merge-files.ts";
+import {META_IDX, OUTLET_NAME, PAGE_IDX} from "../constants.ts";
+import {SL} from "../../../../../../constants";
+import {type DataRoute} from './type.ts'
 
 function convertToDataRoutes(
   simpleFileRouteMap: Record<string, FileRoute>,

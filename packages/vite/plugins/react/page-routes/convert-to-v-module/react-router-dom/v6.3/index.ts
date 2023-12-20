@@ -1,25 +1,12 @@
-import {DataRoute} from "../../../convert-to-data-routes.ts";
 import path from "path";
 import {META_NAME, OUTLET_NAME, PAGE_NAME} from "../../../constants.ts";
 import {SL} from "../../../../../../../../constants";
+import {recursiveFindDataRoute} from "../../../data-routes/recursive-find.ts";
+import {DataRoute} from "../../../data-routes/type.ts";
 
 enum RelativeTypeEnum {
   meta,
   page,
-}
-
-function _recursiveFindDateRoute (dataRoutes: DataRoute[], tap: (dr: DataRoute, location: 'start' | 'end') => void) {
-  for (let i = 0; i < dataRoutes.length; i++) {
-    const dr = dataRoutes[i]
-
-    tap(dr, 'start')
-
-    if (dr.children.length > 0) {
-      _recursiveFindDateRoute(dr.children, tap)
-    }
-
-    tap(dr, 'end')
-  }
 }
 
 function _toRelativeModulePath (dr: DataRoute, type: RelativeTypeEnum) {
@@ -43,7 +30,7 @@ function _toFullRoutePath (dr: DataRoute) {
   return `${result}/${_transFilename(dr.filename.substring(SL.length))}`
 }
 
-function _transRoutePath (dr: DataRoute) {
+function _toRoutePath (dr: DataRoute) {
   let result = ''
 
   if (dr.parentFilenameIdx != null) {
@@ -110,7 +97,7 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], defaultMeta?: obj
     l: 0, // lazy component
   }
 
-  _recursiveFindDateRoute(dataRoutes, (dr, location) => {
+  recursiveFindDataRoute(dataRoutes, (dr, _, location) => {
     const isParentRoute = dr.children.length > 0
 
     if (location === 'end') {
@@ -140,7 +127,7 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], defaultMeta?: obj
         )}'))`,
       )
 
-      const route = `<Route key="${++ids.r}" path="${_transRoutePath(dr)}" element={<context.Provider value={{ path: '${fullRoutePath}', meta: ${mid || 'defaultMeta'} }}><props.Wrap><${lazyId} /></props.Wrap></context.Provider>}`
+      const route = `<Route key="${++ids.r}" path="${_toRoutePath(dr)}" element={<context.Provider value={{ path: '${fullRoutePath}', meta: ${mid || 'defaultMeta'} }}><props.Wrap><${lazyId} /></props.Wrap></context.Provider>}`
 
       if (isParentRoute) {
         strRoutes.push(`${route}>`)

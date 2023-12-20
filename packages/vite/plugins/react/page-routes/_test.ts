@@ -1,7 +1,7 @@
-import {convertToDataRoutes} from "./convert-to-data-routes.ts";
+import {convertToDataRoutes} from "./data-routes/convert.ts";
 import {mergeFiles} from "./merge-files.ts";
 import path from "path";
-import {convertToReactRouterDomV6_3} from "./convert-to-v-module/react-router-dom/v6.3";
+import {SL} from "../../../../../constants";
 
 const fileMap = mergeFiles({
   dirs: [
@@ -10,10 +10,9 @@ const fileMap = mergeFiles({
   ],
 })
 const dataRoutes = convertToDataRoutes(fileMap)
-const vmStr = convertToReactRouterDomV6_3(dataRoutes)
 
 
-// console.log(JSON.stringify(fileMap, null, 2))
+console.log(JSON.stringify(fileMap, null, 2))
 // console.log(JSON.stringify(dataRoutes, null, 2))
-// console.log(dataRoutes[3])
-console.log(vmStr)
+// removeDataRoute(dataRoutes, `C:${SL}__c_frank${SL}codes${SL}side${SL}@twjw${SL}toolbox-js${SL}packages${SL}vite${SL}plugins${SL}react${SL}page-routes${SL}test-pages${SL}bbb${SL}task${SL}detail${SL}(outlet)${SL}doing${SL}page.tsx`.replace(/[\\/][^\\/]+$/, ''))
+// console.log(`${SL}doing${SL}page.tsx`.replace(/[\\/][^\\/]+$/, ''))
