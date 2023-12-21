@@ -29,10 +29,6 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
 		}
 	}
 
-	if (params != null) {
-		_url += `?${queryString.stringify(params)}`
-	}
-
 	if ((method === 'post' || method === 'put') && body != null) {
 		if (body instanceof FormData) {
 			// contentType = 'multipart/form-data'
@@ -54,6 +50,7 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
 		...config,
 		method,
 		url: _url,
+		qs: params != null ? `?${queryString.stringify(params)}` : '',
 		body: _body,
 		headers: config.headers,
 	}
@@ -145,7 +142,7 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 						mark,
 						timeout: apiTimeout,
 					} = apiOptions || {}
-					const fetchConfig = _toRequest(apiPrefix || prefix, config)
+					const fetchConfig = _toRequest((apiPrefix == null ? prefix : apiPrefix) || '', config)
 					const controllerKey = Symbol()
 					let res = {} as Fetch2.InterceptorResponse
 					let lastCacheTime = 0
@@ -195,7 +192,7 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 						fetchConfig.signal = controllerMap[controllerKey].signal
 
 						try {
-							let originRes = await fetch(fetchConfig.url, fetchConfig)
+							let originRes = await fetch(fetchConfig.url + fetchConfig.qs, fetchConfig)
 
 							res = originRes as unknown as Fetch2.InterceptorResponse
 
@@ -213,10 +210,7 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 							}
 						} finally {
 							res.config = fetchConfig as Fetch2.ResReq
-							res.config.origin = {
-								url: config.url,
-								body: config.body as object,
-							}
+							res.config.originBody = config.body
 						}
 					} else {
 						res = cacheMap[cacheUrl].res

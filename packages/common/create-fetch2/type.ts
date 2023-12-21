@@ -82,13 +82,13 @@ module Fetch2 {
 		url: string
 	}
 
-	export type Request = Omit<Config, 'body'> & { body: NodeJS.fetch.RequestInit['body'] }
+	export type Request = Omit<Config, 'body'> & {
+		qs: string
+		body: NodeJS.fetch.RequestInit['body']
+	}
 
 	export type ResReq = Request & {
-		origin: {
-			url: string
-			body: object
-		}
+		originBody: object | undefined
 	}
 
 	export type Instance = {
