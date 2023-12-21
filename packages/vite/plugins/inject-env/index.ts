@@ -24,6 +24,7 @@ function injectEnv(options: InjectEnvOptions): any {
 
   const plugin: Plugin = {
     name: FULL_PLUGIN_NAME,
+    enforce: 'pre',
     config() {
       for (let i = 0; i < options.propNames!.length; i++) {
         const propName = options.propNames![i]
