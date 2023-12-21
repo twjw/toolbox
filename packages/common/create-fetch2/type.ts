@@ -73,7 +73,7 @@ module Fetch2 {
 
 	export type InterceptorUseError = <R = any>(callback: InterceptorUseErrorCallback<R>) => void
 
-	export type InterceptorResponse = Omit<Response, 'body' | 'headers'> & {
+	export type InterceptorResponse = Response & {
 		data?: any
 		config?: ResReq
 	}
