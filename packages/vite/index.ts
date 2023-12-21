@@ -4,7 +4,7 @@ export * from './plugins/auto-alias'
 
 export * from './plugins/build-drop-log'
 
-export * from './plugins/convert-to-webp'
+export * from './plugins/cycle-convert-png-and-webp'
 
 export * from './plugins/inject-env'
 

@@ -56,11 +56,16 @@
 					"jsonc": "^4.17.21"
 				}
 			},
-			// wtbx/vite/plugins/convert-to-webp
-			"convert-to-webp": {
+			// wtbx/vite/plugins/cycle-convert-png-and-webp
+			"cycle-convert-png-and-webp": {
+				"node": ">= 18.17.0",
 				"devDependencies": {
 					"sharp": "^0.33.1"
 				}
+			},
+			// wtbx/vite/plugins/merge-public
+			"merge-public": {
+				"node": ">= 16.7.0"
 			},
 			// wtbx/vite/plugins/react
 			"react": {
