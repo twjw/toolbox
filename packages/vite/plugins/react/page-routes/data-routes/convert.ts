@@ -12,15 +12,14 @@ function convertToDataRoutes(
   for (const k in simpleFileRouteMap) {
     const e = simpleFileRouteMap[k]
 
-    if (e.relateFiles[PAGE_IDX] === 1) {
+    if (e.relateFiles[PAGE_IDX] != null) {
       const completeFileRoute: DataRoute = {
         filename: k,
-        rootDir: e.rootDir,
         parentFilenames,
         parentFilenameIdx,
-        includesFile: {
-          page: !!e.relateFiles[PAGE_IDX],
-          meta: !!e.relateFiles[META_IDX],
+        relateFileIdxes: {
+          page: e.relateFiles[PAGE_IDX],
+          meta: e.relateFiles[META_IDX],
         },
         children: [],
       }

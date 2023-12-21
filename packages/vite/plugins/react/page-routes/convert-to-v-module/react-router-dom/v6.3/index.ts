@@ -1,16 +1,17 @@
-import path from "path";
-import {META_NAME, OUTLET_NAME, PAGE_NAME} from "../../../constants.ts";
-import {SL} from "../../../../../../../../constants";
-import {recursiveFindDataRoute} from "../../../data-routes/recursive-find.ts";
-import {DataRoute} from "../../../data-routes/type.ts";
+import path from 'path'
+import { META_NAME, OUTLET_NAME, PAGE_NAME } from '../../../constants.ts'
+import { SL } from '../../../../../../../../constants'
+import { recursiveFindDataRoute } from '../../../data-routes/recursive-find.ts'
+import { DataRoute } from '../../../data-routes/type.ts'
+import {type ReactPageRoutesOptions} from "../../../type.ts";
 
 enum RelativeTypeEnum {
-  meta,
-  page,
+	meta,
+	page,
 }
 
-function _toRelativeModulePath (dr: DataRoute, type: RelativeTypeEnum) {
-  return `./${path.relative(process.cwd(), `${dr.rootDir}${dr.parentFilenames.join('')}${dr.filename === SL ? '' : dr.filename}${SL}${type === RelativeTypeEnum.meta ? META_NAME : type === RelativeTypeEnum.page ? PAGE_NAME : ''}`).replace(/\\/g, '/')}`
+function _toRelativeModulePath (dr: DataRoute, pages: string[], type: RelativeTypeEnum) {
+  return `./${path.relative(process.cwd(), `${pages[dr.relateFileIdxes[type === RelativeTypeEnum.meta ? 'meta' : 'page'] as number]}${dr.parentFilenames.join('')}${dr.filename === SL ? '' : dr.filename}${SL}${type === RelativeTypeEnum.meta ? META_NAME : type === RelativeTypeEnum.page ? PAGE_NAME : ''}`).replace(/\\/g, '/')}`
 }
 
 function _transFilename (filename: string) {
@@ -59,7 +60,7 @@ function _toRoutePath (dr: DataRoute) {
   }
 }
 
-function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], defaultMeta?: object): string {
+function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], options: ReactPageRoutesOptions): string {
   const lines: (string|string[])[] = [
     // idx: 0 import
     [
@@ -72,7 +73,7 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], defaultMeta?: obj
     'const fullRouteMetaMap = ',
     [
       'const context = createContext(null)',
-      `const defaultMeta = ${defaultMeta == null ? undefined : JSON.stringify(defaultMeta, null, 2)}`,
+      `const defaultMeta = ${options.defaultMeta == null ? undefined : JSON.stringify(options.defaultMeta, null, 2)}`,
       `function usePageRoute(fullRoutePath) {
         const ctx = useContext(context)
         if (fullRoutePath == null) return ctx
@@ -101,7 +102,7 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], defaultMeta?: obj
     const isParentRoute = dr.children.length > 0
 
     if (location === 'end') {
-      if (dr.includesFile.page && isParentRoute) {
+      if (dr.relateFileIdxes.page != null && isParentRoute) {
 				strRoutes.push('</Route>')
 			}
 
@@ -109,20 +110,21 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], defaultMeta?: obj
     }
 
     const fullRoutePath = _toFullRoutePath(dr)
-    let mid = dr.includesFile.meta ? `m${++ids.m}` : null
+    let mid = dr.relateFileIdxes.meta != null ? `m${++ids.m}` : null
 
     if (mid) {
-      (lines[idx.import] as string[]).push(`import ${mid} from '${_toRelativeModulePath(dr, RelativeTypeEnum.meta)}'`)
+      (lines[idx.import] as string[]).push(`import ${mid} from '${_toRelativeModulePath(dr, options.pages, RelativeTypeEnum.meta)}'`)
 
       fullRouteMetaMapString += `'${fullRoutePath}': ${mid},\n`
     }
 
-    if (dr.includesFile.page) {
+    if (dr.relateFileIdxes.page != null ) {
       const lazyId = `L${++ids.l}`
 
       ;(lines[idx.lazy] as string[]).push(
         `const ${lazyId} = lazy(() => import('${_toRelativeModulePath(
           dr,
+          options.pages,
           RelativeTypeEnum.page,
         )}'))`,
       )

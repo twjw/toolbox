@@ -3,14 +3,14 @@ import {META_NAME, PAGE_IDX, PAGE_NAME} from "./constants.ts";
 import {SL} from "../../../../../constants";
 
 type FileRoute = {
-	rootDir: string
 	relateFiles: RouteRelateFiles
 	children: Record<string, FileRoute>
 }
 
+// number 為 rootDirIdx
 type RouteRelateFiles = [
-	1 | undefined, // page
-	1 | undefined, // meta
+	number | undefined, // page
+	number | undefined, // meta
 ]
 
 type MergeOptions = {
@@ -21,6 +21,7 @@ type RecursivePassSimpleFileRouteOptions = {
 	routeMap: Record<string, FileRoute>
 	dir: string
 	rootDir: string
+	rootDirIdx: number
 	parentDir?: string
 }
 
@@ -28,12 +29,13 @@ function _recursivePassSimpleFileRoute({
 	routeMap,
 	dir,
 	rootDir,
+  rootDirIdx,
 	parentDir,
 }: RecursivePassSimpleFileRouteOptions) {
 	const filenames = fs.readdirSync(dir, { withFileTypes: true })
 	const nextDirs: string[] = []
-	let hasPage = undefined as 1 | undefined
-	let hasPageMeta = undefined as 1 | undefined
+	let hasPage = false
+	let hasPageMeta = false
 
 	for (let i = 0; i < filenames.length; i++) {
 		const d = filenames[i]
@@ -42,16 +44,18 @@ function _recursivePassSimpleFileRoute({
 		if (d.isDirectory()) {
 			nextDirs.push(fullFilepath)
 		} else if (d.name === PAGE_NAME) {
-			hasPage = 1
+			hasPage = true
 		} else if (d.name === META_NAME) {
-			hasPageMeta = 1
+			hasPageMeta = true
 		}
 	}
 
 	const shortDir = dir.substring((parentDir || rootDir).length) || SL
 	routeMap[shortDir] = {
-		rootDir,
-		relateFiles: [hasPage, hasPageMeta],
+		relateFiles: [
+			hasPage ? rootDirIdx : undefined,
+			hasPageMeta ? rootDirIdx : undefined
+		],
 		children: {},
 	}
 
@@ -60,6 +64,7 @@ function _recursivePassSimpleFileRoute({
 			routeMap: routeMap[shortDir].children,
 			dir: nextDirs[i],
 			rootDir,
+			rootDirIdx,
 			parentDir: dir,
 		})
 	}
@@ -71,9 +76,8 @@ function _mergeSimpleFileRouteMap(
 ): Record<string, FileRoute> {
 	for (const k in b) {
 		if (a[k] != null) {
-			if (b[k].relateFiles[PAGE_IDX] === 1) {
-				a[k].rootDir = b[k].rootDir
-				for (let i = 0; i < b[k].relateFiles.length; i++) {
+			for (let i = 0; i < b[k].relateFiles.length; i++) {
+				if (b[k].relateFiles[i] != null) {
 					a[k].relateFiles[i] = b[k].relateFiles[i]
 				}
 			}
@@ -97,6 +101,7 @@ function mergeFiles(options: MergeOptions) {
 			routeMap: simpleFileRouteMapList[i],
 			dir: options.dirs[i],
 			rootDir: options.dirs[i],
+			rootDirIdx: i,
 		})
 	}
 

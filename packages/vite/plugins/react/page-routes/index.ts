@@ -3,11 +3,7 @@ import {generate} from "./generate.ts";
 import {log} from "../../../../../utils/log.ts";
 import {waitMs} from "../../../../common";
 import {META_NAME, PAGE_NAME} from "./constants.ts";
-
-type ReactPageRoutesOptions = {
-	defaultMeta?: any // 預設的 meta 資料
-	pages: string[] // 頁面目錄的絕對路徑(後蓋前)
-}
+import {type ReactPageRoutesOptions} from "./type.ts";
 
 const PLUGIN_NAME = 'page-routes'
 const FULL_PLUGIN_NAME = `vite-plugin-wtbx-react-${PLUGIN_NAME}`
@@ -72,5 +68,4 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 	return plugin
 }
 
-export type { ReactPageRoutesOptions }
 export { reactPageRoutes }
