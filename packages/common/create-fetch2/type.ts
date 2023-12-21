@@ -88,7 +88,7 @@ module Fetch2 {
 	}
 
 	export type ResReq = Request & {
-		originBody: object | undefined
+		originBody: object | string | undefined
 	}
 
 	export type Instance = {
