@@ -31,7 +31,7 @@ module Fetch2 {
 	export type FetchErrors = Fetch2AbortError | Fetch2TimeoutError | Fetch2UnknownError
 
 	export type RequestInit = Omit<NodeJS.fetch.RequestInit, 'body'> & {
-		body?: object
+		body?: object | string
 		params?: object
 		resType?: ResType
 	}

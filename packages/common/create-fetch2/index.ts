@@ -43,6 +43,8 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
 					body,
 				)}` as NodeJS.fetch.RequestInit['body']
 			}
+		} else if (typeof body === 'string') {
+			_body = body
 		}
 	}
 
