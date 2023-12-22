@@ -69,8 +69,6 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], options: ReactPag
     ],
     // idx: 1 lazy
     [],
-    // idx: 2 fullRouteMetaMap
-    'const fullRouteMetaMap = ',
     [
       'const context = createContext(null)',
       `const defaultMeta = ${options.defaultMeta == null ? undefined : JSON.stringify(options.defaultMeta, null, 2)}`,
@@ -80,17 +78,15 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], options: ReactPag
         return { path: fullRoutePath, meta: fullRouteMetaMap[fullRoutePath] || defaultMeta }
       }`
     ],
-    // idx: 4 createPageRoutes
+    // idx: 3 createPageRoutes
     `function createPageRoutes(props) `,
     `export { usePageRoute, createPageRoutes }`
   ]
-  let fullRouteMetaMapString = ''
   const strRoutes: string[] = []
   const idx = {
     import: 0,
     lazy: 1,
-    fullRouteMetaMap: 2,
-    createPageRoutes: 4,
+    createPageRoutes: 3,
   }
   let ids = {
     r: 0, // route key
@@ -109,13 +105,16 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], options: ReactPag
       return
     }
 
+    type aaa = {
+      id: number | undefined
+      child: aaa
+    }
+
     const fullRoutePath = _toFullRoutePath(dr)
     let mid = dr.relateFileIdxes.meta != null ? `m${++ids.m}` : null
 
     if (mid) {
       (lines[idx.import] as string[]).push(`import ${mid} from '${_toRelativeModulePath(dr, options.pages, RelativeTypeEnum.meta)}'`)
-
-      fullRouteMetaMapString += `'${fullRoutePath}': ${mid},\n`
     }
 
     if (dr.relateFileIdxes.page != null ) {
@@ -139,7 +138,6 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], options: ReactPag
     }
   })
 
-  lines[idx.fullRouteMetaMap] += `{${fullRouteMetaMapString ? `\n${fullRouteMetaMapString}` : ''}}`
   lines[idx.createPageRoutes] += `{\nreturn ${strRoutes.length > 0 ? `(\n${strRoutes.length > 1 ? '<>\n' : ''}${strRoutes.join('\n')}${strRoutes.length > 1 ? '\n</>' : ''}\n)` : 'null'}\n}`
 
   return lines.map(e => typeof e === 'string' ? e : e.join('\n')).join('\n')
