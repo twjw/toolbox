@@ -18,6 +18,7 @@ function mergePublic(options: MergePublicOptions): any {
 	const publicRootPath = path.resolve(process.cwd(), publicDir)
 	const absDirs = dirNames.map(e => path.resolve(publicRootPath, e))
 	let buildPath: string
+	let isBuild = false
 
 	function _createMp (buildPath: string) {
 		const exists = fs.existsSync(buildPath)
@@ -36,7 +37,6 @@ function mergePublic(options: MergePublicOptions): any {
 				process.exit(0)
 			}
 		}
-
 	}
 
 	const plugin: Plugin = {
@@ -44,12 +44,13 @@ function mergePublic(options: MergePublicOptions): any {
 		enforce: 'pre',
 		config(config) {
 			log.info(`已開啟靜態資源合併功能...`)
-
+			isBuild = !!config.build
 			return {
 				publicDir: config.build ? false : publicDir,
 			}
 		},
 		closeBundle() {
+			if (!isBuild) return
 			_createMp(path.resolve(process.cwd(), distDir, mergeDir))
 		},
 		configureServer(server) {
