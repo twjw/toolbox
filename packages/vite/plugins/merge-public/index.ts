@@ -13,6 +13,12 @@ type MergePublicOptions = {
 const PLUGIN_NAME = 'merge-public'
 const FULL_PLUGIN_NAME = `vite-plugin-wtbx-${PLUGIN_NAME}`
 
+function _checkCopyFile (from: string, to: string) {
+  const exists = fs.existsSync(to)
+	if (!exists) fs.mkdirSync(to, { recursive: true })
+	fs.copyFileSync(from, to)
+}
+
 function mergePublic(options: MergePublicOptions): any {
 	const { distDir = 'dist', publicDir = 'public', mergeDir = 'mp', dirNames } = options || {}
 	const publicRootPath = path.resolve(process.cwd(), publicDir)
@@ -93,7 +99,7 @@ function mergePublic(options: MergePublicOptions): any {
 							const exists = fs.existsSync(dirFilepath)
 
 							if (exists) {
-								fs.copyFileSync(dirFilepath, path.resolve(buildPath, noDirFilepath))
+								_checkCopyFile(dirFilepath, path.resolve(buildPath, noDirFilepath))
 								break
 							} else if (i === 0) {
 								fs.rmSync(path.resolve(buildPath, noDirFilepath))
@@ -106,10 +112,10 @@ function mergePublic(options: MergePublicOptions): any {
 							if (exists) {
 								if (dirIdx < i) break
 
-								fs.copyFileSync(filepath, path.resolve(buildPath, noDirFilepath))
+								_checkCopyFile(filepath, path.resolve(buildPath, noDirFilepath))
 								break
 							} else if (i === 0) {
-								fs.copyFileSync(filepath, path.resolve(buildPath, noDirFilepath))
+								_checkCopyFile(filepath, path.resolve(buildPath, noDirFilepath))
 							}
 						}
 					}
