@@ -14,8 +14,9 @@ const PLUGIN_NAME = 'merge-public'
 const FULL_PLUGIN_NAME = `vite-plugin-wtbx-${PLUGIN_NAME}`
 
 function _checkCopyFile (from: string, to: string) {
-  const exists = fs.existsSync(to)
-	if (!exists) fs.mkdirSync(to, { recursive: true })
+	const toDirPath = to.replace(/[^\\\/]+$/, '')
+  const exists = fs.existsSync(toDirPath)
+	if (!exists) fs.mkdirSync(toDirPath, { recursive: true })
 	fs.copyFileSync(from, to)
 }
 
