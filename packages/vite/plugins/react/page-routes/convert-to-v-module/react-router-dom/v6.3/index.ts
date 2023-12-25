@@ -72,10 +72,8 @@ function convertToReactRouterDomV6_3 (dataRoutes: DataRoute[], options: ReactPag
     [
       'const context = createContext(null)',
       `const defaultMeta = ${options.defaultMeta == null ? undefined : JSON.stringify(options.defaultMeta, null, 2)}`,
-      `function usePageRoute(fullRoutePath) {
-        const ctx = useContext(context)
-        if (fullRoutePath == null) return ctx
-        return { path: fullRoutePath, meta: fullRouteMetaMap[fullRoutePath] || defaultMeta }
+      `function usePageRoute() {
+        return useContext(context)
       }`
     ],
     // idx: 3 createPageRoutes
