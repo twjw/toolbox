@@ -34,6 +34,7 @@ module Fetch2 {
 		body?: object | string
 		params?: object
 		resType?: ResType
+		other?: any // 用戶自行決定的資料
 	}
 
 	export type ResetStatusMap = {
@@ -83,7 +84,6 @@ module Fetch2 {
 	}
 
 	export type Request = Omit<Config, 'body'> & {
-		qs: string
 		body: NodeJS.fetch.RequestInit['body']
 	}
 
