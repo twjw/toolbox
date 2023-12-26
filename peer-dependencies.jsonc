@@ -67,6 +67,12 @@
 			"merge-public": {
 				"node": ">= 16.7.0"
 			},
+			// wtbx/vite/plugins/merge-public
+			"mock-apis": {
+				"devDependencies": {
+					"body": "^5.1.0"
+				}
+			},
 			// wtbx/vite/plugins/react
 			"react": {
 				// wtbx/vite/plugins/react/react-page-routes
