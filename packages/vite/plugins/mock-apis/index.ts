@@ -32,7 +32,6 @@ function mockApis(options?: MockApisOptions): any {
 					if (qsstr) {
 						query = qs.parse(qsstr)
 					}
-					console.log(query, 111)
 
 					body = await new Promise(resolve => {
 						jsonBody(req, res, (err, body) => {
@@ -45,8 +44,6 @@ function mockApis(options?: MockApisOptions): any {
 						.replace(/[\\\/]/g, '/')}.js?update=${Date.now()}`
 					const passData = { query, body }
 					const apiMap = (await import(filepath)).default
-
-					console.log(filepath)
 
 					if (typeof apiMap[url] !== 'function') throw new Error('mock api 必須是 function!!')
 
