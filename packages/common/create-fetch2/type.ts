@@ -31,8 +31,8 @@ module Fetch2 {
 	export type FetchErrors = Fetch2AbortError | Fetch2TimeoutError | Fetch2UnknownError
 
 	export type RequestInit = Omit<NodeJS.fetch.RequestInit, 'body'> & {
-		body?: object | string
-		params?: object
+		body?: Record<string, any> | string
+		params?: Record<string, any>
 		resType?: ResType
 		other?: any // 用戶自行決定的資料
 	}
@@ -55,13 +55,15 @@ module Fetch2 {
 
 	export type ControllerMap = Record<symbol, AbortController>
 
-	export type InterceptorUseRequestCallback = (res: Config) => Config
+	export type InterceptorUseRequestCallback = (config: Config) => Config
 
 	export type InterceptorUseRequest = (callback: InterceptorUseRequestCallback) => void
 
 	export type InterceptorUseResponseCallback<R = any> = (res: InterceptorResponse) => R
 
-	export type InterceptorUseResponse = <R = any>(callback: InterceptorUseResponseCallback<R>) => void
+	export type InterceptorUseResponse = <R = any>(
+		callback: InterceptorUseResponseCallback<R>,
+	) => void
 
 	export type InterceptorUseErrorCallback<R = any> = (
 		error: FetchErrors,
@@ -79,16 +81,17 @@ module Fetch2 {
 		config?: ResReq
 	}
 
-	export type Config = RequestInit & {
-		url: string
-	}
+	export type Config = RequestInit &
+		ApiOptions & {
+			url: string
+		}
 
 	export type Request = Omit<Config, 'body'> & {
 		body: NodeJS.fetch.RequestInit['body']
 	}
 
 	export type ResReq = Request & {
-		originBody: object | string | undefined
+		originBody: Record<string, any> | string | undefined
 	}
 
 	export type Instance = {

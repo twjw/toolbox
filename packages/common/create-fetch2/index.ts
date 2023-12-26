@@ -5,8 +5,8 @@ import { Fetch2AbortError, Fetch2TimeoutError, Fetch2UnknownError } from './erro
 const _maxMethodTextLength = 'delete'.length - 1
 const _minMethodTextLength = 'get'.length - 1
 
-function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
-	const { url, params, body } = config
+function _toRequest(config: Fetch2.Config): Fetch2.Request {
+	const { url, prefix = '', params, body } = config
 	let method: Fetch2.Method = 'get'
 	let _url = prefix
 	// let contentType = 'text/plain'
@@ -61,28 +61,6 @@ function _toRequest(prefix: string, config: Fetch2.Config): Fetch2.Request {
 	}
 }
 
-const _transformRes = <R>(
-	res: Fetch2.InterceptorResponse,
-	responseUses: Fetch2.InterceptorUseResponseCallback[],
-	markResolveList: ((result: any) => void)[] | null,
-) => {
-	let result = res as R
-
-	if (responseUses.length > 0) {
-		for (let i = 0; i < responseUses.length; i++) {
-			result = responseUses[i](res)
-		}
-	}
-
-	if (markResolveList != null) {
-		for (let i = 1; i < markResolveList.length; i++) {
-			markResolveList[i](result)
-		}
-	}
-
-	return result
-}
-
 const _resetStatus = ({
 	timoutInstance,
 
@@ -106,8 +84,8 @@ const _resetStatus = ({
 }
 
 // TODO retry, 競態
-const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
-	const { prefix = '', timeout = 0 } = options || {}
+const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
+	const { prefix = '', timeout = 0 } = options
 	const interceptors = {
 		useRequest: null as Fetch2.InterceptorUseRequestCallback | null,
 		useResponse: null as Fetch2.InterceptorUseResponseCallback | null,
@@ -120,7 +98,7 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 	const fetch2 = (async <R>(
 		url: string,
 		init?: Fetch2.RequestInit,
-		apiOptions?: Fetch2.ApiOptions,
+		apiOptions: Fetch2.ApiOptions = {},
 	) => {
 		const resetMap: Fetch2.ResetStatusMap = {
 			controllerMap,
@@ -131,6 +109,8 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 			async (resolve, reject) => {
 				try {
 					let config: Fetch2.Config = {
+						...options,
+						...apiOptions,
 						...init,
 						url,
 					}
@@ -139,34 +119,25 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 						config = interceptors.useRequest(config)
 					}
 
-					const {
-						prefix: apiPrefix,
-						controller: apiController,
-						cacheTime,
-						forceRun,
-						mark,
-						timeout: apiTimeout,
-					} = apiOptions || {}
-					const fetchConfig = _toRequest((apiPrefix == null ? prefix : apiPrefix) || '', config)
+					const fetchConfig = _toRequest(config)
 					const controllerKey = Symbol()
 					let res = {} as Fetch2.InterceptorResponse
 					let lastCacheTime = 0
 					const cacheUrl = `${fetchConfig.method}:${fetchConfig.url}`
-					let _timeout = apiTimeout || timeout
 
 					resetMap.mark = (
-						mark === true || (mark == null && fetchConfig.method === 'get')
+						config.mark === true || (config.mark == null && fetchConfig.method === 'get')
 							? cacheUrl
-							: mark === false
+							: config.mark === false
 							  ? null
-							  : mark
+							  : config.mark
 					) as string | symbol | number
 					resetMap.controllerKey = controllerKey
 
-					if (_timeout > 0) {
+					if (config.timeout != null && config.timeout > 0) {
 						resetMap.timoutInstance = setTimeout(() => {
-							reject(new Fetch2TimeoutError(`fetch timeout ${_timeout}ms`))
-						}, _timeout)
+							reject(new Fetch2TimeoutError(`fetch timeout ${config.timeout}ms`))
+						}, config.timeout)
 					}
 
 					if (resetMap.mark != null) {
@@ -182,18 +153,18 @@ const createFetch2 = (options?: Fetch2.Options): Fetch2.Instance => {
 					}
 
 					if (cacheMap[cacheUrl] == null) {
-						if (cacheTime) {
-							lastCacheTime = Date.now() + cacheTime
+						if (config.cacheTime) {
+							lastCacheTime = Date.now() + config.cacheTime
 						}
 					} else if (
-						forceRun ||
-						cacheMap[cacheUrl].lastCacheTime < Date.now() + (cacheTime || 0)
+						config.forceRun ||
+						cacheMap[cacheUrl].lastCacheTime < Date.now() + (config.cacheTime || 0)
 					) {
 						delete cacheMap[cacheUrl]
 					}
 
 					if (cacheMap[cacheUrl] == null) {
-						controllerMap[controllerKey] = apiController || new AbortController()
+						controllerMap[controllerKey] = config.controller || new AbortController()
 						fetchConfig.signal = controllerMap[controllerKey].signal
 
 						try {
