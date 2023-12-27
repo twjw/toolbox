@@ -1,7 +1,7 @@
 import { Fetch2CompeteEnum } from './compete-enum'
 import { Fetch2AbortError, Fetch2TimeoutError, Fetch2UnknownError } from './error'
 
-module Fetch2 {
+namespace Fetch2 {
 	export type Options = {
 		// 路由前綴
 		prefix?: string
@@ -87,8 +87,7 @@ module Fetch2 {
 		originBody: Record<string, any> | string | undefined
 	}
 
-	export type Instance = {
-		<R = InterceptorResponse>(url: string, init?: RequestInit, options?: ApiOptions): Promise<R>
+	export type InstanceFunc = {
 		cancel: (controller: AbortController) => void
 		cancelAll: () => void
 		interceptors: {
@@ -97,6 +96,59 @@ module Fetch2 {
 			error: { use: InterceptorUseError }
 		}
 	}
+
+	export type Instance = {
+		<R = InterceptorResponse>(url: string, init?: RequestInit, options?: ApiOptions): Promise<R>
+	} & InstanceFunc
 }
 
-export type { Fetch2 }
+namespace TypeFetch2 {
+	export type Api = {
+		response: any
+		body?: Fetch2.RequestInit['body']
+		params?: Fetch2.RequestInit['params']
+		resType?: Fetch2.RequestInit['resType']
+	}
+
+	export type Response<
+		Apis extends Record<string, Api>,
+		Url extends keyof Apis,
+	> = Apis[Url] extends { response: infer Data } ? Data : undefined
+
+	export type InitBody<
+		Apis extends Record<string, Api>,
+		Url extends keyof Apis,
+	> = Apis[Url] extends { body: infer Body } ? { body: Body } : {}
+
+	export type InitParams<
+		Apis extends Record<string, Api>,
+		Url extends keyof Apis,
+	> = Apis[Url] extends { params: infer Params } ? { params: Params } : {}
+
+	export type InitResType<
+		Apis extends Record<string, Api>,
+		Url extends keyof Apis,
+	> = Apis[Url] extends { resType: infer ResType } ? { resType: ResType } : {}
+
+	export type Init<Apis extends Record<string, Api>, Url extends keyof Apis> = Omit<
+		Fetch2.RequestInit,
+		'body' | 'params' | 'resType'
+	> &
+		InitBody<Apis, Url> &
+		InitParams<Apis, Url> &
+		InitResType<Apis, Url>
+
+	export type Options = Omit<Fetch2.ApiOptions, 'controller'>
+
+	export type DefineApis<T extends Record<string, Api>> = T
+
+	export type Instance<Apis extends Record<string, Api>> = Fetch2.InstanceFunc & {
+		<Url extends keyof Apis>(
+			url: Url,
+			init?: Init<Apis, Url>,
+			options?: Options,
+		): Promise<Response<Apis, Url>>
+	}
+}
+
+export type { Fetch2, TypeFetch2 }
