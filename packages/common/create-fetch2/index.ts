@@ -61,28 +61,6 @@ function _toRequest(config: Fetch2.Config): Fetch2.Request {
 	}
 }
 
-const _resetStatus = ({
-	timoutInstance,
-
-	mark,
-	repeatMarkMap,
-
-	controllerKey,
-	controllerMap,
-}: Fetch2.ResetStatusMap) => {
-	if (timoutInstance != null) {
-		clearTimeout(timoutInstance)
-	}
-
-	if (mark != null && repeatMarkMap[mark]?.length) {
-		delete repeatMarkMap[mark]
-	}
-
-	if (controllerKey != null && controllerMap[controllerKey] != null) {
-		delete controllerMap[controllerKey]
-	}
-}
-
 // TODO retry, 競態
 const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 	const { prefix = '', timeout = 0 } = options
@@ -94,18 +72,18 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 	const cacheMap = {} as Fetch2.CacheMap
 	const controllerMap = {} as Fetch2.ControllerMap
 	const repeatMarkMap = {} as Fetch2.RepeatMarkMap
+	let id = 0
 
 	const fetch2 = (async <R>(
 		url: string,
 		init?: Fetch2.RequestInit,
 		apiOptions: Fetch2.ApiOptions = {},
 	) => {
-		const resetMap: Fetch2.ResetStatusMap = {
-			controllerMap,
-			repeatMarkMap,
-		}
+		const fetchId = ++id
+		let timoutInstance: NodeJS.Timeout | undefined
+		let mark: symbol | string | number | undefined
 
-		return await new Promise<{ __markResolve?: 1; response: Fetch2.InterceptorResponse }>(
+		return new Promise<{ __markResolve?: 1; response: Fetch2.InterceptorResponse }>(
 			async (resolve, reject) => {
 				try {
 					let config: Fetch2.Config = {
@@ -120,34 +98,32 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 					}
 
 					const fetchConfig = _toRequest(config)
-					const controllerKey = Symbol()
 					let res = {} as Fetch2.InterceptorResponse
 					let lastCacheTime = 0
 					const cacheUrl = `${fetchConfig.method}:${fetchConfig.url}`
 
-					resetMap.mark = (
+					mark = (
 						config.mark === true || (config.mark == null && fetchConfig.method === 'get')
 							? cacheUrl
 							: config.mark === false
 							  ? null
 							  : config.mark
 					) as string | symbol | number
-					resetMap.controllerKey = controllerKey
 
 					if (config.timeout != null && config.timeout > 0) {
-						resetMap.timoutInstance = setTimeout(() => {
+						timoutInstance = setTimeout(() => {
 							reject(new Fetch2TimeoutError(`fetch timeout ${config.timeout}ms`))
 						}, config.timeout)
 					}
 
-					if (resetMap.mark != null) {
-						if (repeatMarkMap[resetMap.mark] != null) {
-							repeatMarkMap[resetMap.mark].push(result => resolve(result))
+					if (mark != null) {
+						if (repeatMarkMap[mark] != null) {
+							repeatMarkMap[mark].push([resolve, reject])
 						} else {
-							repeatMarkMap[resetMap.mark] = [result => resolve(result)]
+							repeatMarkMap[mark] = [[resolve, reject]]
 						}
 
-						if (repeatMarkMap[resetMap.mark].length > 1) {
+						if (repeatMarkMap[mark].length > 1) {
 							return
 						}
 					}
@@ -164,8 +140,8 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 					}
 
 					if (cacheMap[cacheUrl] == null) {
-						controllerMap[controllerKey] = config.controller || new AbortController()
-						fetchConfig.signal = controllerMap[controllerKey].signal
+						controllerMap[fetchId] = apiOptions.controller || new AbortController()
+						fetchConfig.signal = controllerMap[fetchId].signal
 
 						try {
 							let originRes = await fetch(fetchConfig.url, fetchConfig)
@@ -213,27 +189,52 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 					result = interceptors.useResponse(response.response)
 				}
 
-				if (resetMap.mark != null && repeatMarkMap[resetMap.mark] != null) {
-					for (let i = 1; i < repeatMarkMap[resetMap.mark].length; i++) {
-						repeatMarkMap[resetMap.mark][i]({ __markResolve: 1, response: result })
+				if (mark != null && repeatMarkMap[mark] != null) {
+					for (let i = 1; i < repeatMarkMap[mark].length; i++) {
+						repeatMarkMap[mark][i][0]({ __markResolve: 1, response: result })
 					}
+
+					delete repeatMarkMap[mark]
 				}
 
 				return result
 			})
 			.catch(error => {
+				if (error.__markReject === 1) {
+					if (error.__response != null) return error.__response
+					throw error.__error
+				}
+
+				let result: any
+
 				if (interceptors.useError != null) {
-					return interceptors.useError(error, {
+					result = interceptors.useError(error, {
 						url,
 						init: init || null,
 						apiOptions: apiOptions || null,
 					})
 				}
 
+				if (mark != null && repeatMarkMap[mark] != null) {
+					for (let i = 1; i < repeatMarkMap[mark].length; i++) {
+						repeatMarkMap[mark][i][1]({ __markReject: 1, __response: result, __error: error })
+					}
+
+					delete repeatMarkMap[mark]
+				}
+
+				if (result != null) return result
+
 				throw error
 			})
 			.finally(() => {
-				_resetStatus(resetMap)
+				if (timoutInstance != null) {
+					clearTimeout(timoutInstance)
+				}
+
+				if (controllerMap[fetchId] != null) {
+					delete controllerMap[fetchId]
+				}
 			})
 	}) as Fetch2.Instance
 
@@ -242,11 +243,9 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 	}
 
 	fetch2.cancelAll = () => {
-		const names = Object.getOwnPropertySymbols(controllerMap)
-
-		for (const name of names) {
-			controllerMap[name]?.abort?.()
-			delete controllerMap[name]
+		for (const fetchId in controllerMap) {
+			controllerMap[fetchId].abort()
+			delete controllerMap[fetchId]
 		}
 	}
 

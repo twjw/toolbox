@@ -37,23 +37,16 @@ module Fetch2 {
 		other?: any // 用戶自行決定的資料
 	}
 
-	export type ResetStatusMap = {
-		timoutInstance?: NodeJS.Timeout
-
-		mark?: symbol | string | number
-		repeatMarkMap: RepeatMarkMap
-
-		controllerKey?: symbol
-		controllerMap: ControllerMap
-	}
-
 	export type ResType = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text'
 
 	export type CacheMap = Record<string, { lastCacheTime: number; res: InterceptorResponse }>
 
-	export type RepeatMarkMap = Record<symbol | string | number, ((result: any) => void)[]>
+	export type RepeatMarkMap = Record<
+		symbol | string | number,
+		[(arg: any) => void, (arg: any) => any][]
+	>
 
-	export type ControllerMap = Record<symbol, AbortController>
+	export type ControllerMap = Record<number, AbortController>
 
 	export type InterceptorUseRequestCallback = (config: Config) => Config
 
