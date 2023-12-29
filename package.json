@@ -1,6 +1,6 @@
 {
 	"name": "wtbx",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"type": "module",
 	"description": "@twjw 的 js 工具庫",
 	"files": [
@@ -9,17 +9,17 @@
 	],
 	"exports": {
 		"./common": {
-			"types": "./dist/common/index.d.js",
+			"types": "./dist/common/index.d.ts",
 			"import": "./dist/common/index.js",
 			"require": "./dist/common/index.cjs"
 		},
 		"./node": {
-			"types": "./dist/node/index.d.js",
+			"types": "./dist/node/index.d.ts",
 			"import": "./dist/node/index.js",
 			"require": "./dist/node/index.cjs"
 		},
 		"./react": {
-			"types": "./dist/react/index.d.js",
+			"types": "./dist/react/index.d.ts",
 			"import": "./dist/react/index.js",
 			"require": "./dist/react/index.cjs"
 		},
@@ -27,12 +27,12 @@
 			"types": "./dist/type/index.d.ts"
 		},
 		"./vite": {
-			"types": "./dist/vite/index.d.js",
+			"types": "./dist/vite/index.d.ts",
 			"import": "./dist/vite/index.js",
 			"require": "./dist/vite/index.cjs"
 		},
 		"./web": {
-			"types": "./dist/web/index.d.js",
+			"types": "./dist/web/index.d.ts",
 			"import": "./dist/web/index.js",
 			"require": "./dist/web/index.cjs"
 		}
