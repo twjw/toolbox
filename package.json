@@ -1,40 +1,35 @@
 {
 	"name": "wtbx",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"type": "module",
 	"description": "@twjw 的 js 工具庫",
 	"files": [
-		"./dist",
+		"./esm",
 		"./peer-dependencies.jsonc"
 	],
 	"exports": {
 		"./common": {
-			"types": "./dist/common/index.d.ts",
-			"import": "./dist/common/index.js",
-			"require": "./dist/common/index.cjs"
+			"types": "./esm/common/index.d.ts",
+			"import": "./packages/common/index.ts"
 		},
 		"./node": {
-			"types": "./dist/node/index.d.ts",
-			"import": "./dist/node/index.js",
-			"require": "./dist/node/index.cjs"
+			"types": "./esm/node/index.d.ts",
+			"import": "./esm/node/index.js"
 		},
 		"./react": {
-			"types": "./dist/react/index.d.ts",
-			"import": "./dist/react/index.js",
-			"require": "./dist/react/index.cjs"
+			"types": "./esm/react/index.d.ts",
+			"import": "./esm/react/index.js"
 		},
 		"./type": {
-			"types": "./dist/type/index.d.ts"
+			"types": "./esm/type/index.d.ts"
 		},
 		"./vite": {
-			"types": "./dist/vite/index.d.ts",
-			"import": "./dist/vite/index.js",
-			"require": "./dist/vite/index.cjs"
+			"types": "./esm/vite/index.d.ts",
+			"import": "./esm/vite/index.js"
 		},
 		"./web": {
-			"types": "./dist/web/index.d.ts",
-			"import": "./dist/web/index.js",
-			"require": "./dist/web/index.cjs"
+			"types": "./esm/web/index.d.ts",
+			"import": "./esm/web/index.js"
 		}
 	},
 	"scripts": {
