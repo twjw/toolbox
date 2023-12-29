@@ -45,7 +45,6 @@ async function mergeEnv<Env extends Record<string, any>, Mode = string>(
 
 				if (envPath != null) {
 					resultEnv = merge(resultEnv, (await importDynamicTs(envPath)).default)
-					console.log(await importDynamicTs(envPath), resultEnv, envPath, 123)
 					if (resultEnv instanceof Error) {
 						log.error(`${PACKAGE_NAME}/node mergeEnv ERROR`)
 						log.error(resultEnv)
