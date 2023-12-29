@@ -1,9 +1,10 @@
 import { type Plugin } from 'vite'
+import { PACKAGE_NAME } from '../../../../constants'
 
 type ModuleOptions = {}
 
 const PLUGIN_NAME = 'PLUGIN_NAME'
-const FULL_PLUGIN_NAME = `vite-plugin-wtbx-${PLUGIN_NAME}`
+const FULL_PLUGIN_NAME = `vite-plugin-${PACKAGE_NAME}-${PLUGIN_NAME}`
 
 function MODULE_NAME(options?: ModuleOptions): any {
 	const _options = options || {}

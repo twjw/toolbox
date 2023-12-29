@@ -1,19 +1,21 @@
-import {DataRoute} from "./type.ts";
+import { DataRoute } from './type'
 
-function recursiveFindDataRoute (dataRoutes: DataRoute[], tap: (dr: DataRoute, parent: DataRoute | null, location: 'start' | 'end') => void | false, parent = null as DataRoute | null) {
-  for (let i = 0; i < dataRoutes.length; i++) {
-    const dr = dataRoutes[i]
+function recursiveFindDataRoute(
+	dataRoutes: DataRoute[],
+	tap: (dr: DataRoute, parent: DataRoute | null, location: 'start' | 'end') => void | false,
+	parent = null as DataRoute | null,
+) {
+	for (let i = 0; i < dataRoutes.length; i++) {
+		const dr = dataRoutes[i]
 
-    if (tap(dr, parent, 'start') === false) break
+		if (tap(dr, parent, 'start') === false) break
 
-    if (dr.children.length > 0) {
-      recursiveFindDataRoute(dr.children, tap, dr)
-    }
+		if (dr.children.length > 0) {
+			recursiveFindDataRoute(dr.children, tap, dr)
+		}
 
-    if (tap(dr, parent, 'end') === false) break
-  }
+		if (tap(dr, parent, 'end') === false) break
+	}
 }
 
-export {
-  recursiveFindDataRoute
-}
+export { recursiveFindDataRoute }

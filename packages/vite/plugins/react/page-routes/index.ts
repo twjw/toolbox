@@ -1,12 +1,13 @@
 import type { Plugin } from 'vite'
-import {generate} from "./generate.ts";
-import {log} from "../../../../../utils/log.ts";
-import {waitMs} from "../../../../common";
-import {META_NAME, PAGE_NAME} from "./constants.ts";
-import {type ReactPageRoutesOptions} from "./type.ts";
+import { generate } from './generate'
+import { log } from '../../../../../utils/log'
+import { waitMs } from '../../../../common'
+import { META_NAME, PAGE_NAME } from './constants'
+import { type ReactPageRoutesOptions } from './type'
+import { PACKAGE_NAME } from '../../../../../constants'
 
 const PLUGIN_NAME = 'page-routes'
-const FULL_PLUGIN_NAME = `vite-plugin-wtbx-react-${PLUGIN_NAME}`
+const FULL_PLUGIN_NAME = `vite-plugin-${PACKAGE_NAME}-react-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~${PLUGIN_NAME}`
 const V_MODULE_ID = `@@${V_MODULE_NAME}.jsx`
 
@@ -18,7 +19,7 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 		name: FULL_PLUGIN_NAME,
 		enforce: 'pre',
 		configResolved() {
-			resultTsx = generate({pages, defaultMeta})
+			resultTsx = generate({ pages, defaultMeta })
 			log.info(`已開啟目錄路由功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
@@ -32,10 +33,15 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 					if (_filename != null) filename = _filename
 				}
 
-				if (isUpdating || !filename || !(new RegExp(`(${PAGE_NAME}|${META_NAME})$`).test(filename))) return
+				if (
+					isUpdating ||
+					!filename ||
+					!new RegExp(`(${PAGE_NAME}|${META_NAME})$`).test(filename)
+				)
+					return
 
 				isUpdating = true
-				resultTsx = generate({pages, defaultMeta})
+				resultTsx = generate({ pages, defaultMeta })
 				await waitMs(250)
 				isUpdating = false
 
@@ -62,7 +68,7 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 				if (resultTsx == null) return
 				return resultTsx
 			}
-		}
+		},
 	}
 
 	return plugin

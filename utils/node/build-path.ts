@@ -2,7 +2,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import { VIRTUAL_PATH } from '../../constants'
 
-async function checkNewBuildGitIgnore() {
+async function checkMkdirBuildFolderAndGitIgnore() {
 	const buildPath = getBuildPath()
 
 	try {
@@ -24,4 +24,4 @@ function getBuildPath() {
 	return path.resolve(process.cwd(), VIRTUAL_PATH)
 }
 
-export { getBuildPath, checkNewBuildGitIgnore }
+export { getBuildPath, checkMkdirBuildFolderAndGitIgnore }

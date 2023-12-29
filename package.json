@@ -1,22 +1,48 @@
 {
 	"name": "wtbx",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"type": "module",
-	"description": "",
-	"main": "packages",
-	"module": "packages",
+	"description": "@twjw 的 js 工具庫",
+	"files": [
+		"./dist",
+		"./peer-dependencies.jsonc"
+	],
 	"exports": {
-		"./common": "./packages/common/index.ts",
-		"./node": "./packages/node/index.ts",
-		"./react": "./packages/react/index.ts",
-		"./type": "./packages/type/index.ts",
-		"./vite": "./packages/vite/index.ts",
-		"./web": "./packages/web/index.ts"
+		"./common": {
+			"types": "./dist/common/index.d.js",
+			"import": "./dist/common/index.js",
+			"require": "./dist/common/index.cjs"
+		},
+		"./node": {
+			"types": "./dist/node/index.d.js",
+			"import": "./dist/node/index.js",
+			"require": "./dist/node/index.cjs"
+		},
+		"./react": {
+			"types": "./dist/react/index.d.js",
+			"import": "./dist/react/index.js",
+			"require": "./dist/react/index.cjs"
+		},
+		"./type": {
+			"types": "./dist/type/index.d.ts"
+		},
+		"./vite": {
+			"types": "./dist/vite/index.d.js",
+			"import": "./dist/vite/index.js",
+			"require": "./dist/vite/index.cjs"
+		},
+		"./web": {
+			"types": "./dist/web/index.d.js",
+			"import": "./dist/web/index.js",
+			"require": "./dist/web/index.cjs"
+		}
 	},
 	"scripts": {
 		"lint": "eslint --fix --max-warnings=0",
 		"format": "prettier --cache --write",
-		"prepare": "husky install"
+		"prepare": "husky install",
+		"build": "node ./build",
+		"publish-package": "npm run build && npm publish"
 	},
 	"keywords": [],
 	"author": "",
@@ -25,6 +51,17 @@
 		"*.{js,jsx,ts,tsx}": "pnpm run lint",
 		"*.{js,jsx,ts,tsx,css,sass,scss,less}": "pnpm run format"
 	},
+	"dependencies": {
+		"@unocss/core": "0.57.7",
+		"body": "^5.1.0",
+		"json5": "^2.2.3",
+		"jsonc": "^2.0.0",
+		"jsonc-parser": "^3.2.0",
+		"lodash-es": "^4.17.21",
+		"query-string": "^8.1.0",
+		"react-router-dom": "^6.3.0",
+		"sharp": "^0.33.1"
+	},
 	"devDependencies": {
 		"@types/body": "^5.1.4",
 		"@types/lodash-es": "^4.17.12",
@@ -32,24 +69,14 @@
 		"@types/react": "^18.2.15",
 		"@typescript-eslint/eslint-plugin": "^6.10.0",
 		"@typescript-eslint/parser": "^6.10.0",
-		"@unocss/core": "0.57.7",
-		"body": "^5.1.0",
 		"eslint": "^8.53.0",
 		"eslint-plugin-unused-imports": "^3.0.0",
 		"husky": "^8.0.3",
-		"json5": "^2.2.3",
-		"jsonc-parser": "^3.2.0",
 		"lint-staged": "^15.1.0",
-		"lodash-es": "^4.17.21",
 		"prettier": "^3.1.0",
-		"query-string": "^8.1.0",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
-		"react-router-dom": "^6.3.0",
-		"sharp": "^0.33.1",
+		"tsup": "^8.0.1",
 		"tsx": "^4.6.2",
 		"typescript": "^5.2.2",
-		"vite": "^4.5.0",
-		"zustand": "^4.4.7"
+		"vite": "^4.5.0"
 	}
 }

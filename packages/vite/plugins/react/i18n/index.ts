@@ -1,8 +1,9 @@
 import type { Plugin } from 'vite'
 import fs from 'fs'
 import path from 'path'
-import { log } from '../../../../../utils/log.ts'
+import { log } from '../../../../../utils/log'
 import { waitMs } from '../../../../common'
+import { PACKAGE_NAME } from '../../../../../constants'
 
 type ReactI18nOptions = {
 	dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)
@@ -11,7 +12,7 @@ type ReactI18nOptions = {
 type _GlobMap = Record<string, string> // <locale, globPath>
 
 const PLUGIN_NAME = 'i18n'
-const FULL_PLUGIN_NAME = `vite-plugin-wtbx-react-${PLUGIN_NAME}`
+const FULL_PLUGIN_NAME = `vite-plugin-${PACKAGE_NAME}-react-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~${PLUGIN_NAME}`
 const V_MODULE_ID = `@@${V_MODULE_NAME}.jsx`
 

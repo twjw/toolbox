@@ -1,21 +1,22 @@
-import type { Plugin } from "vite";
-import {log} from "../../../../utils/log.ts";
-import path from "path";
-import fs from "fs";
+import type { Plugin } from 'vite'
+import { log } from '../../../../utils/log'
+import path from 'path'
+import fs from 'fs'
+import { PACKAGE_NAME } from '../../../../constants'
 
 type MergePublicOptions = {
 	distDir?: string
-  publicDir?: string
+	publicDir?: string
 	mergeDir?: string
-  dirNames: string[]
+	dirNames: string[]
 }
 
 const PLUGIN_NAME = 'merge-public'
-const FULL_PLUGIN_NAME = `vite-plugin-wtbx-${PLUGIN_NAME}`
+const FULL_PLUGIN_NAME = `vite-plugin-${PACKAGE_NAME}-${PLUGIN_NAME}`
 
-function _checkCopyFile (from: string, to: string) {
+function _checkCopyFile(from: string, to: string) {
 	const toDirPath = to.replace(/[^\\\/]+$/, '')
-  const exists = fs.existsSync(toDirPath)
+	const exists = fs.existsSync(toDirPath)
 	if (!exists) fs.mkdirSync(toDirPath, { recursive: true })
 	fs.copyFileSync(from, to)
 }
@@ -27,7 +28,7 @@ function mergePublic(options: MergePublicOptions): any {
 	let buildPath: string
 	let isBuild = false
 
-	function _createMp (buildPath: string) {
+	function _createMp(buildPath: string) {
 		const exists = fs.existsSync(buildPath)
 
 		if (exists) {
@@ -86,8 +87,7 @@ function mergePublic(options: MergePublicOptions): any {
 								for (let i = 1; i < dirNames.length; i++) {
 									if (fs.existsSync(path.resolve(publicRootPath, dirNames[i], noDirFilepath))) {
 										break
-									}
-									else if (i === dirNames.length - 1) {
+									} else if (i === dirNames.length - 1) {
 										fs.rmSync(path.resolve(buildPath, noDirFilepath))
 									}
 								}
@@ -108,7 +108,9 @@ function mergePublic(options: MergePublicOptions): any {
 						}
 					} else {
 						for (let i = dirNames.length - 1; i >= 0; i--) {
-							const exists = fs.existsSync(path.resolve(publicRootPath, dirNames[i], noDirFilepath))
+							const exists = fs.existsSync(
+								path.resolve(publicRootPath, dirNames[i], noDirFilepath),
+							)
 
 							if (exists) {
 								if (dirIdx < i) break
@@ -121,7 +123,7 @@ function mergePublic(options: MergePublicOptions): any {
 						}
 					}
 				}
-      }
+			}
 
 			server.watcher.on('change', onEvent('change'))
 			server.watcher.on('add', onEvent('add'))
@@ -132,10 +134,6 @@ function mergePublic(options: MergePublicOptions): any {
 	return plugin
 }
 
-export type {
-  MergePublicOptions,
-}
+export type { MergePublicOptions }
 
-export {
-  mergePublic,
-}
+export { mergePublic }

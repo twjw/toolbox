@@ -1,6 +1,6 @@
 import fs from 'fs'
-import {META_NAME, PAGE_IDX, PAGE_NAME} from "./constants.ts";
-import {SL} from "../../../../../constants";
+import { META_NAME, PAGE_NAME } from './constants'
+import { SL } from '../../../../../constants'
 
 type FileRoute = {
 	relateFiles: RouteRelateFiles
@@ -29,7 +29,7 @@ function _recursivePassSimpleFileRoute({
 	routeMap,
 	dir,
 	rootDir,
-  rootDirIdx,
+	rootDirIdx,
 	parentDir,
 }: RecursivePassSimpleFileRouteOptions) {
 	const filenames = fs.readdirSync(dir, { withFileTypes: true })
@@ -52,10 +52,7 @@ function _recursivePassSimpleFileRoute({
 
 	const shortDir = dir.substring((parentDir || rootDir).length) || SL
 	routeMap[shortDir] = {
-		relateFiles: [
-			hasPage ? rootDirIdx : undefined,
-			hasPageMeta ? rootDirIdx : undefined
-		],
+		relateFiles: [hasPage ? rootDirIdx : undefined, hasPageMeta ? rootDirIdx : undefined],
 		children: {},
 	}
 

@@ -1,4 +1,5 @@
-import path from "path";
+import path from 'path'
 
-export const VIRTUAL_PATH = 'node_modules/wtbx/.vb'
+export const PACKAGE_NAME = 'wtbx'
+export const VIRTUAL_PATH = `node_modules/${PACKAGE_NAME}/.vb`
 export const SL = path.normalize('/')

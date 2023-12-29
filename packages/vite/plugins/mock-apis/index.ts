@@ -2,19 +2,22 @@ import { type Connect, type Plugin } from 'vite'
 import { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'path'
 import qs, { type ParsedQuery } from 'query-string'
-import jsonBody from 'body/json'
-import { log } from '../../../../utils/log.ts'
-import { SL } from '../../../../constants'
+import body from 'body'
+import { log } from '../../../../utils/log'
+import { PACKAGE_NAME, SL } from '../../../../constants'
+import { fileURLToPath } from 'url'
 
 type MockApisOptions = {
 	dir?: string
 }
 
 const PLUGIN_NAME = 'mock-apis'
-const FULL_PLUGIN_NAME = `vite-plugin-wtbx-${PLUGIN_NAME}`
+const FULL_PLUGIN_NAME = `vite-plugin-${PACKAGE_NAME}-${PLUGIN_NAME}`
 
 function _toRelativeFilepath(filepath: string) {
-	return `./${path.relative(process.cwd(), filepath).replace(/[\\\/]/g, '/')}`
+	return `${path
+		.relative(path.dirname(fileURLToPath(import.meta.url)), filepath)
+		.replace(/[\\\/]/g, '/')}`
 }
 
 function _updateFileListener(dir: string, updateTimeMap: Record<string, number>) {
@@ -32,21 +35,27 @@ function _useMock(dir: string, updateTimeMap: Record<string, number>) {
 		try {
 			const [url, qsstr] = req.url.split('?')
 			let query: ParsedQuery | undefined
-			let body: any
+			let _body: any
 
 			if (qsstr) {
 				query = qs.parse(qsstr)
 			}
 
-			body = await new Promise(resolve => {
-				jsonBody(req, res, (err, body) => {
-					resolve(body)
+			_body = await new Promise(resolve => {
+				body(req, res, (err, body) => {
+					try {
+						resolve(JSON.parse(body))
+					} catch (error) {
+						log.error(`${PACKAGE_NAME}-mock-apis JSON.parse body error`)
+						log.error(error)
+						resolve(undefined)
+					}
 				})
 			})
 
 			let filepath = _toRelativeFilepath(`${dir}${SL}${query?.mockFile || 'index'}.js`)
 			filepath += `?update=${updateTimeMap[filepath] || (updateTimeMap[filepath] = Date.now())}`
-			const passData = { query, body }
+			const passData = { query, body: _body }
 			const apiMap = (await import(filepath)).default
 
 			if (typeof apiMap[url] !== 'function') throw new Error('mock api 必須是 function!!')
@@ -54,7 +63,7 @@ function _useMock(dir: string, updateTimeMap: Record<string, number>) {
 			res.end(JSON.stringify(apiMap[url](passData)))
 			return
 		} catch (error) {
-			log.error(`wtbx-mock-apis 解析錯誤`)
+			log.error(`${PACKAGE_NAME}-mock-apis 解析錯誤`)
 			log.error(error)
 		}
 

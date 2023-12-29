@@ -1,16 +1,14 @@
-import {convertToDataRoutes} from "./data-routes/convert.ts";
-import {mergeFiles} from "./merge-files.ts";
-import path from "path";
-import {SL} from "../../../../../constants";
+import { convertToDataRoutes } from './data-routes/convert'
+import { mergeFiles } from './merge-files'
+import path from 'path'
 
 const fileMap = mergeFiles({
-  dirs: [
-    path.resolve(__dirname, './test-pages/aaa'),
-    path.resolve(__dirname, './test-pages/bbb'),
-  ],
+	dirs: [
+		path.resolve(__dirname, './test-pages/aaa'),
+		path.resolve(__dirname, './test-pages/bbb'),
+	],
 })
 const dataRoutes = convertToDataRoutes(fileMap)
-
 
 console.log(JSON.stringify(fileMap, null, 2))
 // console.log(JSON.stringify(dataRoutes, null, 2))
