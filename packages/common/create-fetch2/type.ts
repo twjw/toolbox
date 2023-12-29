@@ -39,7 +39,10 @@ namespace Fetch2 {
 
 	export type ResType = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text'
 
-	export type CacheMap = Record<string, { lastCacheTime: number; res: InterceptorResponse }>
+	export type CacheMap = Record<
+		string,
+		{ lastCacheTime: number; res: InterceptorResponse<any> }
+	>
 
 	export type RepeatMarkMap = Record<
 		symbol | string | number,
@@ -52,25 +55,29 @@ namespace Fetch2 {
 
 	export type InterceptorUseRequest = (callback: InterceptorUseRequestCallback) => void
 
-	export type InterceptorUseResponseCallback<R = any> = (res: InterceptorResponse) => R
+	export type InterceptorUseResponseCallback<From, To = any> = (
+		res: InterceptorResponse<From>,
+	) => To
 
-	export type InterceptorUseResponse = <R = any>(
-		callback: InterceptorUseResponseCallback<R>,
+	export type InterceptorUseResponse = <From, To = any>(
+		callback: InterceptorUseResponseCallback<From, To>,
 	) => void
 
-	export type InterceptorUseErrorCallback<R = any> = (
+	export type InterceptorUseErrorCallback<To = any> = (
 		error: FetchErrors,
 		userConfig: {
 			url: string
 			init: RequestInit | null
 			apiOptions: ApiOptions | null
 		},
-	) => R
+	) => To
 
-	export type InterceptorUseError = <R = any>(callback: InterceptorUseErrorCallback<R>) => void
+	export type InterceptorUseError = <To = any>(
+		callback: InterceptorUseErrorCallback<To>,
+	) => void
 
-	export type InterceptorResponse = Response & {
-		data?: any
+	export type InterceptorResponse<Data> = Response & {
+		data?: Data
 		config?: ResReq
 	}
 
@@ -98,7 +105,11 @@ namespace Fetch2 {
 	}
 
 	export type Instance = {
-		<R = InterceptorResponse>(url: string, init?: RequestInit, options?: ApiOptions): Promise<R>
+		<R = InterceptorResponse<any>>(
+			url: string,
+			init?: RequestInit,
+			options?: ApiOptions,
+		): Promise<R>
 	} & InstanceFunc
 }
 

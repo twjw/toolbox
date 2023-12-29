@@ -66,7 +66,7 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 	const { prefix = '', timeout = 0 } = options
 	const interceptors = {
 		useRequest: null as Fetch2.InterceptorUseRequestCallback | null,
-		useResponse: null as Fetch2.InterceptorUseResponseCallback | null,
+		useResponse: null as Fetch2.InterceptorUseResponseCallback<any> | null,
 		useError: null as Fetch2.InterceptorUseErrorCallback | null,
 	}
 	const cacheMap = {} as Fetch2.CacheMap
@@ -83,7 +83,7 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 		let timoutInstance: NodeJS.Timeout | undefined
 		let mark: symbol | string | number | undefined
 
-		return new Promise<{ __markResolve?: 1; response: Fetch2.InterceptorResponse }>(
+		return new Promise<{ __markResolve?: 1; response: Fetch2.InterceptorResponse<any> }>(
 			async (resolve, reject) => {
 				try {
 					let config: Fetch2.Config = {
@@ -98,7 +98,7 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 					}
 
 					const fetchConfig = _toRequest(config)
-					let res = {} as Fetch2.InterceptorResponse
+					let res = {} as Fetch2.InterceptorResponse<any>
 					let lastCacheTime = 0
 					const cacheUrl = `${fetchConfig.method}:${fetchConfig.url}`
 
@@ -146,7 +146,7 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 						try {
 							let originRes = await fetch(fetchConfig.url, fetchConfig)
 
-							res = originRes as unknown as Fetch2.InterceptorResponse
+							res = originRes as unknown as Fetch2.InterceptorResponse<any>
 
 							if (lastCacheTime > 0) {
 								cacheMap[cacheUrl] = {
