@@ -50,20 +50,16 @@ function createEnum<KS extends readonly string[] | undefined, VS extends readonl
 		getByLabel<DK extends NumberKS = (typeof _DEFAULT_DATA_KEYS)[1] & NumberKS>(
 			label: Enum.values<VS>[number][0],
 			dataKey?: DK,
-		) {
+		): Enum.values<VS>[number][DataKeyIdx<DK>] {
 			if (this._isInit === 0) this._init()
-			return values[this._labelIdxes[label]]?.[
-				dataKey ? this._dataKeyIdxes[dataKey] : 1
-			] as Enum.values<VS>[number][DataKeyIdx<DK>]
+			return values[this._labelIdxes[label]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
 		},
 		getByValue<DK extends NumberKS = (typeof _DEFAULT_DATA_KEYS)[0] & NumberKS>(
 			value: Enum.values<VS>[number][1],
 			dataKey?: DK,
-		) {
+		): Enum.values<VS>[number][DataKeyIdx<DK>] {
 			if (this._isInit === 0) this._init()
-			return values[this._valueIdxes[value]]?.[
-				dataKey ? this._dataKeyIdxes[dataKey] : 1
-			] as Enum.values<VS>[number][DataKeyIdx<DK>]
+			return values[this._valueIdxes[value]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
 		},
 		map<U>(callback: (value: Enum.values<VS>[number], index: number) => U): U[] {
 			if (this._isInit === 0) this._init()
