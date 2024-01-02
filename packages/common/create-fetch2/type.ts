@@ -42,7 +42,7 @@ namespace Fetch2 {
 				pathParams?: undefined
 		  }
 		: {
-				pathParams?: UrlPathParams<Url>
+				pathParams: UrlPathParams<Url>
 		  }
 
 	export type UrlPathParams<
