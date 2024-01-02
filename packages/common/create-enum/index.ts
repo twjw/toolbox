@@ -1,70 +1,85 @@
-namespace Enum {
-	export type values<T extends readonly any[][]> = T[number] extends [string, ...infer Rest]
-		? T
-		: never
+type _DefaultDataKeys = ['label', 'value']
+
+type _EnumValues<T extends readonly any[][]> = T[number] extends [string, ...infer Rest]
+	? T
+	: never
+
+type _DataKey<KS = undefined> = KS extends readonly string[]
+	? _DefaultDataKeys[number] | KS[number]
+	: _DefaultDataKeys[number]
+
+type _ResultKS<KS = undefined> = KS extends readonly string[]
+	? [..._DefaultDataKeys, ...KS]
+	: _DefaultDataKeys
+
+type _DataKeyIdx<
+	DK extends _DataKey<any>,
+	DKS = _ResultKS,
+	Idxes extends 1[] = [],
+> = DKS extends [infer A, ...infer R]
+	? A extends DK
+		? Idxes['length']
+		: _DataKeyIdx<DK, R, [...Idxes, 1]>
+	: Idxes['length']
+
+type _CreateEnumReturn<
+	KS extends readonly string[] | undefined,
+	VS extends readonly any[][],
+> = {
+	_isInit: 0 | 1
+	_dataKeyIdxes: Record<_DataKey<KS>, number>
+	_labelIdxes: Record<_EnumValues<VS>[number][0], number>
+	_valueIdxes: Record<_EnumValues<VS>[number][1], number>
+	_init: () => void
+	getByLabel: <DK extends _DataKey<KS> = (typeof _DEFAULT_DATA_KEYS)[1] & _DataKey<KS>>(
+		label: _EnumValues<VS>[number][0],
+		dataKey?: DK,
+	) => _EnumValues<VS>[number][_DataKeyIdx<DK>]
+	getByValue: <DK extends _DataKey<KS> = (typeof _DEFAULT_DATA_KEYS)[0] & _DataKey<KS>>(
+		label: _EnumValues<VS>[number][1],
+		dataKey?: DK,
+	) => _EnumValues<VS>[number][_DataKeyIdx<DK>]
+	map: <U>(callback: (value: _EnumValues<VS>[number], index: number) => U) => U[]
 }
 
-const _DEFAULT_DATA_KEYS = ['label', 'value'] as const
+const _DEFAULT_DATA_KEYS: _DefaultDataKeys = ['label', 'value']
 
 function createEnum<KS extends readonly string[] | undefined, VS extends readonly any[][]>(
 	dataKeys: KS,
-	values: Enum.values<VS>,
-) {
-	type NumberKS = KS extends undefined
-		? (typeof _DEFAULT_DATA_KEYS)[number]
-		: (typeof _DEFAULT_DATA_KEYS)[number] | (KS & readonly string[])[number]
-
-	type ResultKS = KS extends undefined
-		? typeof _DEFAULT_DATA_KEYS
-		: [...typeof _DEFAULT_DATA_KEYS, ...(KS & readonly string[])]
-
-	type DataKeyIdx<DK extends NumberKS, DKS = ResultKS, Idxes extends 1[] = []> = DKS extends [
-		infer A,
-		...infer R,
-	]
-		? A extends DK
-			? Idxes['length']
-			: DataKeyIdx<DK, R, [...Idxes, 1]>
-		: Idxes['length']
-
+	values: _EnumValues<VS>,
+): _CreateEnumReturn<KS, VS> {
 	return {
 		_isInit: 0, // 0 | 1
-		_dataKeyIdxes: {} as Record<NumberKS, number>,
-		_labelIdxes: {} as Record<Enum.values<VS>[number][0], number>,
-		_valueIdxes: {} as Record<Enum.values<VS>[number][1], number>,
+		_dataKeyIdxes: {} as Record<_DataKey<KS>, number>,
+		_labelIdxes: {} as Record<_EnumValues<VS>[number][0], number>,
+		_valueIdxes: {} as Record<_EnumValues<VS>[number][1], number>,
 		_init() {
 			const _dataKeys = (_DEFAULT_DATA_KEYS as any).concat(dataKeys || [])
 			for (let i = 0; i < values.length; i++) {
 				if (i === 0) {
 					for (let j = 0; j < values[i].length; j++) {
-						this._dataKeyIdxes[_dataKeys[j] as NumberKS] = j
+						this._dataKeyIdxes[_dataKeys[j] as _DataKey<KS>] = j
 					}
 				}
 
-				this._labelIdxes[values[i][0] as Enum.values<VS>[number][0]] = i
-				this._valueIdxes[values[i][1] as Enum.values<VS>[number][1]] = i
+				this._labelIdxes[values[i][0] as _EnumValues<VS>[number][0]] = i
+				this._valueIdxes[values[i][1] as _EnumValues<VS>[number][1]] = i
 			}
 
 			this._isInit = 1
 		},
-		getByLabel<DK extends NumberKS = (typeof _DEFAULT_DATA_KEYS)[1] & NumberKS>(
-			label: Enum.values<VS>[number][0],
-			dataKey?: DK,
-		): Enum.values<VS>[number][DataKeyIdx<DK>] {
+		getByLabel(label, dataKey) {
 			if (this._isInit === 0) this._init()
 			return values[this._labelIdxes[label]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
 		},
-		getByValue<DK extends NumberKS = (typeof _DEFAULT_DATA_KEYS)[0] & NumberKS>(
-			value: Enum.values<VS>[number][1],
-			dataKey?: DK,
-		): Enum.values<VS>[number][DataKeyIdx<DK>] {
+		getByValue(value, dataKey) {
 			if (this._isInit === 0) this._init()
 			return values[this._valueIdxes[value]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
 		},
-		map<U>(callback: (value: Enum.values<VS>[number], index: number) => U): U[] {
+		map(callback) {
 			if (this._isInit === 0) this._init()
 
-			let result: U[] = []
+			let result: any[] = []
 			for (let i = 0; i < values.length; i++) {
 				result.push(callback(values[i], i))
 			}
