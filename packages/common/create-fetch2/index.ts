@@ -5,12 +5,10 @@ import { Fetch2AbortError, Fetch2TimeoutError, Fetch2UnknownError } from './erro
 const _maxMethodTextLength = 'delete'.length - 1
 const _minMethodTextLength = 'get'.length - 1
 
-function _toRequest(config: Fetch2.Config): Fetch2.Request {
+function _transMethodAndUrl(config: Fetch2.Config): { method: Fetch2.Method; url: string } {
 	const { url, prefix = '', pathParams, params, body } = config
 	let method: Fetch2.Method = 'get'
 	let _url = prefix
-	// let contentType = 'text/plain'
-	let _body: NodeJS.fetch.RequestInit['body']
 
 	if (url[_minMethodTextLength] === ':') {
 		method = url.substring(0, _minMethodTextLength) as Fetch2.Method
@@ -43,31 +41,9 @@ function _toRequest(config: Fetch2.Config): Fetch2.Request {
 		_url += `?${queryString.stringify(params)}`
 	}
 
-	if ((method === 'post' || method === 'put') && body != null) {
-		if (body instanceof FormData) {
-			// contentType = 'multipart/form-data'
-			_body = body
-		} else if (typeof body === 'object') {
-			// contentType = 'application/json'
-			try {
-				_body = JSON.stringify(body) as NodeJS.fetch.RequestInit['body']
-			} catch (err) {
-				console.error(`${_url} body json stringify fail`, err)
-				_body = `body type not JSON, check body please. ${String(
-					body,
-				)}` as NodeJS.fetch.RequestInit['body']
-			}
-		} else if (typeof body === 'string') {
-			_body = body
-		}
-	}
-
 	return {
-		...config,
 		method,
 		url: _url,
-		body: _body,
-		headers: config.headers,
 	}
 }
 
@@ -107,13 +83,13 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 						config = interceptors.useRequest(config)
 					}
 
-					const fetchConfig = _toRequest(config)
+					const { method: resultMethod, url: resultUrl } = _transMethodAndUrl(config)
 					let res = {} as Fetch2.InterceptorResponse
 					let lastCacheTime = 0
-					const cacheUrl = `${fetchConfig.method}:${fetchConfig.url}`
+					const cacheUrl = `${resultMethod}:${resultUrl}`
 
 					mark = (
-						config.mark === true || (config.mark == null && fetchConfig.method === 'get')
+						config.mark === true || (config.mark == null && resultMethod === 'get')
 							? cacheUrl
 							: config.mark === false
 							  ? null
@@ -150,11 +126,15 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 					}
 
 					if (cacheMap[cacheUrl] == null) {
+						const fetchConfig: Fetch2.Config & { method: Fetch2.Method } = {
+							method: resultMethod,
+							...config,
+						}
 						controllerMap[fetchId] = apiOptions.controller || new AbortController()
-						fetchConfig.signal = controllerMap[fetchId].signal
+						config.signal = controllerMap[fetchId].signal
 
 						try {
-							let originRes = await fetch(fetchConfig.url, fetchConfig)
+							let originRes = await fetch(resultUrl, fetchConfig)
 
 							res = originRes as unknown as Fetch2.InterceptorResponse
 
@@ -171,8 +151,7 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 								throw new Fetch2AbortError('fetch abort')
 							}
 						} finally {
-							res.config = fetchConfig as Fetch2.ResReq
-							res.config.originBody = config.body
+							res.config = fetchConfig
 						}
 					} else {
 						res = cacheMap[cacheUrl].res

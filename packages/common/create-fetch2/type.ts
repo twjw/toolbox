@@ -30,8 +30,10 @@ namespace Fetch2 {
 
 	export type FetchErrors = Fetch2AbortError | Fetch2TimeoutError | Fetch2UnknownError
 
-	export type RequestInit<Url extends string = ''> = Omit<NodeJS.fetch.RequestInit, 'body'> & {
-		body?: Record<string, any> | string
+	export type RequestInit<Url extends string = ''> = Omit<
+		NodeJS.fetch.RequestInit,
+		'method'
+	> & {
 		params?: Record<string, any>
 		resType?: ResType
 		other?: any // 用戶自行決定的資料
@@ -90,21 +92,13 @@ namespace Fetch2 {
 
 	export type InterceptorResponse<Data = any> = Response & {
 		data: Data | undefined
-		config: ResReq
+		config: Config & { method: Fetch2.Method }
 	}
 
 	export type Config = RequestInit &
 		ApiOptions & {
 			url: string
 		}
-
-	export type Request = Omit<Config, 'body'> & {
-		body: NodeJS.fetch.RequestInit['body']
-	}
-
-	export type ResReq = Request & {
-		originBody: Record<string, any> | string | undefined
-	}
 
 	export type InstanceFunc = {
 		cancel: (controller: AbortController) => void
