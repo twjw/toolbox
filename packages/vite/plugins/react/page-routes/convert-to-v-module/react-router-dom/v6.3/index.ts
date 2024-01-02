@@ -92,6 +92,8 @@ function convertToReactRouterDomV6_3(
 		],
 		// idx: 1 lazy
 		[],
+		// idx: 2 fullRouteMetaMap
+		'const fullRouteMetaMap = ',
 		[
 			'const context = createContext(null)',
 			`const defaultMeta = ${
@@ -101,15 +103,17 @@ function convertToReactRouterDomV6_3(
         return useContext(context)
       }`,
 		],
-		// idx: 3 createPageRoutes
+		// idx: 4 createPageRoutes
 		`function createPageRoutes(props) `,
-		`export { usePageRoute, createPageRoutes }`,
+		`export { fullRouteMetaMap, usePageRoute, createPageRoutes }`,
 	]
+	let fullRouteMetaMapString = ''
 	const strRoutes: string[] = []
 	const idx = {
 		import: 0,
 		lazy: 1,
-		createPageRoutes: 3,
+		fullRouteMetaMap: 2,
+		createPageRoutes: 4,
 	}
 	let ids = {
 		r: 0, // route key
@@ -128,11 +132,6 @@ function convertToReactRouterDomV6_3(
 			return
 		}
 
-		type aaa = {
-			id: number | undefined
-			child: aaa
-		}
-
 		const fullRoutePath = _toFullRoutePath(dr)
 		let mid = dr.relateFileIdxes.meta != null ? `m${++ids.m}` : null
 
@@ -144,6 +143,7 @@ function convertToReactRouterDomV6_3(
 					RelativeTypeEnum.meta,
 				)}'`,
 			)
+			fullRouteMetaMapString += `'${fullRoutePath}': ${mid},\n`
 		}
 
 		if (dr.relateFileIdxes.page != null) {
@@ -171,6 +171,9 @@ function convertToReactRouterDomV6_3(
 		}
 	})
 
+	lines[idx.fullRouteMetaMap] += `{${
+		fullRouteMetaMapString ? `\n${fullRouteMetaMapString}` : ''
+	}}`
 	lines[idx.createPageRoutes] += `{\nreturn ${
 		strRoutes.length > 0
 			? `(\n${strRoutes.length > 1 ? '<>\n' : ''}${strRoutes.join('\n')}${

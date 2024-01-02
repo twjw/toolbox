@@ -13,13 +13,13 @@ const V_MODULE_ID = `@@${V_MODULE_NAME}.jsx`
 
 function reactPageRoutes(options: ReactPageRoutesOptions): any {
 	const { pages, defaultMeta } = options
-	let resultTsx = null as string | null
+	let resultJsx = null as string | null
 
 	const plugin: Plugin = {
 		name: FULL_PLUGIN_NAME,
 		enforce: 'pre',
 		configResolved() {
-			resultTsx = generate({ pages, defaultMeta })
+			resultJsx = generate({ pages, defaultMeta })
 			log.info(`已開啟目錄路由功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
@@ -41,7 +41,7 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 					return
 
 				isUpdating = true
-				resultTsx = generate({ pages, defaultMeta })
+				resultJsx = generate({ pages, defaultMeta })
 				await waitMs(250)
 				isUpdating = false
 
@@ -65,8 +65,8 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 		},
 		load(id) {
 			if (id === V_MODULE_ID) {
-				if (resultTsx == null) return
-				return resultTsx
+				if (resultJsx == null) return
+				return resultJsx
 			}
 		},
 	}
