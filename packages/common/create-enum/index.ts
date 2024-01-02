@@ -31,11 +31,11 @@ type _CreateEnumReturn<
 	_labelIdxes: Record<_EnumValues<VS>[number][0], number>
 	_valueIdxes: Record<_EnumValues<VS>[number][1], number>
 	_init: () => void
-	getByLabel: <DK extends _DataKey<KS> = (typeof _DEFAULT_DATA_KEYS)[1] & _DataKey<KS>>(
+	getByLabel: <DK extends _DataKey<KS> = _DefaultDataKeys[1] & _DataKey<KS>>(
 		label: _EnumValues<VS>[number][0],
 		dataKey?: DK,
 	) => _EnumValues<VS>[number][_DataKeyIdx<DK>]
-	getByValue: <DK extends _DataKey<KS> = (typeof _DEFAULT_DATA_KEYS)[0] & _DataKey<KS>>(
+	getByValue: <DK extends _DataKey<KS> = _DefaultDataKeys[0] & _DataKey<KS>>(
 		label: _EnumValues<VS>[number][1],
 		dataKey?: DK,
 	) => _EnumValues<VS>[number][_DataKeyIdx<DK>]
