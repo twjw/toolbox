@@ -14,6 +14,19 @@ function createEnum<KS extends readonly string[] | undefined, VS extends readonl
 		? (typeof _DEFAULT_DATA_KEYS)[number]
 		: (typeof _DEFAULT_DATA_KEYS)[number] | (KS & readonly string[])[number]
 
+	type ResultKS = KS extends undefined
+		? typeof _DEFAULT_DATA_KEYS
+		: [...typeof _DEFAULT_DATA_KEYS, ...(KS & readonly string[])]
+
+	type DataKeyIdx<DK extends NumberKS, DKS = ResultKS, Idxes extends 1[] = []> = DKS extends [
+		infer A,
+		...infer R,
+	]
+		? A extends DK
+			? Idxes['length']
+			: DataKeyIdx<DK, R, [...Idxes, 1]>
+		: Idxes['length']
+
 	return {
 		_isInit: 0, // 0 | 1
 		_dataKeyIdxes: {} as Record<NumberKS, number>,
@@ -34,13 +47,23 @@ function createEnum<KS extends readonly string[] | undefined, VS extends readonl
 
 			this._isInit = 1
 		},
-		getByLabel(label: Enum.values<VS>[number][0], dataKey?: NumberKS) {
+		getByLabel<DK extends NumberKS = (typeof _DEFAULT_DATA_KEYS)[1] & NumberKS>(
+			label: Enum.values<VS>[number][0],
+			dataKey?: DK,
+		) {
 			if (this._isInit === 0) this._init()
-			return values[this._labelIdxes[label]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
+			return values[this._labelIdxes[label]]?.[
+				dataKey ? this._dataKeyIdxes[dataKey] : 1
+			] as Enum.values<VS>[number][DataKeyIdx<DK>]
 		},
-		getByValue(value: Enum.values<VS>[number][1], dataKey?: NumberKS) {
+		getByValue<DK extends NumberKS = (typeof _DEFAULT_DATA_KEYS)[0] & NumberKS>(
+			value: Enum.values<VS>[number][1],
+			dataKey?: DK,
+		) {
 			if (this._isInit === 0) this._init()
-			return values[this._valueIdxes[value]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
+			return values[this._valueIdxes[value]]?.[
+				dataKey ? this._dataKeyIdxes[dataKey] : 1
+			] as Enum.values<VS>[number][DataKeyIdx<DK>]
 		},
 		map<U>(callback: (value: Enum.values<VS>[number], index: number) => U): U[] {
 			if (this._isInit === 0) this._init()
