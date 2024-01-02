@@ -6,7 +6,7 @@ const _maxMethodTextLength = 'delete'.length - 1
 const _minMethodTextLength = 'get'.length - 1
 
 function _toRequest(config: Fetch2.Config): Fetch2.Request {
-	const { url, prefix = '', params, body } = config
+	const { url, prefix = '', pathParams, params, body } = config
 	let method: Fetch2.Method = 'get'
 	let _url = prefix
 	// let contentType = 'text/plain'
@@ -27,6 +27,16 @@ function _toRequest(config: Fetch2.Config): Fetch2.Request {
 		if (_url.length === prefix.length) {
 			_url += url
 		}
+	}
+
+	if (pathParams != null) {
+		const urls = _url.split('/')
+		for (let i = 1; i < urls.length; i++) {
+			if (urls[i][0] === ':') {
+				urls[i] = pathParams[urls[i].substring(1)] || [urls[i]]
+			}
+		}
+		_url = urls.join('/')
 	}
 
 	if (params != null) {

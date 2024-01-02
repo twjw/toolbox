@@ -30,12 +30,29 @@ namespace Fetch2 {
 
 	export type FetchErrors = Fetch2AbortError | Fetch2TimeoutError | Fetch2UnknownError
 
-	export type RequestInit = Omit<NodeJS.fetch.RequestInit, 'body'> & {
+	export type RequestInit<Url extends string = ''> = Omit<NodeJS.fetch.RequestInit, 'body'> & {
 		body?: Record<string, any> | string
 		params?: Record<string, any>
 		resType?: ResType
 		other?: any // 用戶自行決定的資料
-	}
+	} & PathParams<Url>
+
+	export type PathParams<Url extends string> = UrlPathParams<Url> extends undefined
+		? {
+				pathParams?: undefined
+		  }
+		: {
+				pathParams?: UrlPathParams<Url>
+		  }
+
+	export type UrlPathParams<
+		Url extends string,
+		Params extends string[] = [],
+	> = Url extends `${infer B}/:${infer P}/${infer R}`
+		? UrlPathParams<R, [...Params, P]>
+		: Url extends `${infer B}/:${infer P}`
+		  ? Record<[...Params, P][number], string>
+		  : undefined
 
 	export type ResType = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text'
 
@@ -100,7 +117,11 @@ namespace Fetch2 {
 	}
 
 	export type Instance = {
-		<R = InterceptorResponse>(url: string, init?: RequestInit, options?: ApiOptions): Promise<R>
+		<R = InterceptorResponse, Url extends string = ''>(
+			url: Url,
+			init?: RequestInit<Url>,
+			options?: ApiOptions,
+		): Promise<R>
 	} & InstanceFunc
 }
 
@@ -133,7 +154,7 @@ namespace TypeFetch2 {
 	> = Apis[Url] extends { resType: infer ResType } ? { resType: ResType } : {}
 
 	export type Init<Apis extends Record<string, Api>, Url extends keyof Apis> = Omit<
-		Fetch2.RequestInit,
+		Fetch2.RequestInit<Url & string>,
 		'body' | 'params' | 'resType'
 	> &
 		InitBody<Apis, Url> &
