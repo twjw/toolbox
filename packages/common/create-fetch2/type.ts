@@ -122,7 +122,7 @@ namespace Fetch2 {
 namespace TypeFetch2 {
 	export type Api = {
 		response: any
-		body?: Fetch2.RequestInit['body']
+		body?: string | FormData | Record<string, any>
 		params?: Fetch2.RequestInit['params']
 		resType?: Fetch2.RequestInit['resType']
 	}
