@@ -1,5 +1,5 @@
 import type { Plugin } from 'vite'
-import { PACKAGE_NAME } from '../../../../constants'
+import { PACKAGE_NAME } from '../../../../general/constants'
 
 type InjectEnvOptions = {
 	env: Record<string, any>

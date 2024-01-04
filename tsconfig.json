@@ -21,15 +21,13 @@
 		"noFallthroughCasesInSwitch": true
 	},
 	"include": [
-    "./src/constants",
-		"./packages",
-		"./utils"
+    "./src",
 	],
 	"exclude": [
-		"./packages/node",
-		"./packages/vite",
-		"./packages/vite/plugins/_template",
-		"./packages/vite/plugins/react/page-routes/test-pages",
-		"./packages/vite/plugins/react/page-routes/_test.ts"
+		"./src/packages/node",
+		"./src/packages/vite",
+		"./src/packages/vite/plugins/_template",
+		"./src/packages/vite/plugins/react/page-routes/test-pages",
+		"./src/packages/vite/plugins/react/page-routes/_test.ts"
 	]
 }

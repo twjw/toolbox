@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { META_NAME, PAGE_NAME } from './constants'
-import { SL } from '../../../../../constants'
+import { SL } from '../../../../../general/constants'
 
 type FileRoute = {
 	relateFiles: RouteRelateFiles

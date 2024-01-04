@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite'
 import fs from 'fs'
-import { PACKAGE_NAME, SL } from '../../../../constants'
+import { PACKAGE_NAME, SL } from '../../../../general/constants'
 import sharp from 'sharp'
 
 type CycleConvertPngAndWebpOptions = {

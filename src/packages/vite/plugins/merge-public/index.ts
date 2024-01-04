@@ -1,7 +1,7 @@
 import type { Plugin } from 'vite'
 import path from 'path'
 import fs from 'fs'
-import { PACKAGE_NAME } from '../../../../constants'
+import { PACKAGE_NAME } from '../../../../general/constants'
 
 type MergePublicOptions = {
 	distDir?: string

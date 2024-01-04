@@ -1,9 +1,9 @@
 import type { Plugin } from 'vite'
 import { generate } from './generate'
-import { waitMs } from '../../../../../utils/common/wait-ms'
+import { waitMs } from '../../../../../general/utils/common/wait-ms'
 import { META_NAME, PAGE_NAME } from './constants'
 import { type ReactPageRoutesOptions } from './type'
-import { PACKAGE_NAME } from '../../../../../constants'
+import { PACKAGE_NAME } from '../../../../../general/constants'
 
 const PLUGIN_NAME = 'page-routes'
 const FULL_PLUGIN_NAME = `vite-plugin-${PACKAGE_NAME}-react-${PLUGIN_NAME}`

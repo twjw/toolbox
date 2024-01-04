@@ -1,7 +1,7 @@
 import fs from 'fs'
-import { PACKAGE_NAME, SL } from '../../../constants'
+import { PACKAGE_NAME, SL } from '../../../general/constants'
 import { merge } from 'lodash-es'
-import { importDynamicTs } from '../../../utils/node/import-dynamic-ts'
+import { importDynamicTs } from '../../../general/utils/node/import-dynamic-ts'
 
 type MergeEnvOptions = {
 	mode?: string // 環境變數

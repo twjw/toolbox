@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import { parse } from 'jsonc-parser'
 import type { Plugin } from 'vite'
-import { PACKAGE_NAME } from '../../../../constants'
+import { PACKAGE_NAME } from '../../../../general/constants'
 
 type AutoAliasOptions = {
 	filename?: string

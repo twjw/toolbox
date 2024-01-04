@@ -1,8 +1,8 @@
 import type { Plugin } from 'vite'
 import fs from 'fs'
 import path from 'path'
-import { waitMs } from '../../../../../utils/common/wait-ms'
-import { PACKAGE_NAME } from '../../../../../constants'
+import { waitMs } from '../../../../../general/utils/common/wait-ms'
+import { PACKAGE_NAME } from '../../../../../general/constants'
 
 type ReactI18nOptions = {
 	dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)

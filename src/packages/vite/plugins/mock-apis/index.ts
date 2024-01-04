@@ -3,7 +3,7 @@ import { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'path'
 import qs, { type ParsedQuery } from 'query-string'
 import body from 'body'
-import { PACKAGE_NAME, SL } from '../../../../constants'
+import { PACKAGE_NAME, SL } from '../../../../general/constants'
 import { fileURLToPath } from 'url'
 
 type MockApisOptions = {

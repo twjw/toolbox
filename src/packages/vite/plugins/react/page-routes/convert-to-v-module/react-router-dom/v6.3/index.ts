@@ -1,6 +1,6 @@
 import path from 'path'
 import { META_NAME, OUTLET_NAME, PAGE_NAME } from '../../../constants'
-import { SL } from '../../../../../../../../constants'
+import { SL } from '../../../../../../../../general/constants'
 import { recursiveFindDataRoute } from '../../../data-routes/recursive-find'
 import { DataRoute } from '../../../data-routes/type'
 import { type ReactPageRoutesOptions } from '../../../type'
