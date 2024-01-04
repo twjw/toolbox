@@ -80,6 +80,40 @@ function _toRoutePath(dr: DataRoute) {
 	}
 }
 
+function _passFullRoutePathMap(
+	pathMap: Record<string, any>,
+	dataRoute: DataRoute,
+	mid: number | null,
+) {
+	const paths = dataRoute.parentFilenames.reduce<string[]>((p, e) => {
+		let path = e.substring(1) || '/'
+		if (path === OUTLET_NAME) return p
+		if (path[0] === '[') path = ':'
+		p.push(path)
+		return p
+	}, [])
+	/*
+		eg. '/': {
+			'_m': number | null
+			[path]: {
+				'_m': number | null
+				...
+			}
+			...
+		}
+	 */
+	let node: Record<string, any> = pathMap
+	for (let j = 0; j < paths.length; j++) {
+		if (node[paths[j]] == null) {
+			node = node[paths[j]] = {
+				_m: mid,
+			}
+		} else {
+			node = node[paths[j]]
+		}
+	}
+}
+
 function convertToReactRouterDomV6_3(
 	dataRoutes: DataRoute[],
 	options: ReactPageRoutesOptions,
@@ -88,31 +122,65 @@ function convertToReactRouterDomV6_3(
 		// idx: 0 import
 		[
 			"import { lazy, createContext, useContext } from 'react'",
-			"import { Route } from 'react-router-dom'",
+			"import { Route, useLocation } from 'react-router-dom'",
 		],
 		// idx: 1 lazy
 		[],
-		// idx: 2 fullRouteMetaMap
-		'const fullRouteMetaMap = ',
+		// idx: 2 fullRoutePathMap
+		'const fullRoutePathMap = ',
 		[
 			'const context = createContext(null)',
 			`const defaultMeta = ${
 				options.defaultMeta == null ? undefined : JSON.stringify(options.defaultMeta, null, 2)
 			}`,
-			`function usePageRoute() {
-        return useContext(context)
+			`function getPageMeta(path) {
+				if (typeof path !== 'string') return null
+				
+				const sp = path.split('/')
+				
+				if (sp.length === 1) return null
+				
+				if (sp.length === 2 && sp[1] === '') {
+					return fullRoutePathMap['/']?.['_m']
+				}
+				
+				let node = fullRoutePathMap
+				for (let i = 1; i < sp.length; i++) {
+					const isLast = i === sp.length - 1
+					
+					if (node[':'] != null) {
+						if (isLast) return node['_m']
+						node = node[':']
+						continue
+					}
+					
+					if (node[sp[i]] == null) return null
+					else if (isLast) {
+						return node['_m']
+					} else {
+						node = node[sp[i]]
+					}
+				}
+				
+				return null
+			}
+			
+			function usePageRoute(isDynamic = false) {
+				const location = isDynamic ? useLocation() : undefined
+				if (location == null) return useContext(context)
+				else return getPageMeta(location.pathname)
       }`,
 		],
 		// idx: 4 createPageRoutes
 		`function createPageRoutes(props) `,
-		`export { fullRouteMetaMap, usePageRoute, createPageRoutes }`,
+		`export { usePageRoute, createPageRoutes }`,
 	]
-	let fullRouteMetaMapString = ''
+	const fullRoutePathMap: Record<string, any> = {}
 	const strRoutes: string[] = []
 	const idx = {
 		import: 0,
 		lazy: 1,
-		fullRouteMetaMap: 2,
+		fullRoutePathMap: 2,
 		createPageRoutes: 4,
 	}
 	let ids = {
@@ -135,6 +203,7 @@ function convertToReactRouterDomV6_3(
 		const fullRoutePath = _toFullRoutePath(dr)
 		let mid = dr.relateFileIdxes.meta != null ? `m${++ids.m}` : null
 
+		_passFullRoutePathMap(fullRoutePathMap, dr, mid ? ids.m : null)
 		if (mid) {
 			;(lines[idx.import] as string[]).push(
 				`import ${mid} from '${_toRelativeModulePath(
@@ -143,7 +212,6 @@ function convertToReactRouterDomV6_3(
 					RelativeTypeEnum.meta,
 				)}'`,
 			)
-			fullRouteMetaMapString += `'${fullRoutePath}': ${mid},\n`
 		}
 
 		if (dr.relateFileIdxes.page != null) {
@@ -157,7 +225,7 @@ function convertToReactRouterDomV6_3(
 				)}'))`,
 			)
 
-			const route = `<Route key="${++ids.r}" path="${_toRoutePath(
+			const route = `<Route key={${++ids.r}} path="${_toRoutePath(
 				dr,
 			)}" element={<context.Provider value={{ path: '${fullRoutePath}', meta: ${
 				mid || 'defaultMeta'
@@ -171,9 +239,10 @@ function convertToReactRouterDomV6_3(
 		}
 	})
 
-	lines[idx.fullRouteMetaMap] += `{${
-		fullRouteMetaMapString ? `\n${fullRouteMetaMapString}` : ''
-	}}`
+	lines[idx.fullRoutePathMap] += JSON.stringify(fullRoutePathMap).replace(
+		/_m":([0-9]+)/g,
+		'_m":m$1',
+	)
 	lines[idx.createPageRoutes] += `{\nreturn ${
 		strRoutes.length > 0
 			? `(\n${strRoutes.length > 1 ? '<>\n' : ''}${strRoutes.join('\n')}${

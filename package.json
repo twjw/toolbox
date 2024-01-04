@@ -1,6 +1,6 @@
 {
 	"name": "wtbx",
-	"version": "0.2.",
+	"version": "0.2.8",
 	"type": "module",
 	"description": "@twjw 的 js 工具庫",
 	"files": [

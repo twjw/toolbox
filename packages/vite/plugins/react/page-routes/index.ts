@@ -20,6 +20,7 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 		enforce: 'pre',
 		configResolved() {
 			resultJsx = generate({ pages, defaultMeta })
+			console.log(resultJsx)
 			log.info(`已開啟目錄路由功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
