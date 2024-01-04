@@ -1,9 +1,9 @@
 import tsup from 'tsup'
 
-const packages = ['common', 'node', 'react', 'type', 'vite', 'web']
+const packages = ['vreact']
 
 tsup.build({
-	entry: packages.map(e => `./packages/${e}/index.ts`),
+	entry: packages.map(e => `./exports/${e}.ts`),
 	outDir: 'esm',
 	format: ['esm' /*'cjs'*/],
 	splitting: true,

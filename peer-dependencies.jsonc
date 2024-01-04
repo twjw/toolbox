@@ -1,15 +1,12 @@
 {
-	// 通用的
-	"_all": {
+	"_all": { // 通用的
 		"devDependencies": {
 			"@types/node": "^20.9.0",
 			"typescript": "^5.2.2"
 		}
 	},
 
-	// wtbx/comon
 	"common": {
-		// wtbx/comon/create-fetch2
 		"create-fetch2": {
 			"dependencies": {
 				"query-string": "^8.1.0"
@@ -17,24 +14,7 @@
 		}
 	},
 
-	// wtbx/react
-	"react": {
-		// wtbx/react/register-page-routes
-		"register-page-routes": {
-			"dependencies": {
-				"react": "^18.2.0",
-				"react-dom": "^18.2.0",
-				"react-router-dom": "^6.3.0"
-			},
-			"devDependencies": {
-				"query-string": "^8.1.0"
-			}
-		}
-	},
-
-	// wtbx/node
 	"node": {
-		// wtbx/node/create-env-config
 		"create-env-config": {
 			"dependencies": {
 				"lodash-es": "^4.17.21"
@@ -46,36 +26,28 @@
 		}
 	},
 
-	// wtbx/vite
 	"vite": {
-		// wtbx/vite/plugins
 		"plugins": {
-			// wtbx/vite/plugins/auto-alias
 			"auto-alias": {
 				"devDependencies": {
 					"jsonc": "^4.17.21"
 				}
 			},
-			// wtbx/vite/plugins/cycle-convert-png-and-webp
 			"cycle-convert-png-and-webp": {
 				"node": ">= 18.17.0",
 				"devDependencies": {
 					"sharp": "^0.33.1"
 				}
 			},
-			// wtbx/vite/plugins/merge-public
 			"merge-public": {
 				"node": ">= 16.7.0"
 			},
-			// wtbx/vite/plugins/merge-public
 			"mock-apis": {
 				"devDependencies": {
 					"body": "^5.1.0"
 				}
 			},
-			// wtbx/vite/plugins/react
 			"react": {
-				// wtbx/vite/plugins/react/react-page-routes
 				"react-page-routes": {
 					"dependencies": {
 						"lodash-es": "^4.17.21",
@@ -87,7 +59,6 @@
 						"@types/react": "^18.2.15"
 					}
 				},
-				// wtbx/vite/plugins/react/auto-alias
 				"lodash-es": {
 					"devDependencies": {
 						"jsonc": "^4.17.21"
