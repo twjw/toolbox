@@ -90,7 +90,7 @@ function _mergeSimpleFileRouteMap(
 function mergeFiles(options: MergeOptions) {
 	const simpleFileRouteMapList: Record<string, FileRoute>[] = Array.from(
 		Array(options.dirs.length),
-	).map(e => ({}))
+	).map(() => ({}))
 	let resultSimpleFileRouteMap: Record<string, FileRoute> = {}
 
 	for (let i = 0; i < options.dirs.length; i++) {

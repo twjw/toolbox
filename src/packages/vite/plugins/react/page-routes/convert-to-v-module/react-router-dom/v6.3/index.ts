@@ -171,18 +171,20 @@ function convertToReactRouterDomV6_3(
 					const isLast = i === sp.length - 1
 					const path = sp[i]
 					
-					if (node[':'] != null) {
-						const nextNode = node[':']
-						const paramPath = '/' + (trans == null ? ':' + nextNode._p : trans(nextNode._p))
-						if (isLast) {
-							return { path: fullRoutePath + paramPath, meta: nextNode._m }
+					if (node[path] == null) {
+						if (node[':'] != null) {
+							const nextNode = node[':']
+							const paramPath = '/' + (trans == null ? ':' + nextNode._p : trans(nextNode._p))
+							if (isLast) {
+								return { path: fullRoutePath + paramPath, meta: nextNode._m }
+							}
+							fullRoutePath += paramPath
+							node = nextNode
+							continue
 						}
-						fullRoutePath += paramPath
-						node = nextNode
-						continue
+						
+						return null
 					}
-					
-					if (node[path] == null) return null
 					else if (isLast) {
 						return { path: fullRoutePath + '/' + path, meta: node[path]._m }
 					} else {

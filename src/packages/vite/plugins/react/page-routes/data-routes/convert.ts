@@ -9,17 +9,34 @@ function convertToDataRoutes(
 	parentFilenames = [] as string[],
 	result = [] as DataRoute[],
 ) {
-	for (const k in simpleFileRouteMap) {
-		const e = simpleFileRouteMap[k]
+	const nameRouteFilenames: string[] = [] // xxx
+	const dynamicRouteFilenames: string[] = [] // [xxx]
+	let sortFilenames: string[] // [...nameRouteFilenames, ...dynamicRouteFilenames]
 
-		if (e.relateFiles[PAGE_IDX] != null) {
+	for (const relativeFilepath in simpleFileRouteMap) {
+		if (relativeFilepath[0] === '[') {
+			dynamicRouteFilenames.push(relativeFilepath)
+		} else {
+			nameRouteFilenames.push(relativeFilepath)
+		}
+	}
+
+	sortFilenames = nameRouteFilenames.concat(dynamicRouteFilenames)
+
+	console.log(sortFilenames)
+
+	for (let i = 0; i < sortFilenames.length; i++) {
+		const filename = sortFilenames[i]
+		const fileRoute = simpleFileRouteMap[filename]
+
+		if (fileRoute.relateFiles[PAGE_IDX] != null) {
 			const completeFileRoute: DataRoute = {
-				filename: k,
+				filename: filename,
 				parentFilenames,
 				parentFilenameIdx,
 				relateFileIdxes: {
-					page: e.relateFiles[PAGE_IDX],
-					meta: e.relateFiles[META_IDX],
+					page: fileRoute.relateFiles[PAGE_IDX],
+					meta: fileRoute.relateFiles[META_IDX],
 				},
 				children: [],
 			}
@@ -27,18 +44,23 @@ function convertToDataRoutes(
 			result.push(completeFileRoute)
 
 			const outletName = `${SL}${OUTLET_NAME}`
-			if (e.children[outletName] != null) {
+			if (fileRoute.children[outletName] != null) {
 				convertToDataRoutes(
-					e.children[outletName].children,
+					fileRoute.children[outletName].children,
 					parentFilenames.length,
-					[...parentFilenames, k, outletName],
+					[...parentFilenames, filename, outletName],
 					completeFileRoute.children,
 				)
 				continue
 			}
 		}
 
-		convertToDataRoutes(e.children, parentFilenameIdx, [...parentFilenames, k], result)
+		convertToDataRoutes(
+			fileRoute.children,
+			parentFilenameIdx,
+			[...parentFilenames, filename],
+			result,
+		)
 	}
 
 	return result
