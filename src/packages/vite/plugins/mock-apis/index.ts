@@ -43,10 +43,15 @@ function _useMock(dir: string, updateTimeMap: Record<string, number>) {
 
 			_body = await new Promise(resolve => {
 				body(req, res, (err, body) => {
+					if (err || !body) {
+						resolve(undefined)
+						return
+					}
+
 					try {
 						resolve(JSON.parse(body))
 					} catch (error) {
-						console.error(`[ERROR]${CONSOLE_NAME} JSON.parse body error`)
+						console.error(`[ERROR]${CONSOLE_NAME} ${url} JSON.parse body error`)
 						console.error(error)
 						resolve(undefined)
 					}
