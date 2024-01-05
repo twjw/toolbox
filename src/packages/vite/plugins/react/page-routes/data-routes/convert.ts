@@ -23,8 +23,6 @@ function convertToDataRoutes(
 
 	sortFilenames = nameRouteFilenames.concat(dynamicRouteFilenames)
 
-	console.log(sortFilenames)
-
 	for (let i = 0; i < sortFilenames.length; i++) {
 		const filename = sortFilenames[i]
 		const fileRoute = simpleFileRouteMap[filename]
