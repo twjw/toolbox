@@ -7,10 +7,11 @@ namespace ReactPageRoutes {
 
 	export type MatchPageRoute<Meta = undefined> = (
 		pathname: string,
+		trans?: (paramName: string) => string,
 	) => { path: string; meta: Meta } | null
 
 	export type UsePageRute<Meta = undefined> = (
-		location: { pathname: string } | string,
+		location?: { pathname: string } | string,
 	) => { path: string; meta: Meta } | null
 }
 

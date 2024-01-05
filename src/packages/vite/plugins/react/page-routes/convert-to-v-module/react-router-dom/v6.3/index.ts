@@ -85,7 +85,7 @@ function _passFullRoutePathMap(
 	dataRoute: DataRoute,
 	mid: number | undefined,
 ) {
-	const paths = dataRoute.parentFilenames.reduce<string[]>((p, e) => {
+	const paths = [...dataRoute.parentFilenames, dataRoute.filename].reduce<string[]>((p, e) => {
 		let path = e.substring(1) || '/'
 		if (path === OUTLET_NAME) return p
 		if (path[0] === '[') {
@@ -102,6 +102,7 @@ function _passFullRoutePathMap(
 		p.push(path)
 		return p
 	}, [])
+
 	/*
 		eg. '/': {
 			'_m': number | null
@@ -120,12 +121,10 @@ function _passFullRoutePathMap(
 	let node: Record<string, any> = pathMap
 	for (let j = 0; j < paths.length; j++) {
 		const isDynamic = paths[j][0] === ':'
-		const routePath = isDynamic ? ':' : paths[j][0]
+		const routePath = isDynamic ? ':' : paths[j]
 
 		if (node[routePath] == null) {
-			node = node[routePath] = {
-				_m: mid,
-			}
+			node = node[routePath] = {}
 			if (isDynamic) {
 				node._p = paths[j].substring(1)
 			}
@@ -133,6 +132,7 @@ function _passFullRoutePathMap(
 			node = node[routePath]
 		}
 	}
+	node._m = mid
 }
 
 function convertToReactRouterDomV6_3(
@@ -154,7 +154,7 @@ function convertToReactRouterDomV6_3(
 			`const defaultMeta = ${
 				options.defaultMeta == null ? undefined : JSON.stringify(options.defaultMeta, null, 2)
 			}`,
-			`function matchPageRoute(path) {
+			`function matchPageRoute(path, trans) {
 				if (typeof path !== 'string') return null
 				
 				const sp = path.split('/')
@@ -166,23 +166,28 @@ function convertToReactRouterDomV6_3(
 				}
 				
 				let fullRoutePath = ''
-				let node = fullRoutePathMap
+				let node = fullRoutePathMap['/']
 				for (let i = 1; i < sp.length; i++) {
 					const isLast = i === sp.length - 1
+					const path = sp[i]
 					
 					if (node[':'] != null) {
-						if (isLast) return { path: fullRoutePath + '/:' + node._p, meta: node._m }
-						fullRoutePath += '/:' + node._p
-						node = node[':']
+						const nextNode = node[':']
+						const paramPath = '/' + (trans == null ? ':' + nextNode._p : trans(nextNode._p))
+						if (isLast) {
+							return { path: fullRoutePath + paramPath, meta: nextNode._m }
+						}
+						fullRoutePath += paramPath
+						node = nextNode
 						continue
 					}
 					
-					if (node[sp[i]] == null) return null
+					if (node[path] == null) return null
 					else if (isLast) {
-						return { path: fullRoutePath + '/' + sp[i], meta: node._m }
+						return { path: fullRoutePath + '/' + path, meta: node[path]._m }
 					} else {
-						fullRoutePath += '/' + sp[i]
-						node = node[sp[i]]
+						fullRoutePath += '/' + path
+						node = node[path]
 					}
 				}
 				
