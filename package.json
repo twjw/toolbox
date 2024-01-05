@@ -1,16 +1,24 @@
 {
 	"name": "wtbx",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"type": "module",
 	"description": "@twjw 的 js 工具庫",
 	"files": [
 		"./esm",
+		"!./esm/type.js",
 		"./peer-dependencies.jsonc"
 	],
 	"exports": {
-		"./vreact": {
-			"types": "./esm/vreact.d.ts",
-			"import": "./esm/vreact.js"
+		"./vite-react": {
+			"types": "./esm/vite-react.d.ts",
+			"import": "./esm/vite-react.js"
+		},
+		"./type": {
+			"types": "./esm/type.d.ts"
+		},
+		"./react": {
+			"types": "./esm/react.d.ts",
+			"import": "./esm/react.js"
 		}
 	},
 	"scripts": {
