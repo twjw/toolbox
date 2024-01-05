@@ -83,19 +83,34 @@ function _toRoutePath(dr: DataRoute) {
 function _passFullRoutePathMap(
 	pathMap: Record<string, any>,
 	dataRoute: DataRoute,
-	mid: number | null,
+	mid: number | undefined,
 ) {
 	const paths = dataRoute.parentFilenames.reduce<string[]>((p, e) => {
 		let path = e.substring(1) || '/'
 		if (path === OUTLET_NAME) return p
-		if (path[0] === '[') path = ':'
+		if (path[0] === '[') {
+			const pathParam = path.substring(1, path.length - 1)
+			path = ':'
+			for (let i = 0; i < pathParam.length; i++) {
+				if (pathParam[i] === '-') {
+					path += pathParam[++i].toUpperCase()
+					continue
+				}
+				path += pathParam[i]
+			}
+		}
 		p.push(path)
 		return p
 	}, [])
 	/*
 		eg. '/': {
 			'_m': number | null
-			[path]: {
+			':': { // 表示帶參
+				'_p': string // :後的字串
+				'_m': number | null
+				...
+			}
+			[path]: { // 表示靜態
 				'_m': number | null
 				...
 			}
@@ -104,12 +119,18 @@ function _passFullRoutePathMap(
 	 */
 	let node: Record<string, any> = pathMap
 	for (let j = 0; j < paths.length; j++) {
-		if (node[paths[j]] == null) {
-			node = node[paths[j]] = {
+		const isDynamic = paths[j][0] === ':'
+		const routePath = isDynamic ? ':' : paths[j][0]
+
+		if (node[routePath] == null) {
+			node = node[routePath] = {
 				_m: mid,
 			}
+			if (isDynamic) {
+				node._p = paths[j].substring(1)
+			}
 		} else {
-			node = node[paths[j]]
+			node = node[routePath]
 		}
 	}
 }
@@ -133,7 +154,7 @@ function convertToReactRouterDomV6_3(
 			`const defaultMeta = ${
 				options.defaultMeta == null ? undefined : JSON.stringify(options.defaultMeta, null, 2)
 			}`,
-			`function getPageMeta(path) {
+			`function matchPageRoute(path) {
 				if (typeof path !== 'string') return null
 				
 				const sp = path.split('/')
@@ -141,23 +162,26 @@ function convertToReactRouterDomV6_3(
 				if (sp.length === 1) return null
 				
 				if (sp.length === 2 && sp[1] === '') {
-					return fullRoutePathMap['/']?.['_m']
+					return { path: '/', meta: fullRoutePathMap['/']?._m }
 				}
 				
+				let fullRoutePath = ''
 				let node = fullRoutePathMap
 				for (let i = 1; i < sp.length; i++) {
 					const isLast = i === sp.length - 1
 					
 					if (node[':'] != null) {
-						if (isLast) return node['_m']
+						if (isLast) return { path: fullRoutePath + '/:' + node._p, meta: node._m }
+						fullRoutePath += '/:' + node._p
 						node = node[':']
 						continue
 					}
 					
 					if (node[sp[i]] == null) return null
 					else if (isLast) {
-						return node['_m']
+						return { path: fullRoutePath + '/' + sp[i], meta: node._m }
 					} else {
+						fullRoutePath += '/' + sp[i]
 						node = node[sp[i]]
 					}
 				}
@@ -165,15 +189,14 @@ function convertToReactRouterDomV6_3(
 				return null
 			}
 			
-			function usePageRoute(isDynamic = false) {
-				const location = isDynamic ? useLocation() : undefined
+			function usePageRoute(location) {
 				if (location == null) return useContext(context)
-				else return getPageMeta(location.pathname)
+				else return matchPageRoute(location?.pathname || location)
       }`,
 		],
 		// idx: 4 createPageRoutes
 		`function createPageRoutes(props) `,
-		`export { usePageRoute, createPageRoutes }`,
+		`export { matchPageRoute, usePageRoute, createPageRoutes }`,
 	]
 	const fullRoutePathMap: Record<string, any> = {}
 	const strRoutes: string[] = []
@@ -203,7 +226,7 @@ function convertToReactRouterDomV6_3(
 		const fullRoutePath = _toFullRoutePath(dr)
 		let mid = dr.relateFileIdxes.meta != null ? `m${++ids.m}` : null
 
-		_passFullRoutePathMap(fullRoutePathMap, dr, mid ? ids.m : null)
+		_passFullRoutePathMap(fullRoutePathMap, dr, mid ? ids.m : undefined)
 		if (mid) {
 			;(lines[idx.import] as string[]).push(
 				`import ${mid} from '${_toRelativeModulePath(
