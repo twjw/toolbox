@@ -5,7 +5,6 @@
 	"description": "@twjw 的 js 工具庫",
 	"files": [
 		"./esm",
-		"!./esm/type.js",
 		"./peer-dependencies.jsonc"
 	],
 	"exports": {
