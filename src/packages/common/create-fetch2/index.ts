@@ -96,6 +96,9 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 							  : config.mark
 					) as string | symbol | number
 
+					config.signal = (controllerMap[fetchId] =
+						apiOptions.controller || new AbortController()).signal
+
 					if (config.timeout != null && config.timeout > 0) {
 						timoutInstance = setTimeout(() => {
 							reject(new Fetch2TimeoutError(`fetch timeout ${config.timeout}ms`))
@@ -130,8 +133,6 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 							method: resultMethod,
 							...config,
 						}
-						controllerMap[fetchId] = apiOptions.controller || new AbortController()
-						config.signal = controllerMap[fetchId].signal
 
 						try {
 							let originRes = await fetch(resultUrl, fetchConfig)

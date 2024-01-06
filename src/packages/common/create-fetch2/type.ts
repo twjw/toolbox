@@ -54,7 +54,9 @@ namespace Fetch2 {
 		? UrlPathParams<R, [...Params, P]>
 		: Url extends `${infer B}/:${infer P}`
 		  ? Record<[...Params, P][number], string>
-		  : undefined
+		  : Params['length'] extends 0
+		    ? undefined
+		    : Record<Params[number], string>
 
 	export type ResType = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text'
 
