@@ -53,15 +53,12 @@ function mergePublic(options: MergePublicOptions): any {
 	const plugin: Plugin = {
 		name: FULL_PLUGIN_NAME,
 		enforce: 'pre',
-		config() {
+		config(_, { command }) {
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟靜態資源合併功能...`)
+			isBuild = command === 'build'
+
 			return {
-				publicDir,
-			}
-		},
-		configResolved(resolvedConfig) {
-			if (resolvedConfig.isProduction) {
-				isBuild = true
+				publicDir: isBuild ? false : publicDir,
 			}
 		},
 		closeBundle() {
