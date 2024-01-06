@@ -32,10 +32,14 @@ function _useMock(dir: string, updateTimeMap: Record<string, number>) {
 	return async (req: IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
 		if (!req.url) return next()
 
+		let url: string
+
 		try {
-			const [url, qsstr] = req.url.split('?')
+			const [_url, qsstr] = req.url.split('?')
 			let query: ParsedQuery | undefined
 			let _body: any
+
+			url = _url
 
 			if (qsstr) {
 				query = qs.parse(qsstr)
@@ -63,12 +67,13 @@ function _useMock(dir: string, updateTimeMap: Record<string, number>) {
 			const passData = { query, body: _body }
 			const apiMap = (await import(filepath)).default
 
-			if (typeof apiMap[url] !== 'function') throw new Error('mock api 必須是 function!!')
+			if (typeof apiMap[url] !== 'function')
+				throw new Error(`[ERROR]${CONSOLE_NAME} ${url} api 必須是 function!!`)
 
 			res.end(JSON.stringify(apiMap[url](passData)))
 			return
 		} catch (error) {
-			console.error(`[ERROR]${CONSOLE_NAME} 解析錯誤`)
+			console.error(`[ERROR]${CONSOLE_NAME} ${url!} 解析錯誤`)
 			console.error(error)
 		}
 
