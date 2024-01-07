@@ -1,60 +1,74 @@
-function autoIncrement(text?: string) {
-	if (text == null) {
+type AutoIncrementInstance<T extends string | number> = {
+	value: T
+	next(): T
+}
+
+function autoIncrement<T extends string | number>(n: T): AutoIncrementInstance<T> {
+	if (typeof n === 'number') {
 		return {
-			value: 1,
-			next(): number {
-				this.value++
-				return this.value
-			},
-		}
-	} else if (text.length === 1) {
-		return {
-			value: text[0],
-			next(): string {
-				this.value += text[0]
+			value: n,
+			next() {
+				;(this.value as number)++
 				return this.value
 			},
 		}
 	}
 
-	const idxes = [] as number[]
-	let x = 0 // 前指針
-	let y = 0 // 後指針
+	let idxes = [] as number[]
+	let idx = 0
 
 	return {
-		value: text[0],
-		next(): string {
-			/*
-			ab
-			-
-			a   b
-			[0] [1]
-			-
-			aa     ab      ba      bb
-			[0, 0] [0, 1], [1, 0], [1, 1]
-			-
-			aaa        aab        aba        abb        baa        bab        bba        bbb
-			[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]
-			*/
+		value: n[0] as T,
+		next() {
 			if (idxes.length === 0) {
 				idxes.push(0)
 			} else {
-				const textIdxLength = text.length - 1
+				if (idxes[idx] + 1 === n.length) {
+					if (idxes.length > 1) {
+						for (let i = idx - 1; i >= 0; i--) {
+							if (idxes[i] + 1 < n.length) {
+								for (let j = i + 1; j < idxes.length; j++) {
+									idxes[j] = 0
+								}
+								idxes[i]++
+								break
+							} else if (i === 0) {
+								idxes = Array((idx = idxes.length) + 1).fill(0)
+							}
+						}
+					} else {
+						idxes = Array((idx = idxes.length) + 1).fill(0)
+					}
+				} else {
+					idxes[idx]++
+				}
 			}
 
-			return idxes.reduce((p, i) => p + text[i], '')
+			return idxes.reduce<string>((p, i) => p + n[i], '') as T
 		},
 	}
 }
 
-const id = autoIncrement('ab')
-console.log('id.value ', id.value)
-// 6 | 15
-for (let i = 0; i < 15; i++) {
-	const value = id.next()
-	if (i >= 0) {
-		console.log('id.next()', i, value)
-	}
-}
+// const id = autoIncrement('ab')
+// const results = ['a', 'b', 'aa', 'ab', 'ba', 'bb', 'aaa', 'aab', 'aba', 'abb', 'baa', 'bab', 'bba', 'bbb', 'aaaa', 'aaab', 'aaba', 'aabb', 'abaa', 'abab', 'abba', 'abbb', 'baaa', 'baab', 'baba', 'babb', 'bbaa', 'bbab', 'bbba', 'bbbb', 'aaaaa']
+//
+// const id = autoIncrement('abc')
+// const results = ['a', 'b', 'c', 'aa', 'ab', 'ac', 'ba', 'bb', 'bc', 'ca', 'cb', 'cc', 'aaa', 'aab', 'aac', 'aba', 'abb', 'abc', 'aca', 'acb', 'acc', 'baa', 'bab', 'bac', 'bba', 'bbb', 'bbc', 'bca', 'bcb', 'bcc', 'caa', 'cab', 'cac', 'cba', 'cbb', 'cbc', 'cca', 'ccb', 'ccc', 'aaaa', 'aaab', 'aaac', 'aaba', 'aabb', 'aabc', 'aaca', 'aacb', 'aacc', 'abaa', 'abab', 'abac', 'abba', 'abbb', 'abbc', 'abca', 'abcb', 'abcc', 'acaa', 'acab', 'acac', 'acba', 'acbb', 'acbc', 'acca', 'accb', 'accc', 'baaa', 'baab']
+//
+// for (let i = 0; i < results.length; i++) {
+// 	const value = id.next()
+//
+// 	console.log('id.next()', i, value)
+//
+// 	if (value !== results[i]) {
+// 		console.log('error break')
+// 		break
+// 	}
+//
+// 	if (i === results.length - 1) {
+// 		console.log('success')
+// 	}
+// }
 
+export type { AutoIncrementInstance }
 export { autoIncrement }
