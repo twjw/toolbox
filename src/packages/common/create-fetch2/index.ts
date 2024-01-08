@@ -49,11 +49,11 @@ function _transMethodAndUrl(config: Fetch2.Config): { method: Fetch2.Method; url
 
 // TODO retry, 競態
 const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
-	const { prefix = '', timeout = 0 } = options
 	const interceptors = {
 		useRequest: null as Fetch2.InterceptorUseRequestCallback | null,
 		useResponse: null as Fetch2.InterceptorUseResponseCallback | null,
 		useError: null as Fetch2.InterceptorUseErrorCallback | null,
+		useFinally: null as Fetch2.InterceptorUseFinallyCallback | null,
 	}
 	const cacheMap = {} as Fetch2.CacheMap
 	const controllerMap = {} as Fetch2.ControllerMap
@@ -225,6 +225,10 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 				if (controllerMap[fetchId] != null) {
 					delete controllerMap[fetchId]
 				}
+
+				if (interceptors.useFinally != null) {
+					interceptors.useFinally()
+				}
 			})
 	}) as Fetch2.Instance
 
@@ -253,6 +257,11 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 		error: {
 			use: callback => {
 				interceptors.useError = callback
+			},
+		},
+		finally: {
+			use: callback => {
+				interceptors.useFinally = callback
 			},
 		},
 	}

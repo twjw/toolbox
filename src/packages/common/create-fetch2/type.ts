@@ -92,6 +92,10 @@ namespace Fetch2 {
 
 	export type InterceptorUseError = <R = any>(callback: InterceptorUseErrorCallback<R>) => void
 
+	export type InterceptorUseFinallyCallback = () => void
+
+	export type InterceptorUseFinally = (callback: InterceptorUseFinallyCallback) => void
+
 	export type InterceptorResponse<Data = any> = Response & {
 		data: Data | undefined
 		config: Config & { method: Fetch2.Method }
@@ -109,6 +113,7 @@ namespace Fetch2 {
 			request: { use: InterceptorUseRequest }
 			response: { use: InterceptorUseResponse }
 			error: { use: InterceptorUseError }
+			finally: { use: InterceptorUseFinally }
 		}
 	}
 
