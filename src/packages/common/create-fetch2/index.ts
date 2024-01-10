@@ -121,10 +121,7 @@ const createFetch2 = (options: Fetch2.Options = {}): Fetch2.Instance => {
 						if (config.cacheTime) {
 							lastCacheTime = Date.now() + config.cacheTime
 						}
-					} else if (
-						config.forceRun ||
-						cacheMap[cacheUrl].lastCacheTime < Date.now() + (config.cacheTime || 0)
-					) {
+					} else if (config.forceRun || cacheMap[cacheUrl].lastCacheTime <= Date.now()) {
 						delete cacheMap[cacheUrl]
 					}
 
