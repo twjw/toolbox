@@ -1,0 +1,23 @@
+{
+	"name": "@wtbx/fetch-plus",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "fetch 增強",
+	"main": "lib/index.ts",
+	"scripts": {
+		"publish-package": "npm publish"
+	},
+	"keywords": ["typescript"],
+	"license": "ISC",
+	"dependencies": {
+		"query-string": "^8.1.0"
+	},
+	"devDependencies": {
+		"@types/node": "^20.9.0",
+		"@types/web": "^0.0.134",
+		"typescript": "^5.2.2"
+	},
+	"peerDependencies": {
+		"query-string": "^8.1.0"
+	}
+}

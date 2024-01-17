@@ -1,0 +1,15 @@
+{
+	"name": "@wtbx/enum",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "enum 定義",
+	"main": "index.ts",
+	"scripts": {
+		"publish-package": "npm publish"
+	},
+	"keywords": ["typescript"],
+	"license": "ISC",
+	"devDependencies": {
+		"typescript": "^5.2.2"
+	}
+}
