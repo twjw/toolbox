@@ -1,0 +1,23 @@
+{
+	"name": "@wtbx/merge-env",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "ts 編寫環境變量",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsup index.ts --dts --format esm",
+		"publish-package": "pnpm run build && npm publish"
+	},
+	"keywords": ["typescript"],
+	"license": "ISC",
+	"dependencies": {
+		"lodash-es": "^4.17.21"
+	},
+	"devDependencies": {
+		"@types/lodash-es": "^4.17.12",
+		"@types/node": "^20.9.0",
+		"typescript": "^5.2.2",
+		"tsup": "^8.0.1"
+	}
+}

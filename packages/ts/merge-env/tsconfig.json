@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"useDefineForClassFields": true,
-		"lib": ["ES2020", "DOM", "DOM.Iterable"],
+		"lib": ["ESNext"],
 		"module": "ESNext",
 		"skipLibCheck": true,
 
@@ -9,8 +9,7 @@
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
-		"jsx": "react-jsx",
-
+		"declaration": true,
 
 		/* Linting */
 		"strict": true,
@@ -18,14 +17,4 @@
 		"noUnusedParameters": false,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": [
-    "./src",
-	],
-	"exclude": [
-		"./src/packages/node",
-		"./src/packages/vite",
-		"./src/packages/vite/plugins/_template",
-		"./src/packages/vite/plugins/react/page-routes/test-pages",
-		"./src/packages/vite/plugins/react/page-routes/_test.ts"
-	]
 }

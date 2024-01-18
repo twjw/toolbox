@@ -1,16 +1,15 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { VIRTUAL_PATH } from '../../constants'
 
-async function checkMkdirBuildFolderAndGitIgnore() {
-	const buildPath = getBuildPath()
+async function checkMkdirBuildFolderAndGitIgnore(packageName: string) {
+	const buildPath = getBuildPath(packageName)
 
 	try {
 		await fs.access(buildPath)
 	} catch {
 		await fs.mkdir(buildPath, { recursive: true })
 	} finally {
-		const gitIgnorePath = path.resolve(getBuildPath(), './.gitignore')
+		const gitIgnorePath = path.resolve(getBuildPath(packageName), './.gitignore')
 
 		try {
 			await fs.access(gitIgnorePath)
@@ -20,8 +19,8 @@ async function checkMkdirBuildFolderAndGitIgnore() {
 	}
 }
 
-function getBuildPath() {
-	return path.resolve(process.cwd(), VIRTUAL_PATH)
+function getBuildPath(packageName: string) {
+	return path.resolve(process.cwd(), `node_modules/${packageName}/.vb`)
 }
 
 export { getBuildPath, checkMkdirBuildFolderAndGitIgnore }
