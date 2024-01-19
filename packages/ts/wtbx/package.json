@@ -1,0 +1,10 @@
+{
+	"name": "wtbx",
+	"version": "0.4.4",
+	"type": "module",
+	"description": "廢棄模塊",
+	"scripts": {
+		"publish-package": "npm publish"
+	},
+	"license": "ISC"
+}
