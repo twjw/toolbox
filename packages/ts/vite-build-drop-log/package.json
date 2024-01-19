@@ -1,8 +1,8 @@
 {
-	"name": "@wtbx/uno-preset-rem",
+	"name": "@wtbx/vite-build-drop-log",
 	"version": "1.0.0",
 	"type": "module",
-	"description": "將數值轉換成對應數值的 rem 數",
+	"description": "構建移除 console",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
@@ -12,7 +12,7 @@
 	"keywords": ["typescript"],
 	"license": "ISC",
 	"dependencies": {
-		"@unocss/core": "0.57.7"
+		"vite": "^4.5.0"
 	},
 	"devDependencies": {
 		"@types/node": "^20.9.0",
@@ -20,6 +20,6 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"@unocss/core": "0.57.7"
+		"vite": "^4.5.0"
 	}
 }
