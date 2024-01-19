@@ -23,7 +23,7 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"vite": "^5.0.10",
-		"sharp": "^0.33.1"
+		"vite": "^5.x.x",
+		"sharp": "^0.x.x"
 	}
 }

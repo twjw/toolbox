@@ -6,7 +6,7 @@ import { type PageRoutesOptions } from './type'
 
 const PLUGIN_NAME = 'wtbx-vite-page-routes'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
-const V_MODULE_NAME = `~${PLUGIN_NAME}`
+const V_MODULE_NAME = `~$page-routes`
 const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 

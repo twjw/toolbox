@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-i18n",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
-	"description": "國際化",
+	"description": "國際化(更: 虛擬模塊名更改為 ~i18n)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["./dist"],
@@ -23,6 +23,6 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"vite": "^5.0.10"
+		"vite": "^5.x.x"
 	}
 }

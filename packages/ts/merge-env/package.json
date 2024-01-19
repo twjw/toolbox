@@ -1,6 +1,6 @@
 {
 	"name": "wtbx-merge-env",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
 	"description": "ts 編寫環境變量",
 	"main": "dist/index.js",
@@ -23,6 +23,6 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"lodash-es": "^4.17.21"
+		"lodash-es": "^4.x.x"
 	}
 }

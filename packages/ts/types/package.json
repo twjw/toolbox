@@ -4,6 +4,7 @@
 	"type": "module",
 	"description": "ts 通用類型",
 	"types": "index.d.ts",
+	"files": ["./index.d.ts"],
 	"scripts": {
 		"publish-package": "npm publish"
 	},
