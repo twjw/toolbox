@@ -1,8 +1,8 @@
 {
-	"name": "@wtbx/vite-build-drop-log",
+	"name": "@wtbx/vite-auto-alias",
 	"version": "1.0.0",
 	"type": "module",
-	"description": "構建移除 console",
+	"description": "將 tsconfig.json 的 alias 同步到 vite alias 裡",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
@@ -12,7 +12,8 @@
 	"keywords": ["typescript"],
 	"license": "ISC",
 	"dependencies": {
-		"vite": "^5.0.10"
+		"vite": "^5.0.10",
+		"jsonc-parser": "^3.2.0"
 	},
 	"devDependencies": {
 		"@types/node": "^20.9.0",
@@ -20,6 +21,7 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"vite": "^5.0.10"
+		"vite": "^5.0.10",
+		"jsonc-parser": "^3.2.0"
 	}
 }
