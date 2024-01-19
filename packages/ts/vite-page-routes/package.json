@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/vite-page-routes",
+	"name": "wtbx-vite-page-routes",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "v6.3 react-router 的目錄式路由生成器",

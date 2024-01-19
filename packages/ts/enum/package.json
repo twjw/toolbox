@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/enum",
+	"name": "wtbx-enum",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "enum 定義",

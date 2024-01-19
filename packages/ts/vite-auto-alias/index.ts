@@ -8,7 +8,7 @@ type AutoAliasOptions = {
   filepath?: string /* absolute path */
 }
 
-const PACKAGE_NAME = '@wtbx/vite-auto-alias'
+const PACKAGE_NAME = 'wtbx-vite-auto-alias'
 const CONSOLE_NAME = `[${PACKAGE_NAME}]`
 function getIdeaPaths(filename: string, filepath: string) {
   try {

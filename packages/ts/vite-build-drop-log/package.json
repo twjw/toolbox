@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/vite-build-drop-log",
+	"name": "wtbx-vite-build-drop-log",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "構建移除 console",

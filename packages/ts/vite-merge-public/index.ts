@@ -9,7 +9,7 @@ type MergePublicOptions = {
   dirNames: string[]
 }
 
-const PLUGIN_NAME = '@wtbx/vite-merge-public'
+const PLUGIN_NAME = 'wtbx-vite-merge-public'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 

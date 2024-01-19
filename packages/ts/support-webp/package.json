@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/support-webp",
+	"name": "wtbx-support-webp",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "檢測是否支持 webp",

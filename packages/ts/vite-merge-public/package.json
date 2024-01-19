@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/vite-merge-public",
+	"name": "wtbx-vite-merge-public",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "多資源合併",

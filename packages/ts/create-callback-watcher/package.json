@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/create-callback-watcher",
+	"name": "wtbx-create-callback-watcher",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "回調函數追蹤",

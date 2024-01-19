@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/vite-inject-env",
+	"name": "wtbx-vite-inject-env",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "環境變數注入",

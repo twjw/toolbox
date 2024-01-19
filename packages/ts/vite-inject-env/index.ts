@@ -7,7 +7,7 @@ type InjectEnvOptions = {
   exportModuleName?: string
 }
 
-const PLUGIN_NAME = '@wtbx/vite-inject-env'
+const PLUGIN_NAME = 'wtbx-vite-inject-env'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const DEFAULT_IMPORT_MODULE_NAME = 'env-config'
 const DEFAULT_EXPORT_MODULE_NAME = 'envConfig'

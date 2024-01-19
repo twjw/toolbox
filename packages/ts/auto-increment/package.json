@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/auto-increment",
+	"name": "wtbx-auto-increment",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "自增值",

@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/uno-preset-rem",
+	"name": "wtbx-uno-preset-rem",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "將數值轉換成對應數值的 rem 數",

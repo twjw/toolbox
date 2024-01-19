@@ -9,7 +9,7 @@ type MergeEnvOptions = {
 }
 
 const SL = path.normalize('/')
-const PACKAGE_NAME = `@wtbx/merge-env`
+const PACKAGE_NAME = `wtbx-merge-env`
 const CONSOLE_NAME = `[${PACKAGE_NAME}]`
 
 async function mergeEnv<Env extends Record<string, any>, Mode = string>(

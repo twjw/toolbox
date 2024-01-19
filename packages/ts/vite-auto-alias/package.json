@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/vite-auto-alias",
+	"name": "wtbx-vite-auto-alias",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "將 tsconfig.json 的 alias 同步到 vite alias 裡",

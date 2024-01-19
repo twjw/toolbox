@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite'
 
-const PLUGIN_NAME = '@wtbx/vite-build-drop-log'
+const PLUGIN_NAME = 'wtbx-vite-build-drop-log'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 

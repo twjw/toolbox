@@ -10,7 +10,7 @@ type MockApisOptions = {
 }
 
 const SL = path.normalize('/')
-const PLUGIN_NAME = '@wtbx/vite-mock-apis'
+const PLUGIN_NAME = 'wtbx-vite-mock-apis'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 

@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/types",
+	"name": "wtbx-types",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "ts 通用類型",

@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/vite-cycle-convert-png-and-webp",
+	"name": "wtbx-vite-cycle-convert-png-and-webp",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "實時轉換 webp, png 檔案",

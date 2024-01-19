@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/vite-mock-apis",
+	"name": "wtbx-vite-mock-apis",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "簡單的 mock api 功能",

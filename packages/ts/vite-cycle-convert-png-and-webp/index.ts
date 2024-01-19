@@ -10,7 +10,7 @@ type CycleConvertPngAndWebpOptions = {
 type SupportExt = 'png' | 'webp'
 
 const SL = path.normalize('/')
-const PLUGIN_NAME = '@wtbx/vite-cycle-convert-png-and-webp'
+const PLUGIN_NAME = 'wtbx-vite-cycle-convert-png-and-webp'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 

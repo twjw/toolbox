@@ -1,5 +1,5 @@
 {
-	"name": "@wtbx/fetch-plus",
+	"name": "wtbx-fetch-plus",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "fetch 增強",
