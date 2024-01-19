@@ -1,0 +1,16 @@
+{
+	"name": "@wtbx/support-webp",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "檢測是否支持 webp",
+	"main": "index.ts",
+	"scripts": {
+		"publish-package": "npm publish"
+	},
+	"keywords": ["typescript"],
+	"license": "ISC",
+	"devDependencies": {
+		"@types/web": "^0.0.134",
+		"typescript": "^5.2.2"
+	}
+}

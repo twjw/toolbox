@@ -1,0 +1,16 @@
+{
+	"name": "@wtbx/create-value-storage",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "storage 管理",
+	"main": "index.ts",
+	"scripts": {
+		"publish-package": "npm publish"
+	},
+	"keywords": ["typescript"],
+	"license": "ISC",
+	"devDependencies": {
+		"@types/web": "^0.0.134",
+		"typescript": "^5.2.2"
+	}
+}

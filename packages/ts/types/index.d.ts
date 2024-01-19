@@ -1,4 +1,4 @@
-export namespace WUnion {
+export namespace WUni {
   // 兩個 union type 取交集
   export type Intersection<T, U> = T extends U ? T : never
 
@@ -21,7 +21,7 @@ export namespace WUnion {
   // ToTuple END
 }
 
-export namespace WObject {
+export namespace WObj {
   export type RecursiveKeyOf<Obj extends object, Sep extends string = '.'> = {
     [K in keyof Obj & (string | number)]: Obj[K] extends object
       ? `${K}` | `${K}${Sep}${RecursiveKeyOf<Obj[K]>}`
@@ -39,7 +39,7 @@ export namespace WObject {
   }
 }
 
-export namespace WString {
+export namespace WStr {
   export type FirstUppercase<Str extends string> = Str extends `${infer First}${infer Rest}`
     ? `${Uppercase<First>}${Rest}`
     : never
