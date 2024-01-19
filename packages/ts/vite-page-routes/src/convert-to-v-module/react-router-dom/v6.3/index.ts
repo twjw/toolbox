@@ -1,9 +1,10 @@
 import path from 'path'
 import { META_NAME, OUTLET_NAME, PAGE_NAME } from '../../../constants'
-import { SL } from '../../../../../../../../general/constants'
 import { recursiveFindDataRoute } from '../../../data-routes/recursive-find'
 import { DataRoute } from '../../../data-routes/type'
-import { type ReactPageRoutesOptions } from '../../../type'
+import { type PageRoutesOptions } from '../../../type'
+
+const SL = path.normalize('/')
 
 enum RelativeTypeEnum {
 	meta,
@@ -137,7 +138,7 @@ function _passFullRoutePathMap(
 
 function convertToReactRouterDomV6_3(
 	dataRoutes: DataRoute[],
-	options: ReactPageRoutesOptions,
+	options: PageRoutesOptions,
 ): string {
 	const lines: (string | string[])[] = [
 		// idx: 0 import

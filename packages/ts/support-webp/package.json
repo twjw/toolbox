@@ -4,6 +4,7 @@
 	"type": "module",
 	"description": "檢測是否支持 webp",
 	"main": "index.ts",
+	"files": ["./index.ts"],
 	"scripts": {
 		"publish-package": "npm publish"
 	},

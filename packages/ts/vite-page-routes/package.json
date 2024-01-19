@@ -1,8 +1,8 @@
 {
-	"name": "@wtbx/vite-i18n",
+	"name": "@wtbx/vite-page-routes",
 	"version": "1.0.0",
 	"type": "module",
-	"description": "國際化",
+	"description": "v6.3 react-router 的目錄式路由生成器",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["./dist"],
@@ -13,7 +13,10 @@
 	"keywords": ["typescript"],
 	"license": "ISC",
 	"dependencies": {
-		"vite": "^5.0.10"
+		"vite": "^5.0.10",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-router-dom": "^6.3.0"
 	},
 	"devDependencies": {
 		"@types/node": "^20.9.0",
@@ -23,6 +26,9 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"vite": "^5.0.10"
+		"vite": "^5.0.10",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-router-dom": "^6.3.0"
 	}
 }

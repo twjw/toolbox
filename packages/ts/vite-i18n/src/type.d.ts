@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export namespace I18n {
+namespace I18n {
   type RecursiveKeyOf<Obj extends object, Sep extends string = '.'> = {
     [K in keyof Obj & (string | number)]: Obj[K] extends object
       ? `${K}` | `${K}${Sep}${RecursiveKeyOf<Obj[K]>}`
@@ -21,3 +21,5 @@ export namespace I18n {
     children: ReactNode
   }) => ReactNode
 }
+
+export type { I18n }

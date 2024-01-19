@@ -3,7 +3,8 @@
 	"version": "1.0.0",
 	"type": "module",
 	"description": "fetch 增強",
-	"main": "index.ts",
+	"main": "src/index.ts",
+	"files": ["./src"],
 	"scripts": {
 		"publish-package": "npm publish"
 	},

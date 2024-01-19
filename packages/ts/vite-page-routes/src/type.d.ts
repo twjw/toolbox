@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from 'react'
 
-namespace ReactPageRoutes {
+namespace PageRoutes {
 	export type CreatePageRoutes = (props: {
 		Wrap: FC<{ path: string; children: ReactNode }>
 	}) => ReactNode
@@ -15,9 +15,9 @@ namespace ReactPageRoutes {
 	) => { path: string; meta: Meta } | null
 }
 
-type ReactPageRoutesOptions = {
+type PageRoutesOptions = {
 	defaultMeta?: any // 預設的 meta 資料
 	pages: string[] // 頁面目錄的絕對路徑(後蓋前)
 }
 
-export type { ReactPageRoutesOptions, ReactPageRoutes }
+export type { PageRoutesOptions, PageRoutes }

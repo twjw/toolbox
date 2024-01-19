@@ -4,6 +4,7 @@
 	"type": "module",
 	"description": "自增值",
 	"main": "index.ts",
+	"files": ["./index.ts"],
 	"scripts": {
 		"publish-package": "npm publish"
 	},

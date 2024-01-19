@@ -4,6 +4,7 @@
 	"type": "module",
 	"description": "回調函數追蹤",
 	"main": "index.ts",
+	"files": ["./index.ts"],
 	"scripts": {
 		"publish-package": "npm publish"
 	},

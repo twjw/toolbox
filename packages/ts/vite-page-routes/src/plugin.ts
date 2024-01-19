@@ -1,17 +1,16 @@
 import type { Plugin } from 'vite'
 import { generate } from './generate'
-import { waitMs } from '../../../../../general/utils/common/wait-ms'
+import { waitMs } from './wait-ms'
 import { META_NAME, PAGE_NAME } from './constants'
-import { type ReactPageRoutesOptions } from './type'
-import { PACKAGE_NAME } from '../../../../../general/constants'
+import { type PageRoutesOptions } from './type'
 
-const PLUGIN_NAME = 'page-routes'
-const FULL_PLUGIN_NAME = `vite-plugin-${PACKAGE_NAME}-react-${PLUGIN_NAME}`
+const PLUGIN_NAME = '@wtbx/vite-page-routes'
+const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~${PLUGIN_NAME}`
-const V_MODULE_ID = `@@${V_MODULE_NAME}.jsx`
-const CONSOLE_NAME = `[${PACKAGE_NAME}-react-${PLUGIN_NAME}]`
+const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`
+const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 
-function reactPageRoutes(options: ReactPageRoutesOptions): any {
+function pageRoutes(options: PageRoutesOptions): any {
 	const { pages, defaultMeta } = options
 	let resultJsx = null as string | null
 
@@ -74,4 +73,4 @@ function reactPageRoutes(options: ReactPageRoutesOptions): any {
 	return plugin
 }
 
-export { reactPageRoutes }
+export { pageRoutes }

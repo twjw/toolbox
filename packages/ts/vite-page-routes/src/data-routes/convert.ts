@@ -1,7 +1,9 @@
+import path from "path";
 import { type FileRoute } from '../merge-files'
 import { META_IDX, OUTLET_NAME, PAGE_IDX } from '../constants'
-import { SL } from '../../../../../../general/constants'
 import { type DataRoute } from './type'
+
+const SL = path.normalize('/')
 
 function convertToDataRoutes(
 	simpleFileRouteMap: Record<string, FileRoute>,
