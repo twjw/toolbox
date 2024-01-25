@@ -1,8 +1,8 @@
 import type { Plugin } from 'vite'
 
-type InjectEnvOptions = {
-  env: Record<string, any>
-  propNames?: string[] // env 欲導出的 key 值
+type InjectEnvOptions<Env extends Record<string, any>> = {
+  env: Env
+  propNames?: (keyof Env)[] // env 欲導出的 key 值
   importModuleName?: string
   exportModuleName?: string
 }
@@ -13,14 +13,14 @@ const DEFAULT_IMPORT_MODULE_NAME = 'env-config'
 const DEFAULT_EXPORT_MODULE_NAME = 'envConfig'
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 
-function injectEnv(options: InjectEnvOptions): any {
+function injectEnv<Env extends Record<string, any>>(options: InjectEnvOptions<Env>): any {
   if (options.importModuleName == null) options.importModuleName = DEFAULT_IMPORT_MODULE_NAME
   if (options.exportModuleName == null) options.exportModuleName = DEFAULT_EXPORT_MODULE_NAME
   if (options.propNames == null) options.propNames = ['mode', 'vite']
 
   const V_MODULE_NAME = `~${options.importModuleName}`
   const V_MODULE_ID = `@@${V_MODULE_NAME}`
-  let result: Record<string, any> = {}
+  const result = {} as Env
 
   const plugin: Plugin = {
     name: FULL_PLUGIN_NAME,

@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-inject-env",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
-	"description": "環境變數注入",
+	"description": "環境變數注入，更：propNames 會抓取 env 的 keyof",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["./dist"],
