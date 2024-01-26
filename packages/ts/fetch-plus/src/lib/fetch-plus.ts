@@ -95,11 +95,11 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 					const cacheUrl = `${resultMethod}:${resultUrl}`
 
 					mark = (
-						config.mark === true || (config.mark == null && resultMethod === 'get')
+						config.mark === true || (config.cacheTime != null && config.cacheTime > 0) || (config.mark == null && resultMethod === 'get')
 							? cacheUrl
 							: config.mark === false
-							? null
-							: config.mark
+								? null
+								: config.mark
 					) as string | symbol | number
 
 					config.signal = (controllerMap[fetchId] =
@@ -132,17 +132,26 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 							lastCacheTime = Date.now() + config.cacheTime
 						}
 					}  else {
-					  if (config.mutate) {
-							delete cacheMap[cacheUrl]
-							if (config.cacheTime) {
-								lastCacheTime = Date.now() + config.cacheTime
-							}
-
+						if (config.mutate) {
 							if (typeof config.mutate === 'function') {
 								mutateFunc = config.mutate
+
+								if (config.cacheTime) {
+									cacheMap[cacheUrl].lastCacheTime = Date.now() + config.cacheTime
+								}
+							} else {
+								delete cacheMap[cacheUrl]
+
+								if (config.cacheTime) {
+									lastCacheTime = Date.now() + config.cacheTime
+								}
 							}
 						} else if (cacheMap[cacheUrl].lastCacheTime <= Date.now()) {
 							delete cacheMap[cacheUrl]
+
+							if (config.cacheTime) {
+								lastCacheTime = Date.now() + config.cacheTime
+							}
 						}
 					}
 
@@ -195,8 +204,8 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 						err instanceof FetchPlusAbortError || err instanceof FetchPlusTimeoutError
 							? err
 							: err instanceof Error
-							? FetchPlusUnknownError.clone(err)
-							: new FetchPlusUnknownError((err as Error)?.message || 'unknown'),
+								? FetchPlusUnknownError.clone(err)
+								: new FetchPlusUnknownError((err as Error)?.message || 'unknown'),
 					)
 				}
 			},
