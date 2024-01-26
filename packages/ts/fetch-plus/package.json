@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-fetch-plus",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"type": "module",
-	"description": "fetch 增強",
+	"description": "fetch 增強(更：forceRun 若伴隨 cacheTime 參數的話會強刷後緩存)",
 	"main": "src/index.ts",
 	"files": ["./src"],
 	"scripts": {

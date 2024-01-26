@@ -50,7 +50,8 @@ function _transMethodAndUrl(config: FetchPlus.Config): {
 	}
 }
 
-// TODO retry, 競態
+// TODO retry
+// TODO 競態
 const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance => {
 	const interceptors = {
 		useRequest: null as FetchPlus.InterceptorUseRequestCallback | null,
@@ -69,7 +70,7 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 		apiOptions: FetchPlus.ApiOptions = {},
 	) => {
 		const fetchId = ++id
-		let timoutInstance: NodeJS.Timeout | undefined
+		let timoutId: NodeJS.Timeout | undefined
 		let mark: symbol | string | number | undefined
 
 		return new Promise<{ __markResolve?: 1; response: FetchPlus.InterceptorResponse }>(
@@ -103,8 +104,12 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 						apiOptions.controller || new AbortController()).signal
 
 					if (config.timeout != null && config.timeout > 0) {
-						timoutInstance = setTimeout(() => {
-							reject(new FetchPlusTimeoutError(`fetch timeout ${config.timeout}ms`))
+						timoutId = setTimeout(() => {
+							if (controllerMap[fetchId] != null) {
+								controllerMap[fetchId].abort()
+							} else {
+								reject(new FetchPlusTimeoutError(`fetch timeout ${config.timeout}ms`))
+							}
 						}, config.timeout)
 					}
 
@@ -124,8 +129,16 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 						if (config.cacheTime) {
 							lastCacheTime = Date.now() + config.cacheTime
 						}
-					} else if (config.forceRun || cacheMap[cacheUrl].lastCacheTime <= Date.now()) {
-						delete cacheMap[cacheUrl]
+					}  else {
+					  if (config.forceRun) {
+							delete cacheMap[cacheUrl]
+
+							if (config.cacheTime) {
+								lastCacheTime = Date.now() + config.cacheTime
+							}
+						} else if (cacheMap[cacheUrl].lastCacheTime <= Date.now()) {
+							delete cacheMap[cacheUrl]
+						}
 					}
 
 					if (cacheMap[cacheUrl] == null) {
@@ -218,8 +231,8 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 				throw error
 			})
 			.finally(() => {
-				if (timoutInstance != null) {
-					clearTimeout(timoutInstance)
+				if (timoutId != null) {
+					clearTimeout(timoutId)
 				}
 
 				if (controllerMap[fetchId] != null) {
