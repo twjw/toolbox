@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-fetch-plus",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"type": "module",
-	"description": "fetch 增強(更：修正 mutate function 類型錯誤)",
+	"description": "fetch 增強(更：mutate function 參數名更名為 res)",
 	"main": "src/index.ts",
 	"files": [
 		"./src"
