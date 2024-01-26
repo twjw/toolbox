@@ -7,7 +7,7 @@
 	"types": "dist/index.d.ts",
 	"files": ["./dist"],
 	"scripts": {
-		"build": "tsup-node src/index.ts --platform node --format esm --dts --clean --minify-identifiers",
+		"build": "tsup-node src/index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
 	},
 	"keywords": ["typescript"],
