@@ -21,7 +21,7 @@ namespace FetchPlus {
 		// 緩存時間(毫秒)
 		cacheTime?: number
 		// 是否無視緩存強制執行或者若有緩存就更新緩存數據
-		mutate?: boolean | (<R>(data: MD) => R)
+		mutate?: boolean | ((data: MD) => MD extends {} | [] ? void : MD)
 		// 用於處理重複請求的標記，如果路徑相同且標記一致只會發起一次請求
 		mark?: Mark
 	}

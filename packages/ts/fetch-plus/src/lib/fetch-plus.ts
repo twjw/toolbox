@@ -174,8 +174,12 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 						}
 					} else {
 						if (mutateFunc) {
-
-							res = mutateFunc(cacheMap[cacheUrl].res)
+							if (typeof cacheMap[cacheUrl].res === 'object') {
+								mutateFunc(cacheMap[cacheUrl].res)
+								res = cacheMap[cacheUrl].res
+							} else {
+								res = (cacheMap[cacheUrl].res = mutateFunc(cacheMap[cacheUrl].res))
+							}
 						} else {
 							if (typeof cacheMap[cacheUrl].res === 'object') {
 								res = cloneDeep(cacheMap[cacheUrl].res)

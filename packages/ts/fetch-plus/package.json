@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-fetch-plus",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"type": "module",
-	"description": "fetch 增強(更：將 forceRun 更名為 mutate，並新增更改緩存數據的功能以及緩存數據及 repeat 數據吐出去時會 clone)",
+	"description": "fetch 增強(更：修正 mutate function 類型錯誤)",
 	"main": "src/index.ts",
 	"files": [
 		"./src"
