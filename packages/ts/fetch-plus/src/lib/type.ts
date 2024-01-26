@@ -15,13 +15,13 @@ namespace FetchPlus {
 		compete?: FetchPlusCompeteEnum
 	}
 
-	export type ApiOptions = Options & {
+	export type ApiOptions<MD = any> = Options & {
 		// 取消控制器
 		controller?: AbortController
 		// 緩存時間(毫秒)
 		cacheTime?: number
-		// 是否無視緩存強制執行(會清除緩存)
-		forceRun?: boolean
+		// 是否無視緩存強制執行或者若有緩存就更新緩存數據
+		mutate?: boolean | (<R>(data: MD) => R)
 		// 用於處理重複請求的標記，如果路徑相同且標記一致只會發起一次請求
 		mark?: Mark
 	}
@@ -123,7 +123,7 @@ namespace FetchPlus {
 		<R = InterceptorResponse, Url extends string = ''>(
 			url: Url,
 			init?: RequestInit<Url>,
-			options?: ApiOptions,
+			options?: ApiOptions<R>,
 		): Promise<R>
 	} & InstanceFunc
 }
@@ -164,7 +164,7 @@ namespace TypeFetchPlus {
 		InitParams<Apis, Url> &
 		InitResType<Apis, Url>
 
-	export type Options = Omit<FetchPlus.ApiOptions, 'controller'>
+	export type Options<Res = any> = Omit<FetchPlus.ApiOptions<Res>, 'controller'>
 
 	export type DefineApis<T extends Record<string, Api>> = T
 
@@ -172,7 +172,7 @@ namespace TypeFetchPlus {
 		<Url extends keyof Apis>(
 			url: Url,
 			init?: Init<Apis, Url>,
-			options?: Options,
+			options?: Options<Response<Apis, Url>>,
 		): Promise<Response<Apis, Url>>
 	}
 }

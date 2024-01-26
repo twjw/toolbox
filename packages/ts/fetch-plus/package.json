@@ -1,25 +1,32 @@
 {
 	"name": "wtbx-fetch-plus",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"type": "module",
-	"description": "fetch 增強(更：forceRun 若伴隨 cacheTime 參數的話會強刷後緩存)",
+	"description": "fetch 增強(更：將 forceRun 更名為 mutate，並新增更改緩存數據的功能以及緩存數據及 repeat 數據吐出去時會 clone)",
 	"main": "src/index.ts",
-	"files": ["./src"],
+	"files": [
+		"./src"
+	],
 	"scripts": {
 		"publish-package": "npm publish"
 	},
-	"keywords": ["typescript"],
+	"keywords": [
+		"typescript"
+	],
 	"license": "ISC",
 	"dependencies": {
+		"clone-deep": "^4.0.1",
 		"query-string": "^8.1.0"
 	},
 	"devDependencies": {
+		"@types/clone-deep": "^4.0.4",
 		"@types/node": "^20.9.0",
 		"@types/web": "^0.0.134",
 		"prettier": "^3.1.0",
 		"typescript": "^5.2.2"
 	},
 	"peerDependencies": {
+		"clone-deep": "^4.x.x",
 		"query-string": "^8.x.x"
 	}
 }

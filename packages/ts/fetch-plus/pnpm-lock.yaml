@@ -1,20 +1,30 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@types/clone-deep': ^4.0.4
   '@types/node': ^20.9.0
   '@types/web': ^0.0.134
+  clone-deep: ^4.0.1
+  prettier: ^3.1.0
   query-string: ^8.1.0
   typescript: ^5.2.2
 
 dependencies:
+  clone-deep: 4.0.1
   query-string: 8.1.0
 
 devDependencies:
+  '@types/clone-deep': 4.0.4
   '@types/node': 20.11.5
   '@types/web': 0.0.134
+  prettier: 3.2.4
   typescript: 5.3.3
 
 packages:
+
+  /@types/clone-deep/4.0.4:
+    resolution: {integrity: sha512-vXh6JuuaAha6sqEbJueYdh5zNBPPgG1OYumuz2UvLvriN6ABHDSW8ludREGWJb1MLIzbwZn4q4zUbUCerJTJfA==}
+    dev: true
 
   /@types/node/20.11.5:
     resolution: {integrity: sha512-g557vgQjUUfN76MZAN/dt1z3dzcUsimuysco0KeluHgrPdJXkP/XdAURgyO2W9fZWHRtRBiVKzKn8vyOAwlG+w==}
@@ -26,6 +36,15 @@ packages:
     resolution: {integrity: sha512-h0Fy1aa7uSy4uMMRcfMT/hL9cmvYkKh6Yi9OoQgDdXtuKGs4cJOTzwvMLl2SWqbLVnz5qfhmBMYjIsbURIIkHw==}
     dev: true
 
+  /clone-deep/4.0.1:
+    resolution: {integrity: sha512-neHB9xuzh/wk0dIHweyAXv2aPGZIVk3pLMe+/RNzINf17fe0OG96QroktYAUm7SM1PBnzTabaLboqqxDyMU+SQ==}
+    engines: {node: '>=6'}
+    dependencies:
+      is-plain-object: 2.0.4
+      kind-of: 6.0.3
+      shallow-clone: 3.0.1
+    dev: false
+
   /decode-uri-component/0.4.1:
     resolution: {integrity: sha512-+8VxcR21HhTy8nOt6jf20w0c9CADrw1O8d+VZ/YzzCt4bJ3uBjw+D1q2osAB8RnpwwaeYBxy0HyKQxD5JBMuuQ==}
     engines: {node: '>=14.16'}
@@ -36,6 +55,29 @@ packages:
     engines: {node: '>=14.16'}
     dev: false
 
+  /is-plain-object/2.0.4:
+    resolution: {integrity: sha512-h5PpgXkWitc38BBMYawTYMWJHFZJVnBquFE57xFpjB8pJFiF6gZ+bU+WyI/yqXiFR5mdLsgYNaPe8uao6Uv9Og==}
+    engines: {node: '>=0.10.0'}
+    dependencies:
+      isobject: 3.0.1
+    dev: false
+
+  /isobject/3.0.1:
+    resolution: {integrity: sha512-WhB9zCku7EGTj/HQQRz5aUQEUeoQZH2bWcltRErOpymJ4boYE6wL9Tbr23krRPSZ+C5zqNSrSw+Cc7sZZ4b7vg==}
+    engines: {node: '>=0.10.0'}
+    dev: false
+
+  /kind-of/6.0.3:
+    resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
+    engines: {node: '>=0.10.0'}
+    dev: false
+
+  /prettier/3.2.4:
+    resolution: {integrity: sha512-FWu1oLHKCrtpO1ypU6J0SbK2d9Ckwysq6bHj/uaCP26DxrPpppCLQRGVuqAxSTvhF00AcvDRyYrLNW7ocBhFFQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dev: true
+
   /query-string/8.1.0:
     resolution: {integrity: sha512-BFQeWxJOZxZGix7y+SByG3F36dA0AbTy9o6pSmKFcFz7DAj0re9Frkty3saBn3nHo3D0oZJ/+rx3r8H8r8Jbpw==}
     engines: {node: '>=14.16'}
@@ -43,6 +85,13 @@ packages:
       decode-uri-component: 0.4.1
       filter-obj: 5.1.0
       split-on-first: 3.0.0
+    dev: false
+
+  /shallow-clone/3.0.1:
+    resolution: {integrity: sha512-/6KqX+GVUdqPuPPd2LxDDxzX6CAbjJehAAOKlNpqqUpAqPM6HeL8f+o3a+JsyGjn2lv0WY8UsTgUJjU9Ok55NA==}
+    engines: {node: '>=8'}
+    dependencies:
+      kind-of: 6.0.3
     dev: false
 
   /split-on-first/3.0.0:
