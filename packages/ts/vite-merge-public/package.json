@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-merge-public",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
-	"description": "多資源合併",
+	"description": "多資源合併(更：將開發模式下 mergeDir 創建時機移到 config 鉤子中)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["./dist"],

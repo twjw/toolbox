@@ -56,6 +56,12 @@ function mergePublic(options: MergePublicOptions): any {
       console.log(`[LOG]${CONSOLE_NAME} 已開啟靜態資源合併功能...`)
       isBuild = command === 'build'
 
+      if (!isBuild) {
+        buildPath = path.resolve(publicRootPath, mergeDir)
+        _createMp(buildPath)
+        fs.writeFileSync(path.resolve(buildPath, './.gitignore'), '*')
+      }
+
       return {
         publicDir: isBuild ? false : publicDir,
       }
@@ -65,10 +71,6 @@ function mergePublic(options: MergePublicOptions): any {
       _createMp(path.resolve(process.cwd(), distDir, mergeDir))
     },
     configureServer(server) {
-      buildPath = path.resolve(publicRootPath, mergeDir)
-      _createMp(buildPath)
-      fs.writeFileSync(path.resolve(buildPath, './.gitignore'), '*')
-
       function onEvent(type: 'unlink' | 'add' | 'change') {
         return (filepath: string) => {
           if (!filepath.includes(publicRootPath)) return
