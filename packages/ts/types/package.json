@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-types",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
-	"description": "ts 通用類型",
+	"description": "ts 通用類型。(更：新增 BetterPick)",
 	"types": "index.d.ts",
 	"files": ["./index.d.ts"],
 	"scripts": {
