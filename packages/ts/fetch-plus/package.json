@@ -1,6 +1,6 @@
 {
 	"name": "wtbx-fetch-plus",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"type": "module",
 	"description": "fetch 增強(更：修正緩存到期處理錯誤)",
 	"main": "src/index.ts",
@@ -26,6 +26,7 @@
 		"typescript": "^5.2.2"
 	},
 	"peerDependencies": {
+		"@types/clone-deep": "^4.x.x",
 		"clone-deep": "^4.x.x",
 		"query-string": "^8.x.x"
 	}
