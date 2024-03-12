@@ -64,7 +64,7 @@ function _useMock(dir: string, updateTimeMap: Record<string, number>) {
 
 			let filepath = _toRelativeFilepath(`${dir}${SL}${query?.mockFile || 'index'}.js`)
 			filepath += `?update=${updateTimeMap[filepath] || (updateTimeMap[filepath] = Date.now())}`
-			const passData = { query, body: _body }
+			const passData = { headers: req.headers, query, body: _body }
 			const apiMap = (await import(filepath)).default
 
 			if (typeof apiMap[url] !== 'function')
