@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-mock-apis",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"type": "module",
-	"description": "簡單的 mock api 功能。(更：回傳 headers)",
+	"description": "簡單的 mock api 功能。(更：res 配置 json utf-8 響應)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["./dist"],

@@ -70,6 +70,7 @@ function _useMock(dir: string, updateTimeMap: Record<string, number>) {
 			if (typeof apiMap[url] !== 'function')
 				throw new Error(`[ERROR]${CONSOLE_NAME} ${url} api 必須是 function!!`)
 
+			res.setHeader('Content-Type', 'application/json; charset=utf-8');
 			res.end(JSON.stringify(apiMap[url](passData)))
 			return
 		} catch (error) {
