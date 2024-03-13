@@ -1,4 +1,4 @@
-import path from "path";
+import path from 'path'
 import { type FileRoute } from '../merge-files'
 import { META_IDX, OUTLET_NAME, PAGE_IDX } from '../constants'
 import { type DataRoute } from './type'

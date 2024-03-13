@@ -1,5 +1,5 @@
 import fs from 'fs'
-import path from "path";
+import path from 'path'
 import { META_NAME, PAGE_NAME } from './constants'
 
 const SL = path.normalize('/')

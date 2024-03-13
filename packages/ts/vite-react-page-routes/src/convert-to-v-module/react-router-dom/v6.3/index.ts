@@ -21,8 +21,8 @@ function _toRelativeModulePath(dr: DataRoute, pages: string[], type: RelativeTyp
 				type === RelativeTypeEnum.meta
 					? META_NAME
 					: type === RelativeTypeEnum.page
-					  ? PAGE_NAME
-					  : ''
+						? PAGE_NAME
+						: ''
 			}`,
 		)
 		.replace(/\\/g, '/')}`
@@ -278,7 +278,7 @@ function convertToReactRouterDomV6_3(
 		strRoutes.length > 0
 			? `(\n${strRoutes.length > 1 ? '<>\n' : ''}${strRoutes.join('\n')}${
 					strRoutes.length > 1 ? '\n</>' : ''
-			  }\n)`
+				}\n)`
 			: 'null'
 	}\n}`
 
