@@ -7,6 +7,11 @@ export default defineConfig({
 	plugins: [react()],
 	publicDir: false,
 	root: path.resolve(process.cwd(), 'example'),
+	resolve: {
+		alias: {
+			wodel: path.resolve(process.cwd(), 'src/index.ts'),
+		},
+	},
 	server: {
 		port: 9487,
 	},
