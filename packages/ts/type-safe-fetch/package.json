@@ -1,0 +1,25 @@
+{
+  "name": "wtbx-type-safe-fetch",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "最簡單的 fetch 包裝器",
+  "main": "src/index.ts",
+  "files": ["./src"],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "publish-package": "npm publish"
+  },
+  "keywords": [
+    "wtbx",
+    "typescript",
+    "fetch"
+  ],
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.19.23",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.6"
+  }
+}
