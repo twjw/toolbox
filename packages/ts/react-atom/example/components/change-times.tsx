@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 function ChangeTimes() {
-	const countRef = useRef(0)
+	const countRef = useRef(1)
 	useEffect(() => {
 		countRef.current++
 	})

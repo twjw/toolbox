@@ -9,7 +9,7 @@ export default defineConfig({
 	root: path.resolve(process.cwd(), 'example'),
 	resolve: {
 		alias: {
-			wodel: path.resolve(process.cwd(), 'src/index.ts'),
+			'wtbx-react-atom': path.resolve(process.cwd(), 'src/index.ts'),
 		},
 	},
 	server: {

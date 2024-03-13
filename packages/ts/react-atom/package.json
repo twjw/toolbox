@@ -1,13 +1,23 @@
 {
-  "name": "wodel",
-  "private": true,
-  "version": "0.0.0",
+  "name": "wtbx-react-atom",
+  "version": "1.0.0",
   "type": "module",
+  "description": "極簡 react18+ 原子狀態管理",
+  "main": "src/index.ts",
+  "files": ["./src"],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "publish-package": "npm publish"
   },
+  "keywords": [
+    "wtbx",
+    "typescript",
+    "react",
+    "store manager"
+  ],
+  "license": "ISC",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
