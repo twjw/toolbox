@@ -3,7 +3,6 @@
 	"devDependencies": {
 		"@types/node": "^20.9.0",
 		"@types/web": "^0.0.134",
-		"prettier": "^3.1.0",
 		"typescript": "^5.2.2"
 	}
 }
