@@ -1,11 +1,11 @@
 {
 	"name": "wtbx-vite-react-page-routes",
-	"version": "1.0.0",
+	"version": "1.0.3",
 	"type": "module",
-	"description": "v6.3 react-router 的目錄式路由生成器",
+	"description": "v6.3 react-router 的目錄式路由生成器(更: 補上異常失蹤的類型檔)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["./dist"],
+	"files": ["dist"],
 	"scripts": {
 		"build": "tsup-node src/index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
