@@ -64,13 +64,12 @@ function _useMock(dir: string, updateTimeMap: Record<string, number>) {
 
 			let filepath = _toRelativeFilepath(`${dir}${SL}${query?.mockFile || 'index'}.js`)
 			filepath += `?update=${updateTimeMap[filepath] || (updateTimeMap[filepath] = Date.now())}`
-			const passData = { headers: req.headers, query, body: _body }
+			const passData = { headers: req.headers, query, body: _body, req, res }
 			const apiMap = (await import(filepath)).default
 
 			if (typeof apiMap[url] !== 'function')
 				throw new Error(`[ERROR]${CONSOLE_NAME} ${url} api 必須是 function!!`)
 
-			res.setHeader('Content-Type', 'application/json; charset=utf-8');
 			res.end(JSON.stringify(apiMap[url](passData)))
 			return
 		} catch (error) {
