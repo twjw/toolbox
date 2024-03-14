@@ -4,7 +4,14 @@
   "type": "module",
   "description": "最簡單的 fetch 包裝器",
   "main": "src/index.ts",
-  "files": ["./src"],
+  "types": "src/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./middlewares/*": "./src/middlewares/*.ts"
+  },
+  "files": [
+    "src"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -19,7 +26,11 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^18.19.23",
+    "query-string": "^9.0.0",
     "typescript": "^5.2.2",
     "vite": "^5.1.6"
+  },
+  "peerDependencies": {
+    "query-string": ">=8"
   }
 }

@@ -1,17 +1,36 @@
-import { tsFetch, TsFetchOptions } from 'wtbx-type-safe-fetch'
+import { tsFetch, TsFetchOptions, TsFetchTemplate } from 'wtbx-type-safe-fetch'
+import { paramsAndBodyParser } from 'wtbx-type-safe-fetch/middlewares/params-and-body-parser.ts'
+import { methodUrl } from 'wtbx-type-safe-fetch/middlewares/method-url.ts'
 
 console.clear()
 
 const root = document.getElementById('root')!
-root.innerHTML = 'hello wtbx-type-safe-fetch!'
+root.innerHTML = `
+<h1 style="text-align:center;">hello wtbx-type-safe-fetch!</h1>
+<div id="fetch-result"></div>
+`
 
 const apiPrefix = 'https://api.thecatapi.com'
 
-// const fetch2 = tsFetch as unknown as TsFetchApis & {
-//   (options: TsFetchOptions): Promise<Response>
-// }
-const fetch2 = tsFetch
+const fetch2 = tsFetch as unknown as TsFetchTemplate<{
+	'get:/v1/images/search': {
+		params: {
+			size: string
+			mime_types: 'jpg' | 'png'
+			format: 'json'
+			has_breeds: boolean
+			order: 'RANDOM'
+			page: number
+			limit: number
+		}
+		response: {
+			url: string
+		}[]
+	}
+}>
 
+fetch2.middleware(methodUrl)
+fetch2.middleware(paramsAndBodyParser)
 fetch2.middleware<TsFetchOptions, any, any, Error>({
 	request: async options => {
 		console.log('等待開始...')
@@ -25,7 +44,6 @@ fetch2.middleware<TsFetchOptions, any, any, Error>({
 		return {
 			...options,
 			url: `${apiPrefix}${options.url[0] === '/' ? '' : '/'}${options.url}`,
-			method: options.method || 'GET',
 			headers: options.headers
 				? {
 						'Content-Type': 'application/json',
@@ -37,14 +55,35 @@ fetch2.middleware<TsFetchOptions, any, any, Error>({
 		}
 	},
 	response: res => res.json(),
-	error: (error, options) => options.url,
+	error: (error, options) => {
+		console.error(error)
+		return options.url
+	},
 })
 ;(async () => {
+	const resultNode: HTMLElement = root.querySelector('#fetch-result')!
+	resultNode.style.display = 'flex'
+	resultNode.style.flexDirection = 'column'
+	resultNode.style.alignItems = 'center'
+	resultNode.style.justifyContent = 'center'
+
+	resultNode.innerHTML = 'fetching ...'
+
 	const res = await fetch2({
-		url: '/v1/images/search?size=med&mime_types=jpg&format=json&has_breeds=true&order=RANDOM&page=0&limit=1',
-		headers: { 'x-api-key': 'DEMO-API-KEY' },
-		redirect: 'follow',
+		url: 'get:/v1/images/search',
+		params: {
+			size: 'med',
+			mime_types: 'jpg',
+			format: 'json',
+			has_breeds: true,
+			order: 'RANDOM',
+			page: 0,
+			limit: 1,
+		},
 	})
 
-	console.log(res)
+	resultNode.innerHTML = `
+    <div>${JSON.stringify(res)}</div>
+    <img src="${res[0].url}" style="width:200px;" /> 
+  `
 })()

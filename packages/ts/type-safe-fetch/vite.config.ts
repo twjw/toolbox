@@ -8,7 +8,7 @@ export default defineConfig({
 	root: path.resolve(process.cwd(), 'example'),
 	resolve: {
 		alias: {
-			'wtbx-type-safe-fetch': path.resolve(process.cwd(), 'src/index.ts'),
+			'wtbx-type-safe-fetch': path.resolve(process.cwd(), 'src'),
 		},
 	},
 	server: {

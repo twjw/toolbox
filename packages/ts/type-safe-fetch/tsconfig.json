@@ -20,7 +20,8 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "wtbx-type-safe-fetch": ["src/index.ts"]
+      "wtbx-type-safe-fetch": ["src"],
+      "wtbx-type-safe-fetch/middlewares/*": ["src/middlewares/*"]
     }
   },
   "include": [
