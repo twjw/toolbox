@@ -1,6 +1,12 @@
-import { tsFetch, TsFetchOptions, TsFetchTemplate } from 'wtbx-type-safe-fetch'
+import {
+	tsFetch,
+	TsFetchListenerRequestInit,
+	TsFetchTemplate,
+} from 'wtbx-type-safe-fetch'
 import { paramsAndBodyParser } from 'wtbx-type-safe-fetch/middlewares/params-and-body-parser.ts'
 import { methodUrl } from 'wtbx-type-safe-fetch/middlewares/method-url.ts'
+import { Apis as CatApis } from './api-types/cat.ts'
+import { Apis as DogApis } from './api-types/dog.ts'
 
 console.clear()
 
@@ -12,26 +18,11 @@ root.innerHTML = `
 
 const apiPrefix = 'https://api.thecatapi.com'
 
-const fetch2 = tsFetch as unknown as TsFetchTemplate<{
-	'get:/v1/images/search': {
-		params: {
-			size: string
-			mime_types: 'jpg' | 'png'
-			format: 'json'
-			has_breeds: boolean
-			order: 'RANDOM'
-			page: number
-			limit: number
-		}
-		response: {
-			url: string
-		}[]
-	}
-}>
+const fetch2 = tsFetch as unknown as TsFetchTemplate<CatApis & DogApis>
 
 fetch2.middleware(methodUrl)
 fetch2.middleware(paramsAndBodyParser)
-fetch2.middleware<TsFetchOptions, any, any, Error>({
+fetch2.middleware<TsFetchListenerRequestInit, any, any, Error>({
 	request: async options => {
 		console.log('等待開始...')
 		await new Promise<void>(resolve => {
@@ -54,10 +45,10 @@ fetch2.middleware<TsFetchOptions, any, any, Error>({
 					},
 		}
 	},
-	response: res => res.json(),
-	error: (error, options) => {
+	response: (req, res) => res.json(),
+	error: (req, error) => {
 		console.error(error)
-		return options.url
+		return req.url
 	},
 })
 ;(async () => {
@@ -69,8 +60,7 @@ fetch2.middleware<TsFetchOptions, any, any, Error>({
 
 	resultNode.innerHTML = 'fetching ...'
 
-	const res = await fetch2({
-		url: 'get:/v1/images/search',
+	const res = await fetch2('get:/v1/images/search', {
 		params: {
 			size: 'med',
 			mime_types: 'jpg',

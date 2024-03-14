@@ -1,8 +1,9 @@
-import type {
+import {
 	TsFetchBase,
 	TsFetchErrorListener,
+	TsFetchListenerRequestInit,
 	TsFetchNew,
-	TsFetchOptions,
+	TsFetchRequestInit,
 	TsFetchRequestListener,
 	TsFetchResponseListener,
 	TsFetchWatchMap,
@@ -11,31 +12,33 @@ export type * from './type'
 
 const newTsFetch: TsFetchNew = () => {
 	const reqListeners: TsFetchRequestListener<any>[] = []
-	const resListeners: TsFetchResponseListener<any, any>[] = []
+	const resListeners: TsFetchResponseListener<any, any, any>[] = []
 	const errListeners: TsFetchErrorListener<any, any, any>[] = []
 
-	function watchRequest<Req extends TsFetchOptions = TsFetchOptions>(
+	function watchRequest<Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit>(
 		listener: TsFetchRequestListener<Req>,
 	) {
 		reqListeners.push(listener)
 	}
 
-	function watchResponse<Res = Response, Return = Res | Promise<Res>>(
-		listener: TsFetchResponseListener<Res, Return>,
-	) {
+	function watchResponse<
+		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
+		Res = Response,
+		Return = Res | Promise<Res>,
+	>(listener: TsFetchResponseListener<Req, Res, Return>) {
 		resListeners.push(listener)
 	}
 
 	function watchError<
+		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 		Err extends Error = Error,
-		Opt extends TsFetchOptions = TsFetchOptions,
 		Return = Response | Promise<Response>,
-	>(listener: TsFetchErrorListener<Err, Opt, Return>) {
+	>(listener: TsFetchErrorListener<Req, Err, Return>) {
 		errListeners.push(listener)
 	}
 
 	function middleware<
-		Req extends TsFetchOptions = TsFetchOptions,
+		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 		Res = Response,
 		Return = Res,
 		Err extends Error = Error,
@@ -45,19 +48,23 @@ const newTsFetch: TsFetchNew = () => {
 		if (watchMap.error) errListeners.push(watchMap.error)
 	}
 
-	async function tsFetch<R = Response>(options: TsFetchOptions): Promise<R> {
-		let lastOptions: TsFetchOptions = options
+	async function tsFetch<R = Response>(
+		url: string,
+		requestInit?: TsFetchRequestInit,
+	): Promise<R> {
+		let lastRequestInit = (requestInit || {}) as TsFetchListenerRequestInit
+		lastRequestInit.url = url
 
 		try {
 			for (let i = 0; i < reqListeners.length; i++) {
-				let nextOptions = reqListeners[i](lastOptions)
-				if (nextOptions instanceof Promise) nextOptions = await nextOptions
-				lastOptions = nextOptions as TsFetchOptions
+				let nextRequestInit = reqListeners[i](lastRequestInit)
+				if (nextRequestInit instanceof Promise) nextRequestInit = await nextRequestInit
+				lastRequestInit = nextRequestInit as TsFetchListenerRequestInit
 			}
 
-			let lastResponse = await fetch(lastOptions.url, lastOptions)
+			let lastResponse = await fetch(lastRequestInit.url, lastRequestInit)
 			for (let i = 0; i < resListeners.length; i++) {
-				let nextResponse = resListeners[i](lastResponse)
+				let nextResponse = resListeners[i](lastRequestInit, lastResponse)
 				if (nextResponse instanceof Promise) nextResponse = await nextResponse
 				lastResponse = nextResponse as Response
 			}
@@ -69,7 +76,7 @@ const newTsFetch: TsFetchNew = () => {
 			let prevErrorReturn = undefined as R | undefined
 
 			for (let i = 0; i < errListeners.length; i++) {
-				let nextErrorReturn = errListeners[i](error as Error, lastOptions)
+				let nextErrorReturn = errListeners[i](lastRequestInit, error as Error)
 				if (nextErrorReturn instanceof Promise) nextErrorReturn = await nextErrorReturn
 				prevErrorReturn = nextErrorReturn as R
 			}

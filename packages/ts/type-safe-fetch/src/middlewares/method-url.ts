@@ -1,9 +1,9 @@
-import type { TsFetchOptions, TsFetchWatchMap, TsFetchMethod } from '../type'
+import { TsFetchListenerRequestInit, TsFetchMethod, TsFetchWatchMap } from '../type'
 
 const maxMethodLength = 'options'.length - 1
 const minMethodLength = 'get'.length - 1
 
-const methodUrl: TsFetchWatchMap<TsFetchOptions, any, any, Error> = {
+const methodUrl: TsFetchWatchMap<TsFetchListenerRequestInit, any, any, Error> = {
 	request: options => {
 		let url = options.url,
 			newUrl = ''

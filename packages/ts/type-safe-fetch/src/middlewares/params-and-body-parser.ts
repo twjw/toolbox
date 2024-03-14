@@ -1,10 +1,10 @@
-import type { TsFetchOptions, TsFetchWatchMap } from '../type'
+import { TsFetchListenerRequestInit, TsFetchWatchMap } from '../type'
 import qs from 'query-string'
 
 const object = 'object'
 
 const paramsAndBodyParser: TsFetchWatchMap<
-	TsFetchOptions & { params?: Record<string, any> },
+	TsFetchListenerRequestInit & { params?: Record<string, any> },
 	any,
 	any,
 	Error

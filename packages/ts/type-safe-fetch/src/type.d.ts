@@ -1,55 +1,62 @@
-export type TsFetchRequestListener<Req extends TsFetchOptions = TsFetchOptions> = (
-	req: Req,
-) => Req | Promise<Req>
+export type TsFetchRequestListener<
+	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
+> = (req: Req) => Req | Promise<Req>
 
-export type TsFetchResponseListener<Res = Response, Return = Res | Promise<Res>> = (
-	res: Res,
-) => Return
+export type TsFetchResponseListener<
+	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
+	Res = Response,
+	Return = Res | Promise<Res>,
+> = (req: Readonly<Req>, res: Res) => Return
 
 export type TsFetchErrorListener<
+	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 	Err extends Error = Error,
-	Opt extends TsFetchOptions = TsFetchOptions,
 	Return = Response | Promise<Response>,
-> = (error: Err, options: Readonly<Opt>) => Return
+> = (req: Readonly<Req>, error: Err) => Return
 
 export type LuCaseString<S extends string> = S | Uppercase<S>
 
 export type TsFetchMethod = LuCaseString<'get' | 'put' | 'post' | 'delete' | 'options'>
 
-export type TsFetchOptions = Omit<RequestInit, 'method'> & {
-	url: string
+export type TsFetchListenerRequestInit = TsFetchRequestInit & { url: string }
+
+export type TsFetchRequestInit = Omit<RequestInit, 'method'> & {
 	method?: TsFetchMethod
 }
 
 export type TsFetchWatch = {
-	request: <Req extends TsFetchOptions = TsFetchOptions>(
+	request: <Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit>(
 		listener: TsFetchRequestListener<Req>,
 	) => void
-	response: <Res = Response, Return = Res | Promise<Res>>(
-		listener: TsFetchResponseListener<Res, Return>,
+	response: <
+		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
+		Res = Response,
+		Return = Res | Promise<Res>,
+	>(
+		listener: TsFetchResponseListener<Req, Res, Return>,
 	) => void
 	error: <
+		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 		Err extends Error = Error,
-		Opt extends TsFetchOptions = TsFetchOptions,
 		Return = Response | Promise<Response>,
 	>(
-		listener: TsFetchErrorListener<Err, Opt, Return>,
+		listener: TsFetchErrorListener<Req, Err, Return>,
 	) => void
 }
 
 export type TsFetchWatchMap<
-	Req extends TsFetchOptions = TsFetchOptions,
+	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 	Res = Response,
 	Return = Res,
 	Err extends Error = Error,
 > = Partial<{
 	request: TsFetchRequestListener<Req>
-	response: TsFetchResponseListener<Res, Return>
-	error: TsFetchErrorListener<Err, Req, Return>
+	response: TsFetchResponseListener<Req, Res, Return>
+	error: TsFetchErrorListener<Req, Err, Return>
 }>
 
 export type TsFetchMiddleware = <
-	Req extends TsFetchOptions = TsFetchOptions,
+	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 	Res = Response,
 	Return = Res,
 	Err extends Error = Error,
@@ -63,7 +70,7 @@ export type TsFetchApis = {
 }
 
 export type TsFetchCall = {
-	<R = Response>(options: TsFetchOptions): Promise<R>
+	<R = Response>(url: string, init?: TsFetchRequestInit): Promise<R>
 }
 
 export type TsFetch = TsFetchCall & TsFetchApis
@@ -81,16 +88,31 @@ export type TsFetchTemplateDefinition = {
 	response: any
 }
 
-export type TsFetchTemplateOptions<
-	Apis extends Record<string, TsFetchTemplateDefinition>,
-	Path extends keyof Apis,
-> = { url: Path } & Omit<Apis[Path], 'response'>
+export type TsFetchTemplateIncludeRequestInit<
+	Api extends TsFetchTemplateDefinition,
+	KS extends (keyof TsFetchTemplateDefinition)[] = ['headers', 'params', 'body'],
+> = KS extends [infer K1, ...infer K2]
+	? Api[K1] extends Record<string, any>
+		? true
+		: TsFetchTemplateIncludeRequestInit<Api, K2>
+	: false
+
+export type TsFetchTemplateDefineApis<Apis extends Record<string, TsFetchTemplateDefinition>> =
+	Apis
+
+export type TsFetchTemplateRequestInit<
+	Api extends TsFetchTemplateDefinition,
+	Other extends Record<string, any> = {},
+> = Omit<TsFetchRequestInit, 'body'> & Omit<Api, 'response'> & Other
 
 export type TsFetchTemplate<
 	Apis extends Record<string, TsFetchTemplateDefinition>,
 	Other extends Record<string, any> = {},
 > = TsFetchApis & {
 	<Path extends keyof Apis>(
-		options: Omit<TsFetchOptions, 'url' | 'body'> & TsFetchTemplateOptions<Apis, Path> & Other,
+		url: Path,
+		...args: TsFetchTemplateIncludeRequestInit<Apis[Path]> extends true
+			? [TsFetchTemplateRequestInit<Apis[Path], Other>]
+			: []
 	): Promise<Apis[Path]['response']>
 }
