@@ -13,5 +13,8 @@ export default defineConfig({
 	},
 	server: {
 		port: 9487,
+		proxy: {
+			'/v1': 'https://api.thecatapi.com',
+		},
 	},
 })
