@@ -4,7 +4,7 @@
   "type": "module",
   "description": "極簡 react18+ 原子狀態管理",
   "main": "src/index.ts",
-  "files": ["./src"],
+  "files": ["src"],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
