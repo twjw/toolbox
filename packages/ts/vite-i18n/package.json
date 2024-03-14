@@ -5,7 +5,7 @@
 	"description": "國際化(更: 虛擬模塊名更改為 ~i18n)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["./dist"],
+	"files": ["dist"],
 	"scripts": {
 		"build": "tsup-node src/index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"

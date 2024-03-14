@@ -5,7 +5,7 @@
 	"description": "多資源合併(更：將開發模式下 mergeDir 創建時機移到 config 鉤子中)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["./dist"],
+	"files": ["dist"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"

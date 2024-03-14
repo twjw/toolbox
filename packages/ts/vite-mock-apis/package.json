@@ -5,7 +5,7 @@
 	"description": "簡單的 mock api 功能。(更：會將 req, res 再傳出去)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["./dist"],
+	"files": ["dist"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"

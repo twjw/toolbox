@@ -5,7 +5,7 @@
 	"description": "環境變數注入，更：propNames 會抓取 env 的 keyof",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["./dist"],
+	"files": ["dist"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"

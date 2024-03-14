@@ -5,7 +5,7 @@
 	"description": "將 tsconfig.json 的 alias 同步到 vite alias 裡",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["./dist"],
+	"files": ["dist"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
