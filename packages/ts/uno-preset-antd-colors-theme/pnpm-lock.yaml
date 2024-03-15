@@ -3,13 +3,13 @@ lockfileVersion: 5.4
 specifiers:
   '@ant-design/colors': ^7.0.2
   '@types/node': ^20.9.0
-  '@unocss/core': 0.58.3
+  '@unocss/core': ^0.58.6
   tsup: ^8.0.1
   typescript: ^5.2.2
 
 dependencies:
   '@ant-design/colors': 7.0.2
-  '@unocss/core': 0.58.3
+  '@unocss/core': 0.58.6
 
 devDependencies:
   '@types/node': 20.11.5
@@ -420,8 +420,8 @@ packages:
       undici-types: 5.26.5
     dev: true
 
-  /@unocss/core/0.58.3:
-    resolution: {integrity: sha512-9hTxzsrSLh+07ql/lGhE+8ZbE9MTTeZeMx131cPf2jDJUxAZooLE5pBCoK0k77ZJGcribRrwPGkUScBNOK0cYQ==}
+  /@unocss/core/0.58.6:
+    resolution: {integrity: sha512-m87iuENM/PLqLKnfE2mJbpfzj7NQ99LP2go0r+x5X4kXKppyGRJNQg6RIW3AqTS22jup1YPgd62UNXvvRtHtww==}
     dev: false
 
   /ansi-regex/5.0.1:

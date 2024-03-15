@@ -16,7 +16,7 @@ import {
 	gray,
 } from '@ant-design/colors'
 
-const presetAntdColorsTheme = definePreset<object>(() => {
+const presetAntdColorsTheme = definePreset(() => {
 	return {
 		name: '@unocss/preset-antd-colors-theme',
 		theme: {
