@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-uno-preset-antd-colors-theme",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
-	"description": "將 @ant-design/colors 轉換成 unocss theme.colors",
+	"description": "將 @ant-design/colors 轉換成 unocss theme.colors (更: unocss 類型修正)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist"],
