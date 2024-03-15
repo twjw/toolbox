@@ -143,7 +143,7 @@ function convertToReactRouterDomV6_3(
 	const lines: (string | string[])[] = [
 		// idx: 0 import
 		[
-			"import { lazy, createContext, useContext } from 'react'",
+			"import { Fragment, lazy, createContext, useContext } from 'react'",
 			"import { Route, useLocation } from 'react-router-dom'",
 		],
 		// idx: 1 lazy
@@ -276,8 +276,8 @@ function convertToReactRouterDomV6_3(
 	)
 	lines[idx.createPageRoutes] += `{\nreturn ${
 		strRoutes.length > 0
-			? `(\n${strRoutes.length > 1 ? '<>\n' : ''}${strRoutes.join('\n')}${
-					strRoutes.length > 1 ? '\n</>' : ''
+			? `(\n${strRoutes.length > 1 ? '<Fragment key="<>">\n' : ''}${strRoutes.join('\n')}${
+					strRoutes.length > 1 ? '\n</Fragment>' : ''
 				}\n)`
 			: 'null'
 	}\n}`
