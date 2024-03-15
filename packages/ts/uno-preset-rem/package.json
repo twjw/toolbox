@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-uno-preset-rem",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"type": "module",
-	"description": "將數值轉換成對應數值的 rem 數",
+	"description": "將數值轉換成對應數值的 rem 數 (更: dependencies 版號調整及補上文檔)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist"],
@@ -13,7 +13,7 @@
 	"keywords": ["typescript"],
 	"license": "ISC",
 	"dependencies": {
-		"@unocss/core": "0.58.3"
+		"@unocss/core": "^0.58.6"
 	},
 	"devDependencies": {
 		"@types/node": "^20.9.0",
@@ -21,6 +21,6 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"@unocss/core": "0.x.x"
+		"@unocss/core": ">=0"
 	}
 }
