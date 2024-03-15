@@ -1,8 +1,8 @@
 {
-	"name": "wtbx-uno-preset-rem",
-	"version": "1.0.3",
+	"name": "wtbx-uno-preset-rem-121",
+	"version": "1.0.0",
 	"type": "module",
-	"description": "將數值轉換成對應數值的 rem 數 (更: unocss 類型修正)",
+	"description": "將數值 1:1 轉換成對應數值的 rem 數",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist"],

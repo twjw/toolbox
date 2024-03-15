@@ -2,17 +2,15 @@ lockfileVersion: 5.4
 
 specifiers:
   '@types/node': ^20.9.0
-  '@unocss/core': 0.58.3
-  prettier: ^3.1.0
+  '@unocss/core': ^0.58.6
   tsup: ^8.0.1
   typescript: ^5.2.2
 
 dependencies:
-  '@unocss/core': 0.58.3
+  '@unocss/core': 0.58.6
 
 devDependencies:
   '@types/node': 20.11.5
-  prettier: 3.2.4
   tsup: 8.0.1_typescript@5.3.3
   typescript: 5.3.3
 
@@ -409,8 +407,8 @@ packages:
       undici-types: 5.26.5
     dev: true
 
-  /@unocss/core/0.58.3:
-    resolution: {integrity: sha512-9hTxzsrSLh+07ql/lGhE+8ZbE9MTTeZeMx131cPf2jDJUxAZooLE5pBCoK0k77ZJGcribRrwPGkUScBNOK0cYQ==}
+  /@unocss/core/0.58.6:
+    resolution: {integrity: sha512-m87iuENM/PLqLKnfE2mJbpfzj7NQ99LP2go0r+x5X4kXKppyGRJNQg6RIW3AqTS22jup1YPgd62UNXvvRtHtww==}
     dev: false
 
   /ansi-regex/5.0.1:
@@ -879,12 +877,6 @@ packages:
     dependencies:
       lilconfig: 3.0.0
       yaml: 2.3.4
-    dev: true
-
-  /prettier/3.2.4:
-    resolution: {integrity: sha512-FWu1oLHKCrtpO1ypU6J0SbK2d9Ckwysq6bHj/uaCP26DxrPpppCLQRGVuqAxSTvhF00AcvDRyYrLNW7ocBhFFQ==}
-    engines: {node: '>=14'}
-    hasBin: true
     dev: true
 
   /punycode/2.3.1:

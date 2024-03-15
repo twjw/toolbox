@@ -1,4 +1,4 @@
-wtbx-uno-preset-rem
+wtbx-uno-preset-rem-121
 ===
 
 將傳入的值轉換成對應的 px 的 rem
@@ -6,18 +6,18 @@ wtbx-uno-preset-rem
 # 安裝
 
 ```shell
-$ pnpm add -D wtbx-uno-preset-rem
+$ pnpm add -D wtbx-uno-preset-rem-121
 ```
 
 # 使用
 
 ```typescript
 import { defineConfig } from 'unocss'
-import { presetRem } from 'wtbx-uno-preset-rem'
+import { presetRem121 } from 'wtbx-uno-preset-rem-121'
 
 export default defineConfig({
   presets: [
-    presetRem({ 
+    presetRem121({ 
       baseFontSize: 50 // 要換算的文字尺寸，通常這個會跟 html 的保持一致，預設 16 
     }),
   ],
