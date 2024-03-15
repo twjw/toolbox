@@ -1,0 +1,28 @@
+{
+	"name": "uno-preset-antd-colors-theme",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "將 @ant-design/colors 轉換成 unocss theme.colors",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": ["dist"],
+	"scripts": {
+		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
+		"publish-package": "pnpm run build && npm publish"
+	},
+	"keywords": ["typescript"],
+	"license": "ISC",
+	"dependencies": {
+		"@unocss/core": "0.58.3",
+		"@ant-design/colors": "^7.0.2"
+	},
+	"devDependencies": {
+		"@types/node": "^20.9.0",
+		"typescript": "^5.2.2",
+		"tsup": "^8.0.1"
+	},
+	"peerDependencies": {
+		"@unocss/core": ">=0",
+		"@ant-design/colors": ">=7"
+	}
+}
