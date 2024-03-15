@@ -1,5 +1,5 @@
 {
-	"name": "uno-preset-antd-colors-theme",
+	"name": "wtbx-uno-preset-antd-colors-theme",
 	"version": "1.0.0",
 	"type": "module",
 	"description": "將 @ant-design/colors 轉換成 unocss theme.colors",
@@ -13,7 +13,7 @@
 	"keywords": ["typescript"],
 	"license": "ISC",
 	"dependencies": {
-		"@unocss/core": "0.58.3",
+		"@unocss/core": "^0.58.6",
 		"@ant-design/colors": "^7.0.2"
 	},
 	"devDependencies": {
