@@ -5,6 +5,9 @@
   "description": "最簡單的 fetch 包裝器。(更：新增 log, mock middlewares 以及 listener api 調整)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./dist/index.js",
     "./middlewares/log": {
@@ -24,9 +27,6 @@
       "import": "./dist/middlewares/params-and-body-parser.js"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

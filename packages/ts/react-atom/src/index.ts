@@ -2,21 +2,21 @@ import { useSyncExternalStore } from 'react'
 
 type VoidFn = () => void
 
-type WatchListener<T> = (before: T, after: T) => void
-type Watch<T> = (listener: WatchListener<T>) => () => void
+export type WatchListener<T> = (before: T, after: T) => void
+export type Watch<T> = (listener: WatchListener<T>) => () => void
 
-type SetModel<T> = {
+export type SetModel<T> = {
 	(value: T): void
 	(updater: (before: T) => T): void
 }
 
-type ApiModel<T> = {
+export type ApiModel<T> = {
 	use: T
 	value: T
 	watch: Watch<T>
 }
 
-type Model<T> = T & SetModel<T> & ApiModel<T>
+export type Model<T> = T & SetModel<T> & ApiModel<T>
 
 const keywordUse = 'use'
 const keywordWatch = 'watch'

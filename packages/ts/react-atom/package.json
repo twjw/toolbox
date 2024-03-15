@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "type": "module",
   "description": "極簡 react18+ 原子狀態管理",
-  "main": "src/index.ts",
-  "files": ["src"],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "publish-package": "npm publish"
+    "build-package": "tsup src/index.ts --format esm --dts --clean",
+    "publish-package": "pnpm run build-package && npm publish"
   },
   "keywords": [
     "wtbx",
@@ -27,6 +29,7 @@
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
     "@vitejs/plugin-react-swc": "^3.5.0",
+    "tsup": "^8.0.2",
     "typescript": "^5.2.2",
     "vite": "^5.1.6"
   },
