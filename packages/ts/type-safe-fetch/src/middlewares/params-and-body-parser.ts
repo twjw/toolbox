@@ -1,13 +1,13 @@
-import { TsFetchListenerRequestInit, TsFetchWatchMap } from '../type'
+import { TsFetchListenerRequestInit, TsFetchWatchMap } from '../type.ts'
 import qs from 'query-string'
 
 const object = 'object'
 
 const paramsAndBodyParser: TsFetchWatchMap<
+	Error,
 	TsFetchListenerRequestInit & { params?: Record<string, any> },
 	any,
-	any,
-	Error
+	any
 > = {
 	request: options => {
 		if (options.params != null) {

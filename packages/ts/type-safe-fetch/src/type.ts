@@ -9,10 +9,10 @@ export type TsFetchResponseListener<
 > = (req: Readonly<Req>, res: Res) => Return
 
 export type TsFetchErrorListener<
-	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 	Err extends Error = Error,
-	Return = Response | Promise<Response>,
-> = (req: Readonly<Req>, error: Err) => Return
+	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
+	Return = Response | undefined | Promise<Response | undefined>,
+> = (error: Err, req: Readonly<Req>, res: Return) => Return
 
 export type LuCaseString<S extends string> = S | Uppercase<S>
 
@@ -36,32 +36,32 @@ export type TsFetchWatch = {
 		listener: TsFetchResponseListener<Req, Res, Return>,
 	) => void
 	error: <
-		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 		Err extends Error = Error,
+		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 		Return = Response | Promise<Response>,
 	>(
-		listener: TsFetchErrorListener<Req, Err, Return>,
+		listener: TsFetchErrorListener<Err, Req, Return>,
 	) => void
 }
 
 export type TsFetchWatchMap<
+	Err extends Error = Error,
 	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 	Res = Response,
 	Return = Res,
-	Err extends Error = Error,
 > = Partial<{
 	request: TsFetchRequestListener<Req>
 	response: TsFetchResponseListener<Req, Res, Return>
-	error: TsFetchErrorListener<Req, Err, Return>
+	error: TsFetchErrorListener<Err, Req, Return>
 }>
 
 export type TsFetchMiddleware = <
+	Err extends Error = Error,
 	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 	Res = Response,
 	Return = Res,
-	Err extends Error = Error,
 >(
-	watchMap: TsFetchWatchMap<Req, Res, Return, Err>,
+	watchMap: TsFetchWatchMap<Err, Req, Res, Return>,
 ) => void
 
 export type TsFetchApis = {
@@ -92,9 +92,13 @@ export type TsFetchTemplateIncludeRequestInit<
 	Api extends TsFetchTemplateDefinition,
 	KS extends (keyof TsFetchTemplateDefinition)[] = ['headers', 'params', 'body'],
 > = KS extends [infer K1, ...infer K2]
-	? Api[K1] extends Record<string, any>
-		? true
-		: TsFetchTemplateIncludeRequestInit<Api, K2>
+	? K1 extends keyof TsFetchTemplateDefinition
+		? Api[K1] extends Record<string, any>
+			? true
+			: K2 extends (keyof TsFetchTemplateDefinition)[]
+				? TsFetchTemplateIncludeRequestInit<Api, K2>
+				: false
+		: false
 	: false
 
 export type TsFetchTemplateDefineApis<Apis extends Record<string, TsFetchTemplateDefinition>> =

@@ -7,8 +7,8 @@ import {
 	TsFetchRequestListener,
 	TsFetchResponseListener,
 	TsFetchWatchMap,
-} from './type'
-export type * from './type'
+} from './type.ts'
+export type * from './type.ts'
 
 const newTsFetch: TsFetchNew = () => {
 	const reqListeners: TsFetchRequestListener<any>[] = []
@@ -30,19 +30,19 @@ const newTsFetch: TsFetchNew = () => {
 	}
 
 	function watchError<
-		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 		Err extends Error = Error,
+		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 		Return = Response | Promise<Response>,
-	>(listener: TsFetchErrorListener<Req, Err, Return>) {
+	>(listener: TsFetchErrorListener<Err, Req, Return>) {
 		errListeners.push(listener)
 	}
 
 	function middleware<
+		Err extends Error = Error,
 		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
 		Res = Response,
 		Return = Res,
-		Err extends Error = Error,
-	>(watchMap: TsFetchWatchMap<Req, Res, Return, Err>) {
+	>(watchMap: TsFetchWatchMap<Err, Req, Res, Return>) {
 		if (watchMap.request) reqListeners.push(watchMap.request)
 		if (watchMap.response) resListeners.push(watchMap.response)
 		if (watchMap.error) errListeners.push(watchMap.error)
@@ -76,7 +76,7 @@ const newTsFetch: TsFetchNew = () => {
 			let prevErrorReturn = undefined as R | undefined
 
 			for (let i = 0; i < errListeners.length; i++) {
-				let nextErrorReturn = errListeners[i](lastRequestInit, error as Error)
+				let nextErrorReturn = errListeners[i](error as Error, lastRequestInit, prevErrorReturn)
 				if (nextErrorReturn instanceof Promise) nextErrorReturn = await nextErrorReturn
 				prevErrorReturn = nextErrorReturn as R
 			}

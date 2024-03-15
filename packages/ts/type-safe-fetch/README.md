@@ -28,19 +28,19 @@ type TsFetchRequestInit = Omit<RequestInit, 'method'> & {
 }
 
 type TsFetch = {
-  <R = Response>(options: TsFetchRequestInit): Promise<R>
+  <R = Response>(req: TsFetchRequestInit): Promise<R>
 }
 
-// 內部實現僅如此，對於 options 沒有做任何的更動，僅做中間件與攔截器的處理而已
+// 內部實現僅如此，對於 req 沒有做任何的更動，僅做中間件與攔截器的處理而已
 tsFetch('api_path')
 // 以上代碼內部運行為:
 try {
-  // options 會被塞入 url
-  interceptor.fori.call.request(options)
-  const response = await fetch(options.url, options)
+  // req 會被塞入 url
+  interceptor.fori.call.request(req)
+  const response = await fetch(req.url, req)
   return interceptor.fori.call.response(response)
 } catch (error) {
-  return interceptor.fori.call.error(options)
+  return interceptor.fori.call.error(req)
 }
 ```
 
@@ -54,9 +54,9 @@ try {
 
 ```typescript
 const myMiddleware = {
-  request: options => { /*...*/ },
+  request: req => { /*...*/ },
   response: (req, res) => { /*...*/ },
-  error: (req, error) => { /*...*/ },
+  error: (error, req, res) => { /*...*/ },
 }
 
 // 將掛載 middleware 提供的 watch 方法
@@ -72,12 +72,12 @@ type TsFetchRequestInit = Omit<RequestInit, 'method'> & {
 }
 
 type TsFetchMiddleware = <
+  Err extends Error = Error,
   Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
   Res = Response,
   Return = Res,
-  Err extends Error = Error,
 >(
-  watchMap: TsFetchWatchMap<Req, Res, Return, Err>,
+  watchMap: TsFetchWatchMap<Err, Req, Res, Return>,
 ) => void
 ```
 
@@ -89,8 +89,8 @@ type TsFetchMiddleware = <
 - **error** 當出錯時才會處理
 
 ```typescript
-// 後面的 request 攔截器會沿用前面的 options
-tsFetch.watch.request((options) => {})
+// 後面的 request 攔截器會沿用前面的 req
+tsFetch.watch.request((req) => {})
 
 // 後面的 response 攔截器會沿用前面的 response
 tsFetch.watch.response((req, res) => {})
@@ -118,10 +118,10 @@ type TsFetchResponseListener<
 
 // error
 type TsFetchErrorListener<
-  Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
   Err extends Error = Error,
-  Return = Response | Promise<Response>,
-> = (req: Readonly<Req>, error: Err) => Return
+  Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
+  Return = Response | undefined | Promise<Response | undefined>,
+> = (error: Err, req: Readonly<Req>, res: Return) => Return
 
 
 // 攔截器用到的類型
@@ -134,7 +134,19 @@ type TsFetchRequestInit = Omit<RequestInit, 'method'> & {
 
 # middlewares
 
-> 先提供兩個，後續再慢慢補充
+> 後續會慢慢補充
+
+## log
+
+會在 res, error 裡進行 console.log
+
+```typescript
+import { tsFetch } from 'wtbx-type-safe-fetch'
+import { log } from 'wtbx-type-safe-fetch/middlewares/log'
+
+tsFetch.middleware(log)
+// 自行 call api 就能看到了
+```
 
 ## method-url 
 
@@ -158,6 +170,33 @@ tsFetch(
     }
    */
 )
+```
+
+## mock
+
+配合 wtbx-vite-mock-apis 使用
+
+### 安裝
+
+```shell
+$ pnpm add -D wtbx-vite-mock-apis
+```
+
+### 使用
+
+```typescript
+import { tsFetch } from 'wtbx-type-safe-fetch'
+import { mock } from 'wtbx-type-safe-fetch/middlewares/mock'
+
+tsFetch.middleware(mock)
+
+// 將去 mock 目錄下找 user.js 來 call
+// 路徑被轉換成 method: get, url: /cat?mockFile=user
+tsFetch('mock:user:get:/cat')
+
+// 將去 mock 目錄下找 index.js 來 call
+// 路徑被轉換成 method: get, url: /cat?mockFile=index
+tsFetch('mock::get:/cat')
 ```
 
 ## params-and-body-parser

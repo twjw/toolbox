@@ -1,8 +1,4 @@
-import {
-	tsFetch,
-	TsFetchListenerRequestInit,
-	TsFetchTemplate,
-} from 'wtbx-type-safe-fetch'
+import { tsFetch, TsFetchListenerRequestInit, TsFetchTemplate } from 'wtbx-type-safe-fetch'
 import { paramsAndBodyParser } from 'wtbx-type-safe-fetch/middlewares/params-and-body-parser.ts'
 import { methodUrl } from 'wtbx-type-safe-fetch/middlewares/method-url.ts'
 import { Apis as CatApis } from './api-types/cat.ts'
@@ -22,7 +18,7 @@ const fetch2 = tsFetch as unknown as TsFetchTemplate<CatApis & DogApis>
 
 fetch2.middleware(methodUrl)
 fetch2.middleware(paramsAndBodyParser)
-fetch2.middleware<TsFetchListenerRequestInit, any, any, Error>({
+fetch2.middleware<Error, TsFetchListenerRequestInit, any, any>({
 	request: async options => {
 		console.log('等待開始...')
 		await new Promise<void>(resolve => {
@@ -46,7 +42,7 @@ fetch2.middleware<TsFetchListenerRequestInit, any, any, Error>({
 		}
 	},
 	response: (req, res) => res.json(),
-	error: (req, error) => {
+	error: (error, req) => {
 		console.error(error)
 		return req.url
 	},
