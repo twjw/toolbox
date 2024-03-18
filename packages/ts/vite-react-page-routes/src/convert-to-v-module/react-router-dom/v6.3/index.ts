@@ -40,16 +40,6 @@ function _transFilename(filename: string) {
 	return filename
 }
 
-function _toFullRoutePath(dr: DataRoute) {
-	let result = ''
-	for (let i = 0; i < dr.parentFilenames.length; i++) {
-		if (dr.parentFilenames[i] === SL || dr.parentFilenames[i] === `${SL}${OUTLET_NAME}`)
-			continue
-		result += `/${_transFilename(dr.parentFilenames[i].substring(SL.length))}`
-	}
-	return `${result}/${_transFilename(dr.filename.substring(SL.length))}`
-}
-
 function _toRoutePath(dr: DataRoute) {
 	let result = ''
 
@@ -152,6 +142,8 @@ function convertToReactRouterDomV6_3(
 		'const relativeRoutePathMap = ',
 		[
 			'const context = createContext(null)',
+			'let locationPathname = window.location.pathname',
+			'let lastLocationPageRoute = null',
 			`const defaultMeta = ${
 				options.defaultMeta == null ? undefined : JSON.stringify(options.defaultMeta, null, 2)
 			}`,
@@ -198,8 +190,14 @@ function convertToReactRouterDomV6_3(
 			}
 			
 			function usePageRoute(location) {
-				if (location == null) return useContext(context)
-				else return matchPageRoute(location?.pathname || location)
+				if (location == null) {
+					if (lastLocationPageRoute != null && locationPathname === window.location.pathname)
+						return lastLocationPageRoute
+					locationPathname = window.location.pathname
+					return lastLocationPageRoute = matchPageRoute(locationPathname)
+				}
+				 
+				return matchPageRoute(location.pathname)
       }`,
 		],
 		// idx: 4 createPageRoutes
@@ -231,7 +229,6 @@ function convertToReactRouterDomV6_3(
 			return
 		}
 
-		const fullRoutePath = _toFullRoutePath(dr)
 		let mid = dr.relateFileIdxes.meta != null ? `m${++ids.m}` : null
 
 		_passRelativeRoutePathMap(relativeRoutePathMap, dr, mid ? ids.m : undefined)
@@ -256,11 +253,10 @@ function convertToReactRouterDomV6_3(
 				)}'))`,
 			)
 
-			const route = `<Route key={${++ids.r}} path="${_toRoutePath(
-				dr,
-			)}" element={<context.Provider value={{ path: '${fullRoutePath}', meta: ${
-				mid || 'defaultMeta'
-			} }}><props.Wrap><${lazyId} /></props.Wrap></context.Provider>}`
+			const route = `<Route 
+				key={${++ids.r}} 
+				path="${_toRoutePath(dr)}" 
+				element={props.guard == null ? <${lazyId} /> : <props.guard><${lazyId} /></props.guard>}`
 
 			if (isParentRoute) {
 				strRoutes.push(`${route}>`)

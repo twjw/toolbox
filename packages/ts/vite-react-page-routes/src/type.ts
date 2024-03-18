@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 
 namespace PageRoutes {
 	export type CreatePageRoutes = (props: {
-		Wrap: FC<{ path: string; children: ReactNode }>
+		guard?: FC<{ path: string; children: ReactNode }>
 	}) => ReactNode
 
 	export type MatchPageRoute<Meta = undefined> = (
@@ -10,7 +10,7 @@ namespace PageRoutes {
 		trans?: (paramName: string) => string,
 	) => { path: string; meta?: Meta } | null
 
-	export type UsePageRute<Meta = undefined> = (
+	export type UsePageRoute<Meta = undefined> = (
 		location?: { pathname: string } | string,
 	) => { path: string; meta?: Meta } | null
 
