@@ -192,7 +192,7 @@ function convertToReactRouterDomV6_3(
 				
 				return useMemo(() => {
 					if (lastLocationPathname !== pathname) 
-						return lastLocationPageRoute = matchPageRoute(lastLocationPathname = pathname)
+						return lastLocationPageRoute = matchPageRoute(lastLocationPathname = pathname) || { path: pathname }
 					
 					return lastLocationPageRoute
 				}, [pathname])

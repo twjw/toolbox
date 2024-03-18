@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-react-page-routes",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"type": "module",
-	"description": "v6.3 react-router 的目錄式路由生成器 (更新：usePageRoute 改由 react-router-dom 的 useLocation 來取)",
+	"description": "v6.3 react-router 的目錄式路由生成器 (更新：pageRoute 類型調整)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist"],

@@ -1,6 +1,8 @@
 import type { FC, ReactNode } from 'react'
 
 namespace PageRoutes {
+	export type PageRoute<Meta = undefined> = { readonly path: string; readonly meta?: Meta }
+
 	export type CreatePageRoutes = (props: {
 		guard?: FC<{ path: string; children: ReactNode }>
 	}) => ReactNode
@@ -8,11 +10,11 @@ namespace PageRoutes {
 	export type MatchPageRoute<Meta = undefined> = (
 		pathname: string,
 		trans?: (paramName: string) => string,
-	) => { path: string; meta?: Meta } | null
+	) => PageRoute<Meta> | null
 
 	export type UsePageRoute<Meta = undefined> = (
 		location?: { pathname: string } | string,
-	) => { path: string; meta?: Meta } | null
+	) => PageRoute<Meta>
 
 	// _p 參數名, _m meta
 	export type RelativeRoutePathMap = Record<string, any>
