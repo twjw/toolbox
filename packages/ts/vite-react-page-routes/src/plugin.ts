@@ -10,7 +10,9 @@ const V_MODULE_NAME = `~page-routes`
 const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 
-function pageRoutes(options: PageRoutesOptions): any {
+function pageRoutes<Meta extends Record<string, any> = {}>(
+	options: PageRoutesOptions<Meta>,
+): any {
 	const { pages, defaultMeta } = options
 	let resultJsx = null as string | null
 

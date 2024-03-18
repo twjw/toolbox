@@ -167,7 +167,10 @@ function convertToReactRouterDomV6_3(
 							const nextNode = node[':']
 							const paramPath = '/' + (trans == null ? ':' + nextNode._p : trans(nextNode._p))
 							if (isLast) {
-								return { path: fullRoutePath + paramPath, meta: nextNode._m }
+								return { 
+									path: fullRoutePath + paramPath, 
+									meta: { ...defaultMeta, ...nextNode._m },
+								}
 							}
 							fullRoutePath += paramPath
 							node = nextNode
@@ -177,7 +180,10 @@ function convertToReactRouterDomV6_3(
 						return null
 					}
 					else if (isLast) {
-						return { path: fullRoutePath + '/' + path, meta: node[path]._m }
+						return { 
+							path: fullRoutePath + '/' + path, 
+							meta: { ...defaultMeta, ...node[path]._m },
+						}
 					} else {
 						fullRoutePath += '/' + path
 						node = node[path]
@@ -192,7 +198,7 @@ function convertToReactRouterDomV6_3(
 				
 				return useMemo(() => {
 					if (lastLocationPathname !== pathname) 
-						return lastLocationPageRoute = matchPageRoute(lastLocationPathname = pathname) || { path: pathname }
+						return lastLocationPageRoute = matchPageRoute(lastLocationPathname = pathname)
 					
 					return lastLocationPageRoute
 				}, [pathname])
