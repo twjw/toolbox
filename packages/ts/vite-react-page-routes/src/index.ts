@@ -1,2 +1,2 @@
-export type * from './type.d'
+export type * from './type'
 export * from './plugin'

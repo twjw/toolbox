@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-react-page-routes",
-	"version": "1.0.4",
+	"version": "1.1.1",
 	"type": "module",
-	"description": "v6.3 react-router 的目錄式路由生成器 (更新： createPageRoutes 產出的跟組件改成 Fragment 且補上 key <>)",
+	"description": "v6.3 react-router 的目錄式路由生成器 (更新： 修正導出的 type 首字無大寫)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist"],

@@ -81,7 +81,7 @@ function _toRoutePath(dr: DataRoute) {
 	}
 }
 
-function _passFullRoutePathMap(
+function _passRelativeRoutePathMap(
 	pathMap: Record<string, any>,
 	dataRoute: DataRoute,
 	mid: number | undefined,
@@ -148,8 +148,8 @@ function convertToReactRouterDomV6_3(
 		],
 		// idx: 1 lazy
 		[],
-		// idx: 2 fullRoutePathMap
-		'const fullRoutePathMap = ',
+		// idx: 2 relativeRoutePathMap
+		'const relativeRoutePathMap = ',
 		[
 			'const context = createContext(null)',
 			`const defaultMeta = ${
@@ -163,11 +163,11 @@ function convertToReactRouterDomV6_3(
 				if (sp.length === 1) return null
 				
 				if (sp.length === 2 && sp[1] === '') {
-					return { path: '/', meta: fullRoutePathMap['/']?._m }
+					return { path: '/', meta: relativeRoutePathMap['/']?._m }
 				}
 				
 				let fullRoutePath = ''
-				let node = fullRoutePathMap['/']
+				let node = relativeRoutePathMap['/']
 				for (let i = 1; i < sp.length; i++) {
 					const isLast = i === sp.length - 1
 					const path = sp[i]
@@ -204,14 +204,14 @@ function convertToReactRouterDomV6_3(
 		],
 		// idx: 4 createPageRoutes
 		`function createPageRoutes(props) `,
-		`export { matchPageRoute, usePageRoute, createPageRoutes }`,
+		`export { matchPageRoute, usePageRoute, createPageRoutes, relativeRoutePathMap }`,
 	]
-	const fullRoutePathMap: Record<string, any> = {}
+	const relativeRoutePathMap: Record<string, any> = {}
 	const strRoutes: string[] = []
 	const idx = {
 		import: 0,
 		lazy: 1,
-		fullRoutePathMap: 2,
+		relativeRoutePathMap: 2,
 		createPageRoutes: 4,
 	}
 	let ids = {
@@ -234,7 +234,7 @@ function convertToReactRouterDomV6_3(
 		const fullRoutePath = _toFullRoutePath(dr)
 		let mid = dr.relateFileIdxes.meta != null ? `m${++ids.m}` : null
 
-		_passFullRoutePathMap(fullRoutePathMap, dr, mid ? ids.m : undefined)
+		_passRelativeRoutePathMap(relativeRoutePathMap, dr, mid ? ids.m : undefined)
 		if (mid) {
 			;(lines[idx.import] as string[]).push(
 				`import ${mid} from '${_toRelativeModulePath(
@@ -270,7 +270,7 @@ function convertToReactRouterDomV6_3(
 		}
 	})
 
-	lines[idx.fullRoutePathMap] += JSON.stringify(fullRoutePathMap).replace(
+	lines[idx.relativeRoutePathMap] += JSON.stringify(relativeRoutePathMap).replace(
 		/_m":([0-9]+)/g,
 		'_m":m$1',
 	)

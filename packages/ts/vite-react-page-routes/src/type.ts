@@ -8,11 +8,14 @@ namespace PageRoutes {
 	export type MatchPageRoute<Meta = undefined> = (
 		pathname: string,
 		trans?: (paramName: string) => string,
-	) => { path: string; meta: Meta } | null
+	) => { path: string; meta?: Meta } | null
 
 	export type UsePageRute<Meta = undefined> = (
 		location?: { pathname: string } | string,
-	) => { path: string; meta: Meta } | null
+	) => { path: string; meta?: Meta } | null
+
+	// _p 參數名, _m meta
+	export type RelativeRoutePathMap = Record<string, any>
 }
 
 type PageRoutesOptions = {
