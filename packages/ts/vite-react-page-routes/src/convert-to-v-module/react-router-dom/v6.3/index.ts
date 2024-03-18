@@ -133,7 +133,7 @@ function convertToReactRouterDomV6_3(
 	const lines: (string | string[])[] = [
 		// idx: 0 import
 		[
-			"import { Fragment, lazy, createContext, useContext } from 'react'",
+			"import { Fragment, lazy, useMemo } from 'react'",
 			"import { Route, useLocation } from 'react-router-dom'",
 		],
 		// idx: 1 lazy
@@ -141,9 +141,7 @@ function convertToReactRouterDomV6_3(
 		// idx: 2 relativeRoutePathMap
 		'const relativeRoutePathMap = ',
 		[
-			'const context = createContext(null)',
-			'let locationPathname = window.location.pathname',
-			'let lastLocationPageRoute = null',
+			'let lastLocationPathname = null, lastLocationPageRoute = null',
 			`const defaultMeta = ${
 				options.defaultMeta == null ? undefined : JSON.stringify(options.defaultMeta, null, 2)
 			}`,
@@ -189,15 +187,15 @@ function convertToReactRouterDomV6_3(
 				return null
 			}
 			
-			function usePageRoute(location) {
-				if (location == null) {
-					if (lastLocationPageRoute != null && locationPathname === window.location.pathname)
-						return lastLocationPageRoute
-					locationPathname = window.location.pathname
-					return lastLocationPageRoute = matchPageRoute(locationPathname)
-				}
-				 
-				return matchPageRoute(location.pathname)
+			function usePageRoute() {
+				const { pathname } = useLocation()
+				
+				return useMemo(() => {
+					if (lastLocationPathname !== pathname) 
+						return lastLocationPageRoute = matchPageRoute(lastLocationPathname = pathname)
+					
+					return lastLocationPageRoute
+				}, [pathname])
       }`,
 		],
 		// idx: 4 createPageRoutes
