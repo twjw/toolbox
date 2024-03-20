@@ -13,9 +13,9 @@ const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 const V_MODULE_NAME = `~import-antd-locales`
 const V_MODULE_ID = `@@${V_MODULE_NAME}`
 
-function antdLocaleImport<Env extends Record<string, any>>({
+function antdLocaleImport<K extends string = string>({
 	locales,
-}: AntdLocaleImportOptions): any {
+}: AntdLocaleImportOptions<K>): any {
 	let moduleResult: string | undefined
 
 	console.log(123, Object.keys(locales))

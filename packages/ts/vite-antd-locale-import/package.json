@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-antd-locale-import",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
-	"description": "通過配置動態產出對應的 dayjs 與 antd date-picker/locale 的語系 import 語法",
+	"description": "通過配置動態產出對應的 dayjs 與 antd date-picker/locale 的語系 import 語法。(類型錯誤修正)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
