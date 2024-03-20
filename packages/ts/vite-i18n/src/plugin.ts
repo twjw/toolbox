@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 
 type I18nOptions = {
-  dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)
+	dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)
 }
 
 type _GlobMap = Record<string, string> // <locale, globPath>
@@ -15,61 +15,61 @@ const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 
 function _generateLangGlobPath({ dirs }: Required<I18nOptions>) {
-  const globMap = {} as _GlobMap
-  const matchExtReg = /\.(ts|json)$/
+	const globMap = {} as _GlobMap
+	const matchExtReg = /\.(ts|json)$/
 
-  try {
-    const filePathMap = {} as Record<string, 1> // <relativeFilepath>
+	try {
+		const filePathMap = {} as Record<string, 1> // <relativeFilepath>
 
-    for (let i = 0; i < dirs.length; i++) {
-      if (i > 0 && !fs.existsSync(dirs[i])) continue
+		for (let i = 0; i < dirs.length; i++) {
+			if (i > 0 && !fs.existsSync(dirs[i])) continue
 
-      const dir = dirs[i]
-      const files = fs.readdirSync(dir)
+			const dir = dirs[i]
+			const files = fs.readdirSync(dir)
 
-      for (let j = 0; j < files.length; j++) {
-        const file = files[j]
-        const filepath = path.join(dir, file)
-        const stat = fs.lstatSync(filepath)
+			for (let j = 0; j < files.length; j++) {
+				const file = files[j]
+				const filepath = path.join(dir, file)
+				const stat = fs.lstatSync(filepath)
 
-        if (stat.isFile() && matchExtReg.test(file)) {
-          filePathMap[path.relative(process.cwd(), filepath)] = 1
-        }
-      }
-    }
+				if (stat.isFile() && matchExtReg.test(file)) {
+					filePathMap[path.relative(process.cwd(), filepath)] = 1
+				}
+			}
+		}
 
-    for (const relativeFilepath in filePathMap) {
-      const globPath = `${relativeFilepath.replace(/[\\]/g, '/')}`
-      const filename = globPath.match(/[^\\/]+$/)?.[0]!
+		for (const relativeFilepath in filePathMap) {
+			const globPath = `${relativeFilepath.replace(/[\\]/g, '/')}`
+			const filename = globPath.match(/[^\\/]+$/)?.[0]!
 
-      globMap[filename.replace(matchExtReg, '')] = `./${globPath}`
-    }
+			globMap[filename.replace(matchExtReg, '')] = `./${globPath}`
+		}
 
-    return globMap
-  } catch (error) {
-    console.error(`[ERROR]${CONSOLE_NAME} 讀取字典檔失敗`)
-    console.error(error)
-    process.exit(0)
-  }
+		return globMap
+	} catch (error) {
+		console.error(`[ERROR]${CONSOLE_NAME} 讀取字典檔失敗`)
+		console.error(error)
+		process.exit(0)
+	}
 }
 
 function _generateStringModule({ globMap }: { globMap: _GlobMap }) {
-  const firstLocale = Object.keys(globMap)[0]
-  const firstLocaleStr = firstLocale ? `'${firstLocale}'` : null
+	const firstLocale = Object.keys(globMap)[0]
+	const firstLocaleStr = firstLocale ? `'${firstLocale}'` : null
 
-  return `
+	return `
 import { useState, useEffect, Fragment } from 'react'
 
 const _dictionaryMap = {
   ${Object.entries(globMap)
-    .map(([locale, path]) => `'${locale}': () => import('${path}')`)
-    .join(',\n')}
+		.map(([locale, path]) => `'${locale}': () => import('${path}')`)
+		.join(',\n')}
 } // Record{string, Promise{any} | any} _globMap 轉換 key 為 locale 塞入的字典檔
 let dictionary = {} // 當前字典
 
 const localeList = ${`[${Object.keys(globMap)
-    .map(e => `'${e}'`)
-    .join(', ')}]`} // string[] 項目的語系列表
+		.map(e => `'${e}'`)
+		.join(', ')}]`} // string[] 項目的語系列表
 let locale = localeList[0] // 當前語系
 
 let _forceUpdate // 強刷 APP 組件
@@ -189,14 +189,20 @@ function _notFoundLocaleWarn () {
   console.warn(\`not found locale \${_locale}\`)
 }
 
-async function setLocale(_locale) {
+async function setLocale(_locale, auto = true) {
   if (_dictionaryMap[_locale] == null) {
     _notFoundLocaleWarn()
     return
   }
   
   await _updateLocale(_locale)
-  _forceUpdate?.()
+  
+  if (auto) {
+    _forceUpdate?.()
+    return
+  }
+  
+  return _forceUpdate
 }
 
 function App({ defaultLocale, fallback, children }) {
@@ -226,69 +232,69 @@ export { dictionary, locale, t, setLocale, App }
 }
 
 function i18n(options: I18nOptions): any {
-  const { dirs } = options || {}
-  let globMap: _GlobMap = {} // [[relativePath, filename(no-ext)], ...[]]
+	const { dirs } = options || {}
+	let globMap: _GlobMap = {} // [[relativePath, filename(no-ext)], ...[]]
 
-  const plugin: Plugin = {
-    name: FULL_PLUGIN_NAME,
-    enforce: 'pre',
-    configResolved() {
-      globMap = _generateLangGlobPath({ dirs })
-      console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
-    },
-    configureServer(server) {
-      let isUpdating = false
+	const plugin: Plugin = {
+		name: FULL_PLUGIN_NAME,
+		enforce: 'pre',
+		configResolved() {
+			globMap = _generateLangGlobPath({ dirs })
+			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
+		},
+		configureServer(server) {
+			let isUpdating = false
 
-      async function debounceGenerate(filepath: string) {
-        let filename = null as string | null
+			async function debounceGenerate(filepath: string) {
+				let filename = null as string | null
 
-        for (let i = 0; i < dirs.length; i++) {
-          const [, _filename] = filepath.split(dirs[i])
-          if (_filename != null) filename = _filename
-        }
+				for (let i = 0; i < dirs.length; i++) {
+					const [, _filename] = filepath.split(dirs[i])
+					if (_filename != null) filename = _filename
+				}
 
-        if (isUpdating || !filename || !/^\\[A-z0-9-_]+\.(ts|json)$/.test(filename)) return
+				if (isUpdating || !filename || !/^\\[A-z0-9-_]+\.(ts|json)$/.test(filename)) return
 
-        isUpdating = true
-        globMap = _generateLangGlobPath({ dirs })
-        await waitMs(250)
-        isUpdating = false
+				isUpdating = true
+				globMap = _generateLangGlobPath({ dirs })
+				await waitMs(250)
+				isUpdating = false
 
-        const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
+				const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
 
-        if (mod) {
-          server.moduleGraph.invalidateModule(mod)
-          server.ws.send({
-            type: 'full-reload',
-          })
-        }
-      }
+				if (mod) {
+					server.moduleGraph.invalidateModule(mod)
+					server.ws.send({
+						type: 'full-reload',
+					})
+				}
+			}
 
-      server.watcher.on('unlink', debounceGenerate)
-      server.watcher.on('add', debounceGenerate)
-    },
-    resolveId(id) {
-      if (id === V_MODULE_NAME) {
-        return V_MODULE_ID
-      }
-    },
-    load(id) {
-      if (id === V_MODULE_ID) {
-        if (Object.keys(globMap).length === 0) return
-        return _generateStringModule({ globMap })
-      }
-    },
-  }
+			server.watcher.on('unlink', debounceGenerate)
+			server.watcher.on('add', debounceGenerate)
+		},
+		resolveId(id) {
+			if (id === V_MODULE_NAME) {
+				return V_MODULE_ID
+			}
+		},
+		load(id) {
+			if (id === V_MODULE_ID) {
+				if (Object.keys(globMap).length === 0) return
+				return _generateStringModule({ globMap })
+			}
+		},
+	}
 
-  return plugin
+	return plugin
 }
 
 function waitMs(timeout = 1000) {
-  return new Promise<void>(resolve => {
-    setTimeout(() => {
-      resolve()
-    }, timeout)
-  })
+	return new Promise<void>(resolve => {
+		setTimeout(() => {
+			resolve()
+		}, timeout)
+	})
 }
 
 export { type I18nOptions, i18n }

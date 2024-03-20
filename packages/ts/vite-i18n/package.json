@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-i18n",
-	"version": "1.0.1",
+	"version": "1.1.1",
 	"type": "module",
-	"description": "國際化(更: 虛擬模塊名更改為 ~i18n)",
+	"description": "國際化(更: setLocale 可以主動選擇是否刷新應用)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist"],
