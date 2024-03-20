@@ -1,92 +1,104 @@
-type _DefaultDataKeys = ['label', 'value']
+type Eval = string | number | boolean
 
-type _EnumValues<T extends readonly any[][]> = T[number] extends [string, ...infer Rest]
-	? T
-	: never
+type UppercaseFirst<S extends string> = S extends `${infer A}${infer B}`
+	? `${Uppercase<A & string>}${B & string}`
+	: S
 
-type _DataKey<KS = undefined> = KS extends readonly string[]
-	? _DefaultDataKeys[number] | KS[number]
-	: _DefaultDataKeys[number]
-
-type _ResultKS<KS = undefined> = KS extends readonly string[]
-	? [..._DefaultDataKeys, ...KS]
-	: _DefaultDataKeys
-
-type _DataKeyIdx<
-	DK extends _DataKey<any>,
-	DKS = _ResultKS,
-	Idxes extends 1[] = [],
-> = DKS extends [infer A, ...infer R]
-	? A extends DK
-		? Idxes['length']
-		: _DataKeyIdx<DK, R, [...Idxes, 1]>
-	: Idxes['length']
-
-type _CreateEnumReturn<
-	KS extends readonly string[] | undefined,
-	VS extends readonly any[][],
+type EqualsLabelRecord<
+	T extends Record<string, Record<string, Eval>>,
+	RK extends string,
+	V extends Eval,
 > = {
-	_isInit: 0 | 1
-	_dataKeyIdxes: Record<_DataKey<KS>, number>
-	_labelIdxes: Record<_EnumValues<VS>[number][0], number>
-	_valueIdxes: Record<_EnumValues<VS>[number][1], number>
-	_init: () => void
-	getByLabel: <DK extends _DataKey<KS> = _DefaultDataKeys[1] & _DataKey<KS>>(
-		label: _EnumValues<VS>[number][0],
-		dataKey?: DK,
-	) => _EnumValues<VS>[number][_DataKeyIdx<DK>]
-	getByValue: <DK extends _DataKey<KS> = _DefaultDataKeys[0] & _DataKey<KS>>(
-		label: _EnumValues<VS>[number][1],
-		dataKey?: DK,
-	) => _EnumValues<VS>[number][_DataKeyIdx<DK>]
-	map: <U>(callback: (value: _EnumValues<VS>[number], index: number) => U) => U[]
+	[K in keyof T as T[K][RK] extends V ? K : never]: K
 }
 
-const _DEFAULT_DATA_KEYS: _DefaultDataKeys = ['label', 'value']
+type EnumGetResultByLabelKey<
+	T extends Record<string, Record<string, Eval>>,
+	RK extends string,
+	V extends Eval,
+> = EqualsLabelRecord<T, RK, V> extends Record<infer LK, any> ? LK : never
 
-function createEnum<KS extends readonly string[] | undefined, VS extends readonly any[][]>(
-	dataKeys: KS,
-	values: _EnumValues<VS>,
-): _CreateEnumReturn<KS, VS> {
-	return {
-		_isInit: 0, // 0 | 1
-		_dataKeyIdxes: {} as Record<_DataKey<KS>, number>,
-		_labelIdxes: {} as Record<_EnumValues<VS>[number][0], number>,
-		_valueIdxes: {} as Record<_EnumValues<VS>[number][1], number>,
-		_init() {
-			const _dataKeys = (_DEFAULT_DATA_KEYS as any).concat(dataKeys || [])
-			for (let i = 0; i < values.length; i++) {
-				if (i === 0) {
-					for (let j = 0; j < values[i].length; j++) {
-						this._dataKeyIdxes[_dataKeys[j] as _DataKey<KS>] = j
-					}
-				}
+type EqualsRkeyRecord<
+	T extends Record<string, Record<string, Eval>>,
+	RK extends string,
+	V extends Eval,
+	PK extends string,
+> = {
+	[K in keyof T as T[K][RK] extends V ? K : never]: T[K][PK]
+}
 
-				this._labelIdxes[values[i][0] as _EnumValues<VS>[number][0]] = i
-				this._valueIdxes[values[i][1] as _EnumValues<VS>[number][1]] = i
+type EnumGetResultByRkey<
+	T extends Record<string, Record<string, Eval>>,
+	RK extends string,
+	V extends Eval,
+	PK extends string,
+> = EqualsRkeyRecord<T, RK, V, PK> extends Record<string, infer V> ? V : never
+
+type EnumInstance<
+	T extends Record<string, Record<string, Eval>>,
+	LK extends string,
+	FTK extends string,
+> = {
+	[K in keyof T]: T[K]
+} & {
+	[K in FTK as `getBy${UppercaseFirst<K & string>}`]: <
+		PV extends T[keyof T][K],
+		PK extends FTK | LK,
+	>(
+		val: PV,
+		key: PK,
+	) => PK extends LK ? EnumGetResultByLabelKey<T, K, PV> : EnumGetResultByRkey<T, K, PV, PK>
+} & {
+	[K in '0' as `getBy${UppercaseFirst<LK>}`]: <PV extends keyof T, PK extends keyof T[PV] | LK>(
+		val: PV,
+		key: PK,
+	) => PK extends LK ? PV : T[PV][PK]
+} & { keys: (keyof T)[] }
+
+function wenum<
+	T extends Record<string, Record<string, Eval>>,
+	LK extends string = 'label',
+	FTK extends string = T extends Record<string, infer R2> ? keyof R2 : never,
+>(data: () => T, labelKey = 'label' as LK): EnumInstance<T, LK, FTK> {
+	const _data = data()
+	const keys: (keyof T)[] = Object.keys(_data)
+	const result = _data as EnumInstance<T, LK, FTK>
+	let cacheMap: Map<Eval, keyof T> | undefined
+
+	function newCache() {
+		cacheMap = new Map()
+
+		for (let i = 0; i < keys.length; i++) {
+			const k = keys[i]
+			for (const rk in result[k]) {
+				cacheMap.set(result[k][rk], k)
 			}
-
-			this._isInit = 1
-		},
-		getByLabel(label, dataKey) {
-			if (this._isInit === 0) this._init()
-			return values[this._labelIdxes[label]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
-		},
-		getByValue(value, dataKey) {
-			if (this._isInit === 0) this._init()
-			return values[this._valueIdxes[value]]?.[dataKey ? this._dataKeyIdxes[dataKey] : 1]
-		},
-		map(callback) {
-			if (this._isInit === 0) this._init()
-
-			let result: any[] = []
-			for (let i = 0; i < values.length; i++) {
-				result.push(callback(values[i], i))
-			}
-
-			return result
-		},
+		}
 	}
+
+	function getByKeyVal(val: Eval, key: FTK | LK) {
+		if (cacheMap == null) newCache()
+		const label = cacheMap!.get(val)!
+		return label ? result[label][key] || (key == null ? null : label) : null
+	}
+
+	function getByLabel(val: keyof T, key: FTK) {
+		if (cacheMap == null) newCache()
+		return result[val] ? result[val][key] || val : null
+	}
+
+	for (let k in _data) {
+		for (const k2 in _data[k]) {
+			;(result[`getBy${k2[0].toUpperCase()}${k2.substring(1)}`] as any) = getByKeyVal
+		}
+		break
+	}
+
+	;(result[`getBy${labelKey[0].toUpperCase()}${labelKey.substring(1)}`] as any) = getByLabel
+
+	result.keys = keys
+
+	return result
 }
 
-export { createEnum }
+export { wenum }
