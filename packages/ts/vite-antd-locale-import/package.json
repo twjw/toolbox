@@ -1,0 +1,34 @@
+{
+	"name": "wtbx-vite-antd-locale-import",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "通過配置動態產出對應的 dayjs 與 antd date-picker/locale 的語系 import 語法",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsup-node src/index.ts --platform node --format esm --dts --clean",
+		"publish-package": "pnpm run build && npm publish"
+	},
+	"keywords": [
+		"typescript"
+	],
+	"license": "ISC",
+	"dependencies": {
+		"antd": "^5.15.3",
+		"dayjs": "^1.11.10",
+		"vite": "^5.0.10"
+	},
+	"devDependencies": {
+		"@types/node": "^20.9.0",
+		"tsup": "^8.0.1",
+		"typescript": "^5.2.2"
+	},
+	"peerDependencies": {
+		"vite": ">=5",
+		"antd": ">=5",
+		"dayjs": ">=1"
+	}
+}
