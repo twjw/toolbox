@@ -18,7 +18,6 @@ function antdLocaleImport<K extends string = string>({
 }: AntdLocaleImportOptions<K>): any {
 	let moduleResult: string | undefined
 
-	console.log(123, Object.keys(locales))
 	if (Object.keys(locales).length === 0) {
 		console.error(`[ERROR]${CONSOLE_NAME} 至少要有一個 key-value`)
 		process.exit(0)
