@@ -1,8 +1,7 @@
 import { Fragment, jsxDEV as jsxDEV_ } from 'react/jsx-dev-runtime'
-import { transformProps } from '../utils'
+import { newJsx } from '../utils.js'
 
-function jsxDEV(type, props, key) {
-	return jsxDEV_(type, transformProps(props), key)
-}
+const map = {}
+const jsxDEV = newJsx(jsxDEV_, map)
 
-export { Fragment, jsxDEV }
+export { Fragment, jsxDEV, map }

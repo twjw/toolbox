@@ -3,12 +3,22 @@
 	"version": "1.0.0",
 	"type": "module",
 	"description": "",
-	"main": "./index.js",
 	"files": [
-		"utils.js",
+		"lib",
 		"jsx-runtime",
-		"jsx-dev-runtime"
+		"jsx-dev-runtime",
+		"type.d.ts"
 	],
+	"exports": {
+		"./jsx-runtime": {
+			"types": "./jsx-runtime/index.d.ts",
+			"import": "./jsx-runtime/index.js"
+		},
+		"./jsx-dev-runtime": {
+			"types": "./jsx-dev-runtime/index.d.ts",
+			"import": "./jsx-dev-runtime/index.js"
+		}
+	},
 	"scripts": {
 		"publish-package": "npm publish"
 	},

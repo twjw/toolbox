@@ -1,12 +1,8 @@
 import { Fragment, jsx as jsx_, jsxs as jsxs_ } from 'react/jsx-runtime'
-import { transformProps } from '../utils'
+import { newJsx } from '../utils.js'
 
-function jsx(type, props, key) {
-	return jsx_(type, transformProps(props), key)
-}
+const map = {}
+const jsx = newJsx(jsx_, map)
+const jsxs = newJsx(jsxs_, map)
 
-function jsxs(type, props, key) {
-	return jsxs_(type, transformProps(props), key)
-}
-
-export { Fragment, jsx, jsxs }
+export { Fragment, jsx, jsxs, map }
