@@ -39,7 +39,7 @@ declare module '~i18n' {
   import type { RecursiveKeyOf } from 'wtbx-types'
   import dictionary from '@/assets/locales/zh_TW.ts'
 
-  export type Locale = _Locale
+  export type Locale = 'zh_TW' | 'en'
   export type Dictionary = typeof dictionary
   export type KeyofDictionary = RecursiveKeyOf<Dictionary>
   export const dictionary: Dictionary
@@ -48,10 +48,6 @@ declare module '~i18n' {
   export const setLocale: I18n.SetLocale<Locale>
   export const App: I18n.App<Locale>
 }
-
-// _Locale 寫下你有的字典檔名
-type _Locale = 'zh_TW' | 'en'
-export type Locale = _Locale
 
 
 // 最後創建字典檔，路徑同 plugin 配置，檔名跟 Locale 定義一致即可
