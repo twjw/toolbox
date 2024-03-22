@@ -257,10 +257,11 @@ function convertToReactRouterDomV6_3(
 				)}'))`,
 			)
 
+			const path = _toRoutePath(dr)
 			const route = `<Route 
 				key={${++ids.r}} 
-				path="${_toRoutePath(dr)}" 
-				element={props.guard == null ? <${lazyId} /> : <props.guard><${lazyId} /></props.guard>}`
+				path="${path}" 
+				element={props.guard == null ? <${lazyId} /> : <props.guard path="${path}"><${lazyId} /></props.guard>}`
 
 			if (isParentRoute) {
 				strRoutes.push(`${route}>`)
