@@ -8,7 +8,7 @@ type I18nOptions = {
 
 type _GlobMap = Record<string, string> // <locale, globPath>
 
-const PLUGIN_NAME = '@wtbx/vite-i18n'
+const PLUGIN_NAME = '@wtbx/vite-react-i18n'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~i18n`
 const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`

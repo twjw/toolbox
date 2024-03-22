@@ -10,6 +10,7 @@ specifiers:
   tsup: ^8.0.1
   typescript: ^5.2.2
   vite: ^5.1.6
+  wtbx-types: ^1.0.3
 
 devDependencies:
   '@types/node': 20.11.5
@@ -21,6 +22,7 @@ devDependencies:
   tsup: 8.0.1_typescript@5.3.3
   typescript: 5.3.3
   vite: 5.2.2_@types+node@20.11.5
+  wtbx-types: 1.0.3
 
 packages:
 
@@ -1763,6 +1765,10 @@ packages:
       ansi-styles: 6.2.1
       string-width: 5.1.2
       strip-ansi: 7.1.0
+    dev: true
+
+  /wtbx-types/1.0.3:
+    resolution: {integrity: sha512-b0gD+0zvQo/yfIcsJ0Hv4VCjQAbdjOmNrykdnHVJQfU5PzGEvsEOj6Y3voDjRTegBebwV0lTDdHfxVeeLd1Ucw==}
     dev: true
 
   /yaml/2.3.4:
