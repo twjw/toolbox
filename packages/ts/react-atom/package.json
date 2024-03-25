@@ -1,11 +1,13 @@
 {
   "name": "wtbx-react-atom",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
-  "description": "極簡 react18+ 原子狀態管理",
+  "description": "極簡 react18+ 原子狀態管理 (更: package.json 更新)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": ["dist",
+    "readme.md"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
