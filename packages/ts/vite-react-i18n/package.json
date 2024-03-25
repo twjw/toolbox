@@ -1,11 +1,11 @@
 {
 	"name": "wtbx-vite-react-i18n",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"type": "module",
-	"description": "vite 與 react 的國際化處理方案。(更: 文檔調整)",
+	"description": "vite 與 react 的國際化處理方案 (更: package.json 更新)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": ["dist", "readme.md"],
 	"scripts": {
 		"dev": "vite",
 		"build-package": "tsup-node src/index.ts --platform node --format esm --dts --clean",
