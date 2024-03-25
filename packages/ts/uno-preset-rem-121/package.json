@@ -1,11 +1,11 @@
 {
 	"name": "wtbx-uno-preset-rem-121",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
-	"description": "將數值 1:1 轉換成對應數值的 rem 數",
+	"description": "將數值 1:1 轉換成對應數值的 rem 數 (更: package.json 更新)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": ["dist", "readme.md"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
