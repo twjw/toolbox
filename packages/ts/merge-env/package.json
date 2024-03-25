@@ -1,11 +1,11 @@
 {
 	"name": "wtbx-merge-env",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"type": "module",
-	"description": "ts 編寫環境變量",
+	"description": "ts 編寫環境變量 (更: package.json 更新)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": ["dist", "readme.md"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
@@ -22,6 +22,6 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"lodash-es": "^4.x.x"
+		"lodash-es": ">=4"
 	}
 }
