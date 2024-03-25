@@ -1,13 +1,11 @@
 {
   "name": "wtbx-type-safe-fetch",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
-  "description": "最簡單的 fetch 包裝器。(更：新增 log, mock middlewares 以及 listener api 調整)",
+  "description": "最簡單的 fetch 包裝器 (更: package.json 更新)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist", "readme.md"],
   "exports": {
     ".": "./dist/index.js",
     "./middlewares/log": {
