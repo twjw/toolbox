@@ -89,25 +89,50 @@ export type TsFetchTemplateDefinition = {
 }
 
 export type TsFetchTemplateIncludeRequestInit<
+	Path extends string,
 	Api extends TsFetchTemplateDefinition,
 	KS extends (keyof TsFetchTemplateDefinition)[] = ['headers', 'params', 'body'],
-> = KS extends [infer K1, ...infer K2]
-	? K1 extends keyof TsFetchTemplateDefinition
-		? Api[K1] extends Record<string, any>
-			? true
-			: K2 extends (keyof TsFetchTemplateDefinition)[]
-				? TsFetchTemplateIncludeRequestInit<Api, K2>
-				: false
+> = Path extends `${infer A}/:${infer B}`
+	? true
+	: KS extends [infer K1, ...infer K2]
+		? K1 extends keyof TsFetchTemplateDefinition
+			? Api[K1] extends Record<string, any>
+				? true
+				: K2 extends (keyof TsFetchTemplateDefinition)[]
+					? TsFetchTemplateIncludeRequestInit<Path, Api, K2>
+					: false
+			: false
 		: false
-	: false
 
 export type TsFetchTemplateDefineApis<Apis extends Record<string, TsFetchTemplateDefinition>> =
 	Apis
 
+export type TsFetchTemplateUrlPathParams<
+	Path extends string,
+	Params extends string[] = [],
+> = Path extends `${infer B}/:${infer P}/${infer R}`
+	? TsFetchTemplateUrlPathParams<R, [...Params, P]>
+	: Path extends `${infer B}/:${infer P}`
+		? Record<[...Params, P][number], string>
+		: Params['length'] extends 0
+			? undefined
+			: Record<Params[number], string>
+
+export type TsFetchTemplatePathParams<Path extends string> =
+	TsFetchTemplateUrlPathParams<Path> extends undefined
+		? {}
+		: {
+				pathParams: TsFetchTemplateUrlPathParams<Path>
+			}
+
 export type TsFetchTemplateRequestInit<
+	Path extends string,
 	Api extends TsFetchTemplateDefinition,
 	Other extends Record<string, any> = {},
-> = Omit<TsFetchRequestInit, 'body'> & Omit<Api, 'response'> & Other
+> = TsFetchTemplatePathParams<Path> &
+	Omit<TsFetchRequestInit, 'body'> &
+	Omit<Api, 'response'> &
+	Other
 
 export type TsFetchTemplate<
 	Apis extends Record<string, TsFetchTemplateDefinition>,
@@ -115,8 +140,10 @@ export type TsFetchTemplate<
 > = TsFetchApis & {
 	<Path extends keyof Apis>(
 		url: Path,
-		...args: TsFetchTemplateIncludeRequestInit<Apis[Path]> extends true
-			? [TsFetchTemplateRequestInit<Apis[Path], Other>]
+		...args: Path extends string
+			? TsFetchTemplateIncludeRequestInit<Path, Apis[Path]> extends true
+				? [TsFetchTemplateRequestInit<Path, Apis[Path], Other>]
+				: []
 			: []
 	): Promise<Apis[Path]['response']>
 }

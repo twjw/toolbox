@@ -9,21 +9,21 @@ const paramsAndBodyParser: TsFetchWatchMap<
 	any,
 	any
 > = {
-	request: options => {
-		if (options.params != null) {
-			options.url += `?${qs.stringify(options.params)}`
+	request: req => {
+		if (req.params != null) {
+			req.url += `?${qs.stringify(req.params)}`
 		}
 
-		if (options.body != null && typeof options.body === object) {
-			if (options.headers == null) options.headers = { 'Content-Type': 'application/json' }
-			else if (options.headers instanceof Headers)
-				options.headers.set('Content-Type', 'application/json')
-			else (options.headers as Record<string, string>)['Content-Type'] = 'application/json'
+		if (req.body != null && typeof req.body === object) {
+			if (req.headers == null) req.headers = { 'Content-Type': 'application/json' }
+			else if (req.headers instanceof Headers)
+				req.headers.set('Content-Type', 'application/json')
+			else (req.headers as Record<string, string>)['Content-Type'] = 'application/json'
 
-			options.body = JSON.stringify(options.body)
+			req.body = JSON.stringify(req.body)
 		}
 
-		return options
+		return req
 	},
 }
 

@@ -3,6 +3,7 @@ import { paramsAndBodyParser } from 'wtbx-type-safe-fetch/middlewares/params-and
 import { methodUrl } from 'wtbx-type-safe-fetch/middlewares/method-url.ts'
 import { Apis as CatApis } from './api-types/cat.ts'
 import { Apis as DogApis } from './api-types/dog.ts'
+import { pathParamsUrl } from 'wtbx-type-safe-fetch/middlewares/path-params-url.ts'
 
 console.clear()
 
@@ -17,6 +18,7 @@ const apiPrefix = 'https://api.thecatapi.com'
 const fetch2 = tsFetch as unknown as TsFetchTemplate<CatApis & DogApis>
 
 fetch2.middleware(methodUrl)
+fetch2.middleware(pathParamsUrl)
 fetch2.middleware(paramsAndBodyParser)
 fetch2.middleware<Error, TsFetchListenerRequestInit, any, any>({
 	request: async options => {
@@ -56,7 +58,10 @@ fetch2.middleware<Error, TsFetchListenerRequestInit, any, any>({
 
 	resultNode.innerHTML = 'fetching ...'
 
-	const res = await fetch2('get:/v1/images/search', {
+	const res = await fetch2('get:/:version/images/search', {
+		pathParams: {
+			version: 'v1',
+		},
 		params: {
 			size: 'med',
 			mime_types: 'jpg',

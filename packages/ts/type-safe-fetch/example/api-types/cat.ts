@@ -17,7 +17,7 @@ export namespace CatImage {
 }
 
 export type Apis = TsFetchTemplateDefineApis<{
-	'get:/v1/images/search': {
+	'get:/:version/images/search': {
 		params: CatImage.Params
 		response: CatImage.Response
 	}

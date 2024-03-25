@@ -1,9 +1,10 @@
 wtbx-type-safe-fetch
 ===
 
-> 類型安全的 fetch 包，僅為原生 fetch 多包一層類型定義以及攔截器與中間件功能
+> 類型安全的 fetch 包，僅為原生 fetch 多包一層類型定義以及攔截器與中間件功能  
+> A type-safe fetch package, simply layering type definitions and interceptor and middleware functionality on top of the native fetch.  
 
-# 快速開始
+# 快速開始 Quick Start
 
 ```typescript
 import { tsFetch } from 'wtbx-type-safe-fetch'
@@ -16,7 +17,7 @@ const result = await tsFetch<'123'>('/api_path')
 
 ## tsFetch()
 
-將原生 fetch 的一二餐合併以及 method 的 type 更完善而已 
+將原生 fetch 的一二餐合併以及 method 的 type 更完善而已   
 
 ```typescript
 type LuCaseString<S extends string> = S | Uppercase<S>
@@ -33,6 +34,7 @@ type TsFetch = {
 
 // 內部實現僅如此，對於 req 沒有做任何的更動，僅做中間件與攔截器的處理而已
 tsFetch('api_path')
+
 // 以上代碼內部運行為:
 try {
   // req 會被塞入 url
@@ -46,11 +48,11 @@ try {
 
 ## new()
 
-重新創建一個 tsFetch 只是創建出來的不再有 new() 方法
+重新創建一個 tsFetch 只是創建出來的不再有 new() 方法  
 
 ## middleware()
 
-將 watch 處理的內容封裝成一個中間件
+將 watch 處理的內容封裝成一個中間件  
 
 ```typescript
 const myMiddleware = {
@@ -83,7 +85,7 @@ type TsFetchMiddleware = <
 
 ## watch
 
-提供三種攔截器，分別為(運作時機可以參考上方的 tsFetch() api 文檔)：
+提供三種攔截器，分別為(運作時機可以參考上方的 tsFetch() api 文檔)：  
 - **request** 在 fetch() 前處理
 - **response** 在 fetch() 後處理
 - **error** 當出錯時才會處理
@@ -101,6 +103,7 @@ tsFetch.watch.error((req, error) => {})
 
 ```typescript
 // 補上預設的類型定義
+
 // request
 type TsFetchRequestListener<Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit> = (
   req: Req,
@@ -134,7 +137,7 @@ type TsFetchRequestInit = Omit<RequestInit, 'method'> & {
 
 # middlewares
 
-> 後續會慢慢補充
+> 後續會慢慢補充  
 
 ## log
 
@@ -237,6 +240,37 @@ tsFetch(
 )
 ```
 
+## path-params-url
+
+將 url 參數轉換成與參數名匹配的 pathParams 對應的 key-value
+
+```typescript jsx
+import { tsFetch } from 'wtbx-type-safe-fetch'
+import { pathParamsUrl } from 'wtbx-type-safe-fetch/middlewares/path-params-url'
+
+tsFetch.middleware(pathParamsUrl)
+
+tsFetch(
+  {
+    url: '/:version/cat',
+    method: 'get',
+    pathParams: {
+      version: 'v1',
+    },
+  }
+  /* 
+    將被轉換為以下
+    {
+      url: '/v1/cat',
+      method: 'get',
+      pathParams: {
+        version: 'v1',
+      },
+    }
+   */
+)
+```
+
 # 最佳實踐
 
 如果只是使用基本的類型定義沒法很完善的處理整個項目的 api 類型，在調用時仍然要自己傳入響應值得泛型，以及每個路徑需要傳遞的參數類型也需要手動傳，對於安全性與方便度是較為低下的，所以項目提供了專門處理這情況的類型定義
@@ -295,6 +329,10 @@ export type Apis = TsFetchTemplateDefineApis<{
     params: Cat.Params
     response: Cat.Response
   }
+  // 如果路徑上有 :xxx 將會要求傳入 pathParmas 參數，對應的參數名為 : 後面的單詞
+  'get:/:version/cat': {
+    response: Cat.Response
+  }
 }>
   
 // service/api-types/dog.ts
@@ -309,20 +347,22 @@ export type Apis = TsFetchTemplateDefineApis<{
 
 ```typescript
 // service/fetch2/index.ts
-import { tsFetch, TsFetchTemplate } from 'wtbx-type-safe-fetch'
-import { paramsAndBodyParser } from 'wtbx-type-safe-fetch/middlewares/params-and-body-parser'
-import { methodUrl } from 'wtbx-type-safe-fetch/middlewares/method-url'
-import { type Apis as CatApis } from '@/service/api-types/cat.ts'
-import { type Apis as DogApis } from '@/service/api-types/dog.ts'
+import {tsFetch, TsFetchTemplate} from 'wtbx-type-safe-fetch'
+import {paramsAndBodyParser} from 'wtbx-type-safe-fetch/middlewares/params-and-body-parser'
+import {methodUrl} from 'wtbx-type-safe-fetch/middlewares/method-url'
+import {pathParamsUrl} from "wtbx-type-safe-fetch/middlewares/path-params-url";
+import {type Apis as CatApis} from '@/service/api-types/cat.ts'
+import {type Apis as DogApis} from '@/service/api-types/dog.ts'
 
 const fetch2 = tsFetch as unknown as TsFetchTemplate<
   // 將 apis 類型全部引入後合起來傳入到 TsFetchTemplate 泛型參數裡
-  CatApis 
+  CatApis
   & DogApis
 >
 
-// TsFetchTemplate 是以以下兩個中間件驅動的，所以要裝上
+// TsFetchTemplate 是以以下三個中間件驅動的，所以要裝上
 fetch2.middleware(methodUrl)
+fetch2.middleware(pathParamsUrl)
 fetch2.middleware(paramsAndBodyParser)
 
 export {
@@ -341,6 +381,18 @@ fetch2('get:/cat')
 fetch2('get:/cat', {
   params: {
     size: 'big',
+  },
+})
+
+// fail，未傳入 pathParams.version
+fetch2('get:/:version/cat')
+
+// success，有傳入 pathParams.version
+// pathParams 需搭配上方的 pathParamsUrl 中間件來處理
+// 最終轉換出來的 url 為 get:/v1/cat
+fetch2('get:/:version/cat', {
+  pathParams: {
+    version: 'v1',
   },
 })
 

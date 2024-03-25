@@ -1,8 +1,8 @@
 {
   "name": "wtbx-type-safe-fetch",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "type": "module",
-  "description": "最簡單的 fetch 包裝器 (更: package.json 更新)",
+  "description": "The simplest fetch wrapper. 最簡單的 fetch 包裝器 (更: 新增 pathParams 中間件與類型至 TsFetchTemplate)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": ["dist", "readme.md"],
@@ -23,6 +23,10 @@
     "./middlewares/params-and-body-parser": {
       "types": "./dist/middlewares/params-and-body-parser.d.ts",
       "import": "./dist/middlewares/params-and-body-parser.js"
+    },
+    "./middlewares/path-params-url": {
+      "types": "./dist/middlewares/path-params-url.d.ts",
+      "import": "./dist/middlewares/path-params-url.js"
     }
   },
   "scripts": {
