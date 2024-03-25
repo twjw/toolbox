@@ -1,17 +1,20 @@
 {
 	"name": "wtbx-create-value-storage",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
-	"description": "storage 管理",
-	"main": "index.ts",
-	"files": ["./index.ts"],
+	"description": "storage 管理 (更: package.json 更新)",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": ["dist", "readme.md"],
 	"scripts": {
-		"publish-package": "npm publish --access public"
+		"build-package": "tsup index.ts --format esm --dts --clean",
+		"publish-package": "pnpm run build-package && npm publish"
 	},
 	"keywords": ["typescript"],
 	"license": "ISC",
 	"devDependencies": {
 		"@types/web": "^0.0.134",
+		"tsup": "^8.0.2",
 		"typescript": "^5.2.2"
 	}
 }
