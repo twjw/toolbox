@@ -1,16 +1,16 @@
 {
 	"name": "wtbx-vite-inject-env",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"type": "module",
-	"description": "環境變數注入，更：propNames 會抓取 env 的 keyof",
+	"description": "環境變數注入，更：propNames 會抓取 env 的 keyof (更: package.json 更新)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": ["dist", "readme.md"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
 	},
-	"keywords": ["typescript"],
+	"keywords": ["typescript", "vite", "plugin", "env"],
 	"license": "ISC",
 	"dependencies": {
 		"vite": "^5.0.10"
@@ -21,6 +21,6 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"vite": "^5.x.x"
+		"vite": ">=5"
 	}
 }
