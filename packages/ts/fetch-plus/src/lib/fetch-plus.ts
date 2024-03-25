@@ -35,6 +35,7 @@ function _transMethodAndUrl(config: FetchPlus.Config): {
 		const urls = _url.split('/')
 		for (let i = 1; i < urls.length; i++) {
 			if (urls[i][0] === ':') {
+				// TODO [urls[i]] 這段應該是錯的
 				urls[i] = pathParams[urls[i].substring(1)] || [urls[i]]
 			}
 		}
@@ -95,7 +96,9 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 					const cacheUrl = `${resultMethod}:${resultUrl}`
 
 					mark = (
-						config.mark === true || (config.cacheTime != null && config.cacheTime > 0) || (config.mark == null && resultMethod === 'get')
+						config.mark === true ||
+						(config.cacheTime != null && config.cacheTime > 0) ||
+						(config.mark == null && resultMethod === 'get')
 							? cacheUrl
 							: config.mark === false
 								? null
@@ -131,7 +134,7 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 						if (config.cacheTime) {
 							lastCacheTime = Date.now() + config.cacheTime
 						}
-					}  else {
+					} else {
 						if (config.mutate) {
 							if (typeof config.mutate === 'function') {
 								mutateFunc = config.mutate
@@ -187,7 +190,7 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 								mutateFunc(cacheMap[cacheUrl].res)
 								res = cacheMap[cacheUrl].res
 							} else {
-								res = (cacheMap[cacheUrl].res = mutateFunc(cacheMap[cacheUrl].res))
+								res = cacheMap[cacheUrl].res = mutateFunc(cacheMap[cacheUrl].res)
 							}
 						} else {
 							if (typeof cacheMap[cacheUrl].res === 'object') {
@@ -221,7 +224,10 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 
 				if (mark != null && repeatMarkMap[mark] != null) {
 					for (let i = 1; i < repeatMarkMap[mark].length; i++) {
-						repeatMarkMap[mark][i][0]({ __markResolve: 1, response: typeof result === 'object' ? cloneDeep(result) : result })
+						repeatMarkMap[mark][i][0]({
+							__markResolve: 1,
+							response: typeof result === 'object' ? cloneDeep(result) : result,
+						})
 					}
 
 					delete repeatMarkMap[mark]
@@ -247,7 +253,11 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 
 				if (mark != null && repeatMarkMap[mark] != null) {
 					for (let i = 1; i < repeatMarkMap[mark].length; i++) {
-						repeatMarkMap[mark][i][1]({ __markReject: 1, __response: typeof result === 'object' ? cloneDeep(result) : result, __error: error })
+						repeatMarkMap[mark][i][1]({
+							__markReject: 1,
+							__response: typeof result === 'object' ? cloneDeep(result) : result,
+							__error: error,
+						})
 					}
 
 					delete repeatMarkMap[mark]
