@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-react-i18n",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"type": "module",
-	"description": "vite 與 react 的國際化處理方案 (更: package.json 更新)",
+	"description": "vite 與 react 的國際化處理方案 (更: 新增 readme)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist", "readme.md"],
