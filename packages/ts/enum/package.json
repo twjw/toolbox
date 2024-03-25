@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-enum",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"type": "module",
-	"description": "類型安全的多定義的映射物件庫 (更: package.json 更新)",
+	"description": "類型安全的多定義的映射物件庫 (更: 新增 readme)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
