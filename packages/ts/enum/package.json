@@ -1,12 +1,12 @@
 {
 	"name": "wtbx-enum",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"type": "module",
-	"description": "類型安全的多定義的映射物件庫",
+	"description": "類型安全的多定義的映射物件庫 (更: package.json 更新)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
-		"dist"
+		"dist", "readme.md"
 	],
 	"scripts": {
 		"build-package": "tsup index.ts --format esm --dts --clean",
