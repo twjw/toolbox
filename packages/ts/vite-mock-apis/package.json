@@ -1,11 +1,11 @@
 {
 	"name": "wtbx-vite-mock-apis",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"type": "module",
 	"description": "簡單的 mock api 功能。(更：會將 req, res 再傳出去)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": ["dist", "readme.md"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
@@ -24,8 +24,8 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"vite": "^5.x.x",
-		"query-string": "^8.x.x",
-		"body": "^5.x.x"
+		"vite": ">=5",
+		"query-string": ">=8",
+		"body": ">=5"
 	}
 }
