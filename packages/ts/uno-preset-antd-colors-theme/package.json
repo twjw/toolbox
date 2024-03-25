@@ -1,11 +1,11 @@
 {
 	"name": "wtbx-uno-preset-antd-colors-theme",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"type": "module",
-	"description": "將 @ant-design/colors 轉換成 unocss theme.colors (更: @unocss/core 升級到最新版)",
+	"description": "將 @ant-design/colors 轉換成 unocss theme.colors (更: package.json 更新)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": ["dist", "readme.md"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
