@@ -1,11 +1,11 @@
 {
 	"name": "wtbx-vite-auto-alias",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"type": "module",
-	"description": "將 tsconfig.json 的 alias 同步到 vite alias 裡",
+	"description": "將 tsconfig.json 的 alias 同步到 vite alias 裡 (更: package.json 更新)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": ["dist", "readme.md"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
@@ -22,7 +22,7 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"vite": "^5.x.x",
-		"jsonc-parser": "^3.x.x"
+		"vite": ">=5",
+		"jsonc-parser": ">=3"
 	}
 }
