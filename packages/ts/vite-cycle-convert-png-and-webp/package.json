@@ -1,11 +1,11 @@
 {
 	"name": "wtbx-vite-cycle-convert-png-and-webp",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
-	"description": "實時轉換 webp, png 檔案",
+	"description": "實時轉換 webp, png 檔案 (更: package.json 更新)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": ["dist", "readme.md"],
 	"scripts": {
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
@@ -22,7 +22,7 @@
 		"tsup": "^8.0.1"
 	},
 	"peerDependencies": {
-		"vite": "^5.x.x",
-		"sharp": "^0.x.x"
+		"vite": ">=5",
+		"sharp": ">=0"
 	}
 }
