@@ -1,11 +1,11 @@
 {
 	"name": "wtbx-types",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"type": "module",
 	"description": "ts 通用類型。(更：將 namespace 攤平)",
 	"main": "index.d.ts",
 	"types": "index.d.ts",
-	"files": ["./index.d.ts"],
+	"files": ["index.d.ts", "readme.md"],
 	"scripts": {
 		"publish-package": "npm publish"
 	},
