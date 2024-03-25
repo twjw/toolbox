@@ -1,17 +1,20 @@
 {
 	"name": "wtbx-fetch-plus",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"type": "module",
-	"description": "fetch 增強(更：修正緩存到期處理錯誤)",
-	"main": "src/index.ts",
+	"description": "fetch 增強 (更: package.json 更新)",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"files": [
-		"src"
+		"dist", "readme.md"
 	],
 	"scripts": {
-		"publish-package": "npm publish"
+		"build-package": "tsup src/index.ts --format esm --dts --clean",
+		"publish-package": "pnpm run build-package && npm publish"
 	},
 	"keywords": [
-		"typescript"
+		"typescript",
+		"fetch"
 	],
 	"license": "ISC",
 	"dependencies": {
@@ -22,11 +25,12 @@
 		"@types/clone-deep": "^4.0.4",
 		"@types/node": "^20.9.0",
 		"@types/web": "^0.0.134",
+		"tsup": "^8.0.2",
 		"typescript": "^5.2.2"
 	},
 	"peerDependencies": {
-		"@types/clone-deep": "^4.x.x",
-		"clone-deep": "^4.x.x",
-		"query-string": "^8.x.x"
+		"@types/clone-deep": ">=4",
+		"clone-deep": ">=4",
+		"query-string": ">=8"
 	}
 }
