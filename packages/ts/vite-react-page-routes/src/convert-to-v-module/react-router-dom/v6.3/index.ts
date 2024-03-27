@@ -153,7 +153,7 @@ function convertToReactRouterDomV6_3(
 				if (sp.length === 1) return null
 				
 				if (sp.length === 2 && sp[1] === '') {
-					return { path: '/', meta: relativeRoutePathMap['/']?._m }
+					return { path: '/', meta: { ...defaultMeta, ...relativeRoutePathMap['/']?._m } }
 				}
 				
 				let fullRoutePath = ''
