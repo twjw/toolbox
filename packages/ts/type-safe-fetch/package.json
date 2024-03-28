@@ -1,8 +1,8 @@
 {
   "name": "wtbx-type-safe-fetch",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
-  "description": "支持攔截器功能的類型安全與自動推導的 fetch (更: 移除 middleware 功能，並將原 middleware 裡寫的功能拆成對應的攔截器方法)",
+  "description": "支持攔截器功能的類型安全與自動推導的 fetch (更: watch 類型優化成泛型)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": ["dist", "readme.md"],

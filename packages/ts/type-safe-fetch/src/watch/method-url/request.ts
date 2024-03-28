@@ -3,7 +3,9 @@ import { TsFetchListenerRequestInit, TsFetchMethod } from '../../type'
 const maxMethodLength = 'options'.length - 1
 const minMethodLength = 'get'.length - 1
 
-function request(req: TsFetchListenerRequestInit) {
+function request<Req extends { url: string; method?: string } = TsFetchListenerRequestInit>(
+	req: Req,
+) {
 	let url = req.url,
 		newUrl = ''
 

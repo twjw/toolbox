@@ -3,7 +3,11 @@ import qs from 'query-string'
 
 const object = 'object'
 
-function request(req: TsFetchListenerRequestInit & { params?: Record<string, any> }) {
+function request<
+	Req extends TsFetchListenerRequestInit & {
+		params?: Record<string, any>
+	} = TsFetchListenerRequestInit & { params?: Record<string, any> },
+>(req: Req) {
 	if (req.params != null) {
 		req.url += `?${qs.stringify(req.params)}`
 	}
