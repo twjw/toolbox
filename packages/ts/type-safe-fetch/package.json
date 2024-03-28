@@ -1,39 +1,43 @@
 {
   "name": "wtbx-type-safe-fetch",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "type": "module",
-  "description": "支持攔截器功能的類型安全與自動推導的 fetch (更: watch 類型優化成泛型)",
+  "description": "支持攔截器功能的類型安全與自動推導的 fetch (更: 更名為 tools 且新增 merge-same-request 工具)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": ["dist", "readme.md"],
   "exports": {
     ".": "./dist/index.js",
-    "./watch/log": {
-      "types": "./dist/watch/log/index.d.ts",
-      "import": "./dist/watch/log/index.js"
+    "./tools/log": {
+      "types": "./dist/tools/log/index.d.ts",
+      "import": "./dist/tools/log/index.js"
     },
-    "./watch/method-url": {
-      "types": "./dist/watch/method-url/index.d.ts",
-      "import": "./dist/watch/method-url/index.js"
+    "./tools/method-url": {
+      "types": "./dist/tools/method-url/index.d.ts",
+      "import": "./dist/tools/method-url/index.js"
     },
-    "./watch/mock": {
-      "types": "./dist/watch/mock/index.d.ts",
-      "import": "./dist/watch/mock/index.js"
+    "./tools/mock": {
+      "types": "./dist/tools/mock/index.d.ts",
+      "import": "./dist/tools/mock/index.js"
     },
-    "./watch/params-and-body-parser": {
-      "types": "./dist/watch/params-and-body-parser/index.d.ts",
-      "import": "./dist/watch/params-and-body-parser/index.js"
+    "./tools/params-and-body-parser": {
+      "types": "./dist/tools/params-and-body-parser/index.d.ts",
+      "import": "./dist/tools/params-and-body-parser/index.js"
     },
-    "./watch/path-params-url": {
-      "types": "./dist/watch/path-params-url/index.d.ts",
-      "import": "./dist/watch/path-params-url/index.js"
+    "./tools/path-params-url": {
+      "types": "./dist/tools/path-params-url/index.d.ts",
+      "import": "./dist/tools/path-params-url/index.js"
+    },
+    "./tools/merge-same-request": {
+      "types": "./dist/tools/merge-same-request/index.d.ts",
+      "import": "./dist/tools/merge-same-request/index.js"
     }
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "build-package": "tsup src/index.ts src/watch --format esm --dts --clean",
+    "build-package": "tsup src/index.ts src/tools --format esm --dts --clean",
     "publish-package": "pnpm run build-package && npm publish"
   },
   "keywords": [
