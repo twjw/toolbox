@@ -6,8 +6,8 @@ import {
 	TsFetchRequestInit,
 	TsFetchRequestListener,
 	TsFetchResponseListener,
-	TsFetchWatchMap,
 } from './type.ts'
+
 export type * from './type.ts'
 
 const newTsFetch: TsFetchNew = () => {
@@ -35,17 +35,6 @@ const newTsFetch: TsFetchNew = () => {
 		Return = Response | Promise<Response>,
 	>(listener: TsFetchErrorListener<Err, Req, Return>) {
 		errListeners.push(listener)
-	}
-
-	function middleware<
-		Err extends Error = Error,
-		Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
-		Res = Response,
-		Return = Res,
-	>(watchMap: TsFetchWatchMap<Err, Req, Res, Return>) {
-		if (watchMap.request) reqListeners.push(watchMap.request)
-		if (watchMap.response) resListeners.push(watchMap.response)
-		if (watchMap.error) errListeners.push(watchMap.error)
 	}
 
 	async function tsFetch<R = Response>(
@@ -90,7 +79,6 @@ const newTsFetch: TsFetchNew = () => {
 		response: watchResponse,
 		error: watchError,
 	}
-	tsFetch.middleware = middleware
 
 	return tsFetch
 }

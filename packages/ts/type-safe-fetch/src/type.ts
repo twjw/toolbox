@@ -55,18 +55,8 @@ export type TsFetchWatchMap<
 	error: TsFetchErrorListener<Err, Req, Return>
 }>
 
-export type TsFetchMiddleware = <
-	Err extends Error = Error,
-	Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
-	Res = Response,
-	Return = Res,
->(
-	watchMap: TsFetchWatchMap<Err, Req, Res, Return>,
-) => void
-
 export type TsFetchApis = {
 	watch: TsFetchWatch
-	middleware: TsFetchMiddleware
 }
 
 export type TsFetchCall = {

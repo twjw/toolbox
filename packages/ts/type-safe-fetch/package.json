@@ -1,39 +1,39 @@
 {
   "name": "wtbx-type-safe-fetch",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "type": "module",
-  "description": "The simplest fetch wrapper. 最簡單的 fetch 包裝器 (更: 新增 pathParams 中間件與類型至 TsFetchTemplate)",
+  "description": "支持攔截器功能的類型安全與自動推導的 fetch (更: 移除 middleware 功能，並將原 middleware 裡寫的功能拆成對應的攔截器方法)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": ["dist", "readme.md"],
   "exports": {
     ".": "./dist/index.js",
-    "./middlewares/log": {
-      "types": "./dist/middlewares/log.d.ts",
-      "import": "./dist/middlewares/log.js"
+    "./watch/log": {
+      "types": "./dist/watch/log/index.d.ts",
+      "import": "./dist/watch/log/index.js"
     },
-    "./middlewares/method-url": {
-      "types": "./dist/middlewares/method-url.d.ts",
-      "import": "./dist/middlewares/method-url.js"
+    "./watch/method-url": {
+      "types": "./dist/watch/method-url/index.d.ts",
+      "import": "./dist/watch/method-url/index.js"
     },
-    "./middlewares/mock": {
-      "types": "./dist/middlewares/mock.d.ts",
-      "import": "./dist/middlewares/mock.js"
+    "./watch/mock": {
+      "types": "./dist/watch/mock/index.d.ts",
+      "import": "./dist/watch/mock/index.js"
     },
-    "./middlewares/params-and-body-parser": {
-      "types": "./dist/middlewares/params-and-body-parser.d.ts",
-      "import": "./dist/middlewares/params-and-body-parser.js"
+    "./watch/params-and-body-parser": {
+      "types": "./dist/watch/params-and-body-parser/index.d.ts",
+      "import": "./dist/watch/params-and-body-parser/index.js"
     },
-    "./middlewares/path-params-url": {
-      "types": "./dist/middlewares/path-params-url.d.ts",
-      "import": "./dist/middlewares/path-params-url.js"
+    "./watch/path-params-url": {
+      "types": "./dist/watch/path-params-url/index.d.ts",
+      "import": "./dist/watch/path-params-url/index.js"
     }
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "build-package": "tsup src/index.ts src/middlewares --format esm --dts --clean",
+    "build-package": "tsup src/index.ts src/watch --format esm --dts --clean",
     "publish-package": "pnpm run build-package && npm publish"
   },
   "keywords": [

@@ -1,9 +1,9 @@
-import { tsFetch, TsFetchListenerRequestInit, TsFetchTemplate } from 'wtbx-type-safe-fetch'
-import { paramsAndBodyParser } from 'wtbx-type-safe-fetch/middlewares/params-and-body-parser.ts'
-import { methodUrl } from 'wtbx-type-safe-fetch/middlewares/method-url.ts'
+import { tsFetch, TsFetchTemplate } from 'wtbx-type-safe-fetch'
 import { Apis as CatApis } from './api-types/cat.ts'
 import { Apis as DogApis } from './api-types/dog.ts'
-import { pathParamsUrl } from 'wtbx-type-safe-fetch/middlewares/path-params-url.ts'
+import { methodUrlRequest } from '../src/watch/method-url'
+import { pathParamsUrlRequest } from '../src/watch/path-params-url'
+import { paramsAndBodyParserRequest } from '../src/watch/params-and-body-parser'
 
 console.clear()
 
@@ -17,37 +17,40 @@ const apiPrefix = 'https://api.thecatapi.com'
 
 const fetch2 = tsFetch as unknown as TsFetchTemplate<CatApis & DogApis>
 
-fetch2.middleware(methodUrl)
-fetch2.middleware(pathParamsUrl)
-fetch2.middleware(paramsAndBodyParser)
-fetch2.middleware<Error, TsFetchListenerRequestInit, any, any>({
-	request: async options => {
-		console.log('等待開始...')
-		await new Promise<void>(resolve => {
-			setTimeout(() => {
-				resolve()
-			}, 1000)
-		})
-		console.log('等待結束')
+fetch2.watch.request(async req => {
+	methodUrlRequest(req)
+	pathParamsUrlRequest(req)
+	paramsAndBodyParserRequest(req)
 
-		return {
-			...options,
-			url: `${apiPrefix}${options.url[0] === '/' ? '' : '/'}${options.url}`,
-			headers: options.headers
-				? {
-						'Content-Type': 'application/json',
-						...options.headers,
-					}
-				: {
-						'Content-Type': 'application/json',
-					},
-		}
-	},
-	response: (req, res) => res.json(),
-	error: (error, req) => {
-		console.error(error)
-		return req.url
-	},
+	console.log('等待開始...')
+	await new Promise<void>(resolve => {
+		setTimeout(() => {
+			resolve()
+		}, 1000)
+	})
+	console.log('等待結束')
+
+	return {
+		...req,
+		url: `${apiPrefix}${req.url[0] === '/' ? '' : '/'}${req.url}`,
+		headers: req.headers
+			? {
+					'Content-Type': 'application/json',
+					...req.headers,
+				}
+			: {
+					'Content-Type': 'application/json',
+				},
+	}
+})
+
+fetch2.watch.response((req, res) => {
+	return res.json()
+})
+
+fetch2.watch.error((error, req) => {
+	console.error(error)
+	return req.url
 })
 ;(async () => {
 	const resultNode: HTMLElement = root.querySelector('#fetch-result')!

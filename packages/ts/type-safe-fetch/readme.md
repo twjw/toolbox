@@ -1,10 +1,7 @@
 wtbx-type-safe-fetch
 ===
 
-> 類型安全的 fetch 包，僅為原生 fetch 多包一層類型定義以及攔截器與中間件功能  
-> A type-safe fetch package, simply layering type definitions and interceptor and middleware functionality on top of the native fetch.  
-
-# 快速開始 Quick Start
+# 快速開始
 
 ```typescript
 import { tsFetch } from 'wtbx-type-safe-fetch'
@@ -49,39 +46,6 @@ try {
 ## new()
 
 重新創建一個 tsFetch 只是創建出來的不再有 new() 方法  
-
-## middleware()
-
-將 watch 處理的內容封裝成一個中間件  
-
-```typescript
-const myMiddleware = {
-  request: req => { /*...*/ },
-  response: (req, res) => { /*...*/ },
-  error: (error, req, res) => { /*...*/ },
-}
-
-// 將掛載 middleware 提供的 watch 方法
-tsFetch.middleware(myMiddleware)
-```
-
-```typescript
-// 補上預設的類型定義
-type TsFetchListenerRequestInit = TsFetchRequestInit & { url: string }
-
-type TsFetchRequestInit = Omit<RequestInit, 'method'> & {
-  method?: TsFetchMethod
-}
-
-type TsFetchMiddleware = <
-  Err extends Error = Error,
-  Req extends TsFetchListenerRequestInit = TsFetchListenerRequestInit,
-  Res = Response,
-  Return = Res,
->(
-  watchMap: TsFetchWatchMap<Err, Req, Res, Return>,
-) => void
-```
 
 ## watch
 
@@ -137,7 +101,7 @@ type TsFetchRequestInit = Omit<RequestInit, 'method'> & {
 
 # middlewares
 
-> 後續會慢慢補充  
+> 文檔有空再改，2+版不提供 middleware api
 
 ## log
 
