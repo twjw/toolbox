@@ -9,7 +9,7 @@ export function TsFetchToolParamsAndBodyParser<
 	const object = 'object'
 
 	return {
-		request(req: Req) {
+		transform(req: Req) {
 			if (req.params != null) {
 				req.url += `?${qs.stringify(req.params)}`
 			}

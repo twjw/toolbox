@@ -5,7 +5,7 @@ export function TsFetchToolMock<
 	},
 >() {
 	return {
-		request(req: Req) {
+		transform(req: Req) {
 			const [, filename, method, path] = req.url.match(/^mock:([^:]*):([^:]*):(.+)$/) || []
 
 			if (filename != null) {

@@ -7,7 +7,7 @@ export function TsFetchToolMethodUrl<
 	const minMethodLength = 'get'.length - 1
 
 	return {
-		request(req: Req) {
+		transform(req: Req) {
 			let url = req.url,
 				newUrl = ''
 

@@ -1,8 +1,8 @@
 {
   "name": "wtbx-type-safe-fetch",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "type": "module",
-  "description": "支持攔截器功能的類型安全與自動推導的 fetch (更: 更名為 tools 且新增 merge-same-request 工具)",
+  "description": "支持攔截器功能的類型安全與自動推導的 fetch (更: tools api 具名化)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": ["dist", "readme.md"],

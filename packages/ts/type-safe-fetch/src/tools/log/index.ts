@@ -6,7 +6,7 @@ export function TsFetchToolLog<
 	Res = Response,
 >() {
 	return {
-		response(req: Readonly<Req>, res: Res) {
+		log(req: Readonly<Req>, res: Res) {
 			console.log(
 				`%c${req.method?.toUpperCase() || 'GET'} %c${req.url}`,
 				'border: 1px solid green; background-color: green; color: #fff; padding: 0 2px 0 4px;',

@@ -5,7 +5,7 @@ export function TsFetchToolPathParamsUrl<
 	},
 >() {
 	return {
-		request(req: Req) {
+		transform(req: Req) {
 			if (req.pathParams != null) {
 				const urls = req.url.split('/')
 				for (let i = 1; i < urls.length; i++) {
