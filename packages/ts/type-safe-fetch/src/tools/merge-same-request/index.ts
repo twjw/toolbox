@@ -24,7 +24,7 @@ export function TsFetchToolMergeSameRequest<
 	Req extends { _mri_: number } = { _mri_: number },
 	Return = Response,
 >() {
-	const MERGE_REQUEST_SYMBOL = '_mr_'
+	const MERGE_REQUEST_SYMBOL = '__from_merge_same_request__'
 	const urlDeferredMap: Record<string | number | symbol, DeferredResult<Return>[]> = {}
 
 	return {
@@ -39,17 +39,18 @@ export function TsFetchToolMergeSameRequest<
 		},
 
 		resolve(key: string | number | symbol, res: any) {
-			if (urlDeferredMap[key]?.length) {
+			if (urlDeferredMap[key] != null) {
 				for (let i = 0; i < urlDeferredMap[key].length; i++) {
 					urlDeferredMap[key][i].resolve(res || null)
 				}
+
 				delete urlDeferredMap[key]
 			}
 		},
 
 		// return undefined 表示沒有等待中的請求
 		async waiting(key: string | number | symbol, req: Req, error: Err) {
-			if (error?.message === MERGE_REQUEST_SYMBOL) {
+			if (req._mri_ != null) {
 				if (urlDeferredMap[key]?.length) {
 					if (urlDeferredMap[key][req._mri_] != null) {
 						return await urlDeferredMap[key][req._mri_].promise
