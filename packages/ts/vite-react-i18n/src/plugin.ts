@@ -1,9 +1,22 @@
-import type { Plugin } from 'vite'
+import type { Plugin, ViteDevServer } from 'vite'
 import fs from 'fs'
 import path from 'path'
 
+type UniteDictionaries = Record<string, Record<string, string>>
+
 type I18nOptions = {
 	dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)
+
+	// 整合參數有傳任一個都會自動產出各語系的檔案到 dirs 下
+	// 整合字典格式範例 { [key]: { [`可選的語系描述(語系名)`]: 翻譯文字 } }
+	// {
+	//   "hello": {
+	//     "簡體中文(zh_CN)": "你好",
+	//     "英文(en)": "Hello"
+	//   }
+	// }
+	uniteFilepath?: string // 整合的檔案路徑(.json)(會監聽實時變化)
+	uniteDictionaries?: UniteDictionaries // 整合的檔案路徑(不會實時變化)
 }
 
 type _GlobMap = Record<string, string> // <locale, globPath>
@@ -14,7 +27,7 @@ const V_MODULE_NAME = `~i18n`
 const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 
-function _generateLangGlobPath({ dirs }: Required<I18nOptions>) {
+function _generateLangGlobPath({ dirs }: Pick<I18nOptions, 'dirs'>) {
 	const globMap = {} as _GlobMap
 	const matchExtReg = /\.(ts|json)$/
 
@@ -231,6 +244,67 @@ export { dictionary, locale, t, setLocale, App }
 `
 }
 
+function resultUnitDictionaries(
+	options: Pick<I18nOptions, 'uniteDictionaries' | 'uniteFilepath'>,
+) {
+	const { uniteDictionaries, uniteFilepath } = options
+	const hasUniteDictionaries = uniteDictionaries != null
+	const hasUniteFilepath = uniteFilepath != null
+	let dictionaries: UniteDictionaries | null = hasUniteDictionaries ? uniteDictionaries : null
+
+	if (hasUniteDictionaries || hasUniteFilepath) {
+		if (dictionaries == null) {
+			dictionaries = JSON.parse(fs.readFileSync(uniteFilepath!, 'utf-8')) as UniteDictionaries
+		}
+	}
+
+	return dictionaries
+}
+
+async function generateLocalesByUniteDictionaries(
+	dirs: string[],
+	uniteDictionaries: UniteDictionaries,
+) {
+	let locales: Record<string, Record<string, string>> = {}
+
+	for (let k in uniteDictionaries) {
+		const dict = uniteDictionaries[k]
+
+		for (let dk in dict) {
+			const locale = dk.match(/\(([-_A-z]+)\)$/)
+			if (locale != null) {
+				if (locales[locale[1]] == null) locales[locale[1]] = {}
+				locales[locale[1]][k] = dict[dk]
+			}
+		}
+	}
+
+	const localesKeys = Object.keys(locales)
+	if (dirs.length === 0 || localesKeys.length === 0) return
+
+	await Promise.all(
+		localesKeys.map(locale =>
+			fs.promises.writeFile(
+				path.resolve(dirs[dirs.length - 1], `${locale}.ts`),
+				`const lang = ${JSON.stringify(locales[locale], null, 2)} as const
+
+export default lang`,
+			),
+		),
+	)
+}
+
+function moduleHotUpdate(server: ViteDevServer) {
+	const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
+
+	if (mod) {
+		server.moduleGraph.invalidateModule(mod)
+		server.hot.send({
+			type: 'full-reload',
+		})
+	}
+}
+
 function i18n(options: I18nOptions): any {
 	const { dirs } = options || {}
 	let globMap: _GlobMap = {} // [[relativePath, filename(no-ext)], ...[]]
@@ -238,7 +312,10 @@ function i18n(options: I18nOptions): any {
 	const plugin: Plugin = {
 		name: FULL_PLUGIN_NAME,
 		enforce: 'pre',
-		configResolved() {
+		async configResolved() {
+			const uniteDictionaries = resultUnitDictionaries(options)
+			if (uniteDictionaries != null)
+				await generateLocalesByUniteDictionaries(dirs, uniteDictionaries)
 			globMap = _generateLangGlobPath({ dirs })
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
@@ -260,18 +337,31 @@ function i18n(options: I18nOptions): any {
 				await waitMs(250)
 				isUpdating = false
 
-				const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
-
-				if (mod) {
-					server.moduleGraph.invalidateModule(mod)
-					server.ws.send({
-						type: 'full-reload',
-					})
-				}
+				moduleHotUpdate(server)
 			}
 
 			server.watcher.on('unlink', debounceGenerate)
 			server.watcher.on('add', debounceGenerate)
+
+			const { uniteFilepath } = options
+			if (uniteFilepath != null) {
+				server.watcher.add(uniteFilepath)
+				server.watcher.on('change', async filepath => {
+					if (filepath === uniteFilepath) {
+						try {
+							const uniteDictionaries = JSON.parse(
+								fs.readFileSync(filepath, 'utf-8'),
+							) as UniteDictionaries
+							// TODO 尚有優化空間，比方說頻繁更改導致衝突可以使用排隊處理，但先不做，發生頻率不高
+							await generateLocalesByUniteDictionaries(dirs, uniteDictionaries)
+							await waitMs(250)
+							moduleHotUpdate(server)
+						} catch {
+							console.error(`[ERROR]${CONSOLE_NAME} 整合字典json檔語法錯誤導至熱更失敗，請確認`)
+						}
+					}
+				})
+			}
 		},
 		resolveId(id) {
 			if (id === V_MODULE_NAME) {
@@ -297,4 +387,4 @@ function waitMs(timeout = 1000) {
 	})
 }
 
-export { type I18nOptions, i18n }
+export { type UniteDictionaries, type I18nOptions, i18n }

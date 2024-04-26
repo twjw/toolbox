@@ -7,6 +7,8 @@ wtbx-vite-react-i18n
 - 支持多模板處理
 - 完美的類型推斷
 
+> TODO 整合翻譯功能文檔待補
+
 # 安裝
 
 ```shell
