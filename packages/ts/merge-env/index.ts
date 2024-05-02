@@ -25,12 +25,13 @@ async function mergeEnv<Env extends Record<string, any>, Mode = string>(
 			[`.env.${options.mode}.ts`]: 2,
 			[`.env.${options.mode}.local.ts`]: 3,
 		}
+		const envIdxMapKeys = Object.keys(envIdxMap)
 		let resultEnv = { mode: options.mode } as Env & { mode: Mode }
 
 		for (let i = 0; i < options.dirs.length; i++) {
 			if (!fs.existsSync(options.dirs[i])) continue
 
-			const envPathList: string[] = Array(4).fill(undefined)
+			const envPathList: string[] = Array(envIdxMapKeys.length).fill(undefined)
 			const filenames = fs.readdirSync(options.dirs[i], { withFileTypes: true })
 
 			for (let j = 0; j < filenames.length; j++) {

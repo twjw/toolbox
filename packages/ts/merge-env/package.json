@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-merge-env",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"type": "module",
-	"description": "ts 編寫環境變量 (更: package.json 更新)",
+	"description": "ts 編寫環境變量 (更: 語法優化)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist", "readme.md"],
