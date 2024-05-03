@@ -5,12 +5,18 @@
 	"description": "ts 編寫環境變量 (更: 語法優化)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist", "readme.md"],
+	"files": [
+		"dist",
+		"readme.md"
+	],
 	"scripts": {
+		"test": "tsx ./test/index.ts",
 		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
 		"publish-package": "pnpm run build && npm publish"
 	},
-	"keywords": ["typescript"],
+	"keywords": [
+		"typescript"
+	],
 	"license": "ISC",
 	"dependencies": {
 		"lodash-es": "^4.17.21"
@@ -18,10 +24,13 @@
 	"devDependencies": {
 		"@types/lodash-es": "^4.17.12",
 		"@types/node": "^20.9.0",
-		"typescript": "^5.2.2",
-		"tsup": "^8.0.1"
+		"esbuild": "^0.20.2",
+		"tsup": "^8.0.1",
+		"tsx": "^4.8.2",
+		"typescript": "^5.2.2"
 	},
 	"peerDependencies": {
+		"esbuild": ">=0",
 		"lodash-es": ">=4"
 	}
 }
