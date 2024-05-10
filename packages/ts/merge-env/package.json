@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-merge-env",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"type": "module",
-	"description": "ts 編寫環境變量 (更: 底層改由 esbuild 實現並支持環境變數內使用 alias import)",
+	"description": "ts 編寫環境變量 (更: 修正 bundle 後 esbuild.build 裡的 path 找不到)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [

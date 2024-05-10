@@ -82,12 +82,12 @@ export default envConfig`
 
 			fs.writeFileSync(ABSOLUTE_TEMP_FILEPATH, tempTsCode)
 			await esbuild.build({
-				entryPoints: [TEMP_FILENAME],
+				entryPoints: [ABSOLUTE_TEMP_FILEPATH],
 				bundle: true,
 				platform: 'node',
 				target: 'node14',
 				format: 'esm',
-				outfile: OUT_FILENAME,
+				outfile: ABSOLUTE_OUT_FILEPATH,
 				loader: {
 					'.ts': 'ts',
 				},
