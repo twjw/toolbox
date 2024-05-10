@@ -1,7 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import { merge } from 'lodash-es'
-import { importDynamicTs } from '../../../utils/ts/node/import-dynamic-ts'
+import { fileURLToPath } from 'url'
+import esbuild from 'esbuild'
+import { URL } from 'node:url'
 
 type MergeEnvOptions = {
 	mode?: string // 環境變數
@@ -11,6 +12,11 @@ type MergeEnvOptions = {
 const SL = path.normalize('/')
 const PACKAGE_NAME = `wtbx-merge-env`
 const CONSOLE_NAME = `[${PACKAGE_NAME}]`
+const TEMP_FILENAME = '__temp-ts-env-code.ts'
+const OUT_FILENAME = '__out.js'
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
+const ABSOLUTE_TEMP_FILEPATH = path.resolve(__dirname, TEMP_FILENAME)
+const ABSOLUTE_OUT_FILEPATH = path.resolve(__dirname, OUT_FILENAME)
 
 async function mergeEnv<Env extends Record<string, any>, Mode = string>(
 	options: MergeEnvOptions,
@@ -26,7 +32,9 @@ async function mergeEnv<Env extends Record<string, any>, Mode = string>(
 			[`.env.${options.mode}.local.ts`]: 3,
 		}
 		const envIdxMapKeys = Object.keys(envIdxMap)
-		let resultEnv = { mode: options.mode } as Env & { mode: Mode }
+		let tempTsCode = `import { merge } from 'lodash-es'
+`
+		let moduleId = 0
 
 		for (let i = 0; i < options.dirs.length; i++) {
 			if (!fs.existsSync(options.dirs[i])) continue
@@ -48,19 +56,51 @@ async function mergeEnv<Env extends Record<string, any>, Mode = string>(
 				const envPath = envPathList[j]
 
 				if (envPath != null) {
-					resultEnv = merge(resultEnv, (await importDynamicTs(envPath)).default)
-					if (resultEnv instanceof Error) {
-						console.error(`[ERROR]${CONSOLE_NAME} ERROR`)
-						console.error(resultEnv)
-						process.exit(0)
+					let relativeEnvPath = path.relative(__dirname, envPath).replace(/\\/g, '/')
+					if (relativeEnvPath[0] !== '.') {
+						if (relativeEnvPath.length) {
+							relativeEnvPath = `./${relativeEnvPath}`
+						} else {
+							relativeEnvPath = '.'
+						}
 					}
+					tempTsCode += `import envConfig${++moduleId} from '${relativeEnvPath}'
+`
 				}
 			}
 		}
 
+		let resultEnv: any = null
+
+		if (moduleId > 0) {
+			tempTsCode += `const envConfig = merge(`
+			for (let i = 0; i < moduleId; i++) {
+				tempTsCode += `envConfig${i + 1}, `
+			}
+			tempTsCode += `)
+export default envConfig`
+
+			fs.writeFileSync(ABSOLUTE_TEMP_FILEPATH, tempTsCode)
+			await esbuild.build({
+				entryPoints: [TEMP_FILENAME],
+				bundle: true,
+				platform: 'node',
+				target: 'node14',
+				format: 'esm',
+				outfile: OUT_FILENAME,
+				loader: {
+					'.ts': 'ts',
+				},
+				external: ['lodash-es'],
+			})
+
+			const jsImportPath = `./${OUT_FILENAME}`
+			resultEnv = (await import(jsImportPath)).default
+		}
+
 		console.log(
 			`[LOG]${CONSOLE_NAME} 最終合併的 env 為：\n`,
-			JSON.stringify(resultEnv, null, 2),
+			resultEnv != null ? JSON.stringify(resultEnv, null, 2) : resultEnv,
 		)
 
 		return resultEnv

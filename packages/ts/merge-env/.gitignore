@@ -1,3 +1,5 @@
 .idea
 node_modules
 dist
+__out.js
+__temp-ts-env-code.ts

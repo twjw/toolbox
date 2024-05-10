@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-merge-env",
-	"version": "1.0.3",
+	"version": "2.0.0",
 	"type": "module",
-	"description": "ts 編寫環境變量 (更: 語法優化)",
+	"description": "ts 編寫環境變量 (更: 底層改由 esbuild 實現並支持環境變數內使用 alias import)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -11,20 +11,18 @@
 	],
 	"scripts": {
 		"test": "tsx ./test/index.ts",
-		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
+		"build": "tsup-node index.ts --platform node --format esm --dts --clean --external lodash-es, esbuild",
 		"publish-package": "pnpm run build && npm publish"
 	},
 	"keywords": [
 		"typescript"
 	],
 	"license": "ISC",
-	"dependencies": {
-		"lodash-es": "^4.17.21"
-	},
 	"devDependencies": {
 		"@types/lodash-es": "^4.17.12",
 		"@types/node": "^20.9.0",
 		"esbuild": "^0.20.2",
+		"lodash-es": "^4.17.21",
 		"tsup": "^8.0.1",
 		"tsx": "^4.8.2",
 		"typescript": "^5.2.2"
