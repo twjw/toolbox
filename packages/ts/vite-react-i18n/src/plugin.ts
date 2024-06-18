@@ -163,13 +163,9 @@ function _parseValue(text, idxValList, keyValMap) {
       if (isSkip) {
         result += \`{\${key}}\`
       } else {
-        if (isIdx) {
-          const replaceText = idxValList[key]
-          result += ((typeof replaceText === 'number' ? String(replaceText) : replaceText) || \`{\${key}}\`)
-        } else {
-          const replaceText = keyValMap[key]
-          result += ((typeof replaceText === 'number' ? String(replaceText) : replaceText) || \`{\${key}}\`)
-        }
+				const replaceText = isIdx ? idxValList[key] : keyValMap[key]
+				if (replaceText == null) result += \`{\${key}}\`
+				else result += replaceText
       }
     }
     
