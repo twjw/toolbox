@@ -1,12 +1,15 @@
 import type { Plugin, ViteDevServer } from 'vite'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 type UniteDictionaries = Record<string, Record<string, string>>
 
 type I18nOptions = {
-	dirs: string[] // 字典檔目錄絕對路徑列表(後蓋前)
-
+	// 字典檔目錄絕對路徑列表(後蓋前)
+	dirs: string[]
+	// 字典語系檔名(zh_CN, en...)，有傳的話生成的類型才會是對應的值，否則是 string 類型，需要類型安全就傳
+	// 傳遞該值的話，多餘的 json 語系就不會被產出來
+	limitLocales?: string[]
 	// 整合參數有傳任一個都會自動產出各語系的檔案到 dirs 下
 	// 整合字典格式範例 { [key]: { [`可選的語系描述(語系名)`]: 翻譯文字 } }
 	// {
@@ -15,8 +18,12 @@ type I18nOptions = {
 	//     "英文(en)": "Hello"
 	//   }
 	// }
-	uniteFilepath?: string // 整合的檔案路徑(.json)(會監聽實時變化)
-	uniteDictionaries?: UniteDictionaries // 整合的檔案路徑(不會實時變化)
+	// 整合的檔案路徑(.json)(會監聽實時變化)
+	uniteFilepath?: string
+	// 整合的檔案路徑(不會實時變化)
+	uniteDictionaries?: UniteDictionaries
+	// t() 的嵌套調用分隔符， example: { hello: { world: 'aaa' } } -> t('hello.world') -> 'aaa'
+	separator?: string
 }
 
 type _GlobMap = Record<string, string> // <locale, globPath>
@@ -66,7 +73,13 @@ function _generateLangGlobPath({ dirs }: Pick<I18nOptions, 'dirs'>) {
 	}
 }
 
-function _generateStringModule({ globMap }: { globMap: _GlobMap }) {
+function _generateStringModule({
+	globMap,
+	separator = '.',
+}: {
+	globMap: _GlobMap
+	separator?: string
+}) {
 	const firstLocale = Object.keys(globMap)[0]
 	const firstLocaleStr = firstLocale ? `'${firstLocale}'` : null
 
@@ -90,11 +103,10 @@ let _forceUpdate // 強刷 APP 組件
 function _recurFindKeyValue (
 	obj,
 	key,
-	separator = '.',
 ) {
 	if (typeof key !== 'string') return undefined
 
-	const keys = key.split(separator)
+	const keys = key.split('${separator}')
 	let result = obj
 	let k
 
@@ -302,7 +314,7 @@ function moduleHotUpdate(server: ViteDevServer) {
 }
 
 function i18n(options: I18nOptions): any {
-	const { dirs } = options || {}
+	const { dirs, separator = '.' } = options || {}
 	let globMap: _GlobMap = {} // [[relativePath, filename(no-ext)], ...[]]
 
 	const plugin: Plugin = {
@@ -367,7 +379,7 @@ function i18n(options: I18nOptions): any {
 		load(id) {
 			if (id === V_MODULE_ID) {
 				if (Object.keys(globMap).length === 0) return
-				return _generateStringModule({ globMap })
+				return _generateStringModule({ globMap, separator })
 			}
 		},
 	}
