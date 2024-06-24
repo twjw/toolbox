@@ -18,10 +18,6 @@ type I18nOptions = {
 	//     "英文(en)": "Hello"
 	//   }
 	// }
-	// 整合的檔案路徑(.json)(會監聽實時變化)
-	uniteFilepath?: string
-	// 整合的檔案路徑(不會實時變化)
-	uniteDictionaries?: UniteDictionaries
 	// t() 的嵌套調用分隔符， example: { hello: { world: 'aaa' } } -> t('hello.world') -> 'aaa'
 	separator?: string
 }
