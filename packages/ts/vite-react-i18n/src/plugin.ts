@@ -16,6 +16,8 @@ type I18nOptions = {
 	locales: string[]
 	// t() 的嵌套調用分隔符， example: { hello: { world: 'aaa' } } -> t('hello.world') -> 'aaa'
 	separator?: string
+	// 需要平舖的檔名，預設為 _
+	flatName?: string
 }
 
 type _GlobMap = Record<string, string> // <locale, globPath>

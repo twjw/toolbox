@@ -10,6 +10,7 @@ type DictionaryMap = Record<string, { dir: string; names: string[] }>
 
 const SL = path.normalize('/')
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
+const FLAT_NAME = '_'
 
 async function recursiveFindPaths(dirPath: string, result: string[] = []) {
 	const pathList = await fs.promises.readdir(dirPath, { withFileTypes: true })
@@ -53,7 +54,7 @@ function transformSamePathMap(filepathList: string[], dirs: string[]) {
 							names: relativeFilepath
 								.substring(SL.length, relativeFilepath.length - 5)
 								.split(SL)
-								.filter(e => e !== '_'),
+								.filter(e => e !== FLAT_NAME),
 						}
 						isBreak = true
 						break
