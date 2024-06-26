@@ -1,6 +1,6 @@
 {
   "hello": {
-    "zh_CN(簡中)": "你好世界 two",
-    "en_US(英文)": "hello world two"
+    "zh_CN": "你好世界 two",
+    "en_US": "hello world two"
   }
 }

@@ -99,22 +99,17 @@ async function mergeDictionaries(dictMap: DictionaryMap, dictionaries?: Dictiona
 
 run()
 async function run() {
-	const limitLocales = [] as string[] | undefined
+	const limitLocales = [
+		'zh_CN', // 簡中
+		'en_US', // 英文
+	] as string[] | undefined
 	const dirs = [
 		path.resolve(__dirname, '../packages/ts/vite-react-i18n/example/base/dictionaries/one'),
 		path.resolve(__dirname, '../packages/ts/vite-react-i18n/example/base/dictionaries/two'),
 	]
 	const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
 	const dictMap = transformSamePathMap(filepathList, dirs)
-	const hasLimitLocales = limitLocales != null && limitLocales.length > 0
-	let locales: string[] = []
 	const dictionaries: Dictionaries = await mergeDictionaries(dictMap)
-
-	if (hasLimitLocales) {
-		locales = limitLocales
-	} else {
-		// locales =
-	}
 
 	console.log(dictMap)
 	console.log(JSON.stringify(dictionaries, null, 2))
