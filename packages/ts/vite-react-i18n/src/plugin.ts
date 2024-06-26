@@ -14,14 +14,6 @@ type I18nOptions = {
 	dirs: string[]
 	// 字典語系檔名(zh_CN, en...)，對應字典 json 的 key，如果字典 key 比 locales 語系多也只會取出 locales 配置的語系
 	locales: string[]
-	// 整合參數有傳任一個都會自動產出各語系的檔案到 dirs 下
-	// 整合字典格式範例 { [key]: { [`可選的語系描述(語系名)`]: 翻譯文字 } }
-	// {
-	//   "hello": {
-	//     "簡體中文(zh_CN)": "你好",
-	//     "英文(en)": "Hello"
-	//   }
-	// }
 	// t() 的嵌套調用分隔符， example: { hello: { world: 'aaa' } } -> t('hello.world') -> 'aaa'
 	separator?: string
 }
