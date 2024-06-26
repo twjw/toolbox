@@ -1,8 +1,13 @@
 import type { Plugin, ViteDevServer } from 'vite'
+import fg from 'fast-glob'
 import fs from 'node:fs'
 import path from 'node:path'
 
 type UniteDictionaries = Record<string, Record<string, string>>
+
+type Dictionaries = {
+	[key: string]: string | Dictionaries
+}
 
 type I18nOptions = {
 	// 字典檔目錄絕對路徑列表(後蓋前)
@@ -29,6 +34,7 @@ const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~i18n`
 const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
+const SL = path.normalize('/')
 
 function _generateLangGlobPath({ dirs }: Pick<I18nOptions, 'dirs'>) {
 	const globMap = {} as _GlobMap
@@ -248,21 +254,48 @@ export { dictionary, locale, t, setLocale, App }
 `
 }
 
-function resultUnitDictionaries(
-	options: Pick<I18nOptions, 'uniteDictionaries' | 'uniteFilepath'>,
-) {
-	const { uniteDictionaries, uniteFilepath } = options
-	const hasUniteDictionaries = uniteDictionaries != null
-	const hasUniteFilepath = uniteFilepath != null
-	let dictionaries: UniteDictionaries | null = hasUniteDictionaries ? uniteDictionaries : null
+async function resultUnitDictionaries(options: Pick<I18nOptions, 'dirs'>) {
+	const { dirs } = options
 
-	if (hasUniteDictionaries || hasUniteFilepath) {
-		if (dictionaries == null) {
-			dictionaries = JSON.parse(fs.readFileSync(uniteFilepath!, 'utf-8')) as UniteDictionaries
+	if (dirs.length === 0) return null
+
+	const filePatterns: string[] = dirs.map(e => `${e}${SL}**${SL}*.json`)
+	const filePaths = await fg(filePatterns)
+	const fileMap: Record<string, { dir: string }> = {}
+	let dictionaries: Dictionaries = {}
+
+	for (let i = 0; i < filePaths.length; i++) {
+		const filepath = filePaths[i]
+		if (dirs.length > 0) {
+			for (let j = 0; j < dirs.length; j++) {
+				const dtxt = dirs[j]
+				if (filepath[i] !== dtxt) {
+					continue
+				} else if (j === dirs.length - 1) {
+					fileMap[filepath] = {
+						dir: dirs[j],
+					}
+					break
+				}
+			}
+		} else {
+			fileMap[filepath] = {
+				dir: dirs[0],
+			}
 		}
 	}
 
 	return dictionaries
+
+	// const hasUniteDictionaries = uniteDictionaries != null
+	// const hasUniteFilepath = uniteFilepath != null
+	// let dictionaries: UniteDictionaries | null = hasUniteDictionaries ? uniteDictionaries : null
+	//
+	// if (hasUniteDictionaries || hasUniteFilepath) {
+	// 	if (dictionaries == null) {
+	// 		dictionaries = JSON.parse(fs.readFileSync(uniteFilepath!, 'utf-8')) as UniteDictionaries
+	// 	}
+	// }
 }
 
 async function generateLocalesByUniteDictionaries(
@@ -310,14 +343,14 @@ function moduleHotUpdate(server: ViteDevServer) {
 }
 
 function i18n(options: I18nOptions): any {
-	const { dirs, separator = '.' } = options || {}
+	const { dirs, limitLocales, separator = '.' } = options || {}
 	let globMap: _GlobMap = {} // [[relativePath, filename(no-ext)], ...[]]
 
 	const plugin: Plugin = {
 		name: FULL_PLUGIN_NAME,
 		enforce: 'pre',
 		async configResolved() {
-			const uniteDictionaries = resultUnitDictionaries(options)
+			const uniteDictionaries = await resultUnitDictionaries(options)
 			if (uniteDictionaries != null)
 				await generateLocalesByUniteDictionaries(dirs, uniteDictionaries)
 			globMap = _generateLangGlobPath({ dirs })
