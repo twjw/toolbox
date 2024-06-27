@@ -29,7 +29,7 @@ async function recursiveFindPaths(dirPath: string, result: string[] = []) {
 	return result
 }
 
-function transformSamePathMap(filepathList: string[], dirs: string[]) {
+function transformSamePathMap(filepathList: string[], dirs: string[], flatName: string) {
 	const filepathMap: DictionaryMap = {}
 
 	if (dirs.length === 0) return filepathMap
@@ -54,7 +54,7 @@ function transformSamePathMap(filepathList: string[], dirs: string[]) {
 							names: relativeFilepath
 								.substring(SL.length, relativeFilepath.length - 5)
 								.split(SL)
-								.filter(e => e !== FLAT_NAME),
+								.filter(e => e !== flatName),
 						}
 						isBreak = true
 						break
@@ -83,14 +83,25 @@ async function mergeDictionaries(dictMap: DictionaryMap, dictionaries?: Dictiona
 
 		try {
 			const dict = JSON.parse(await fs.promises.readFile(filepath, 'utf-8'))
-			let node = _dictionaries
+
 			for (let key in dict) {
-				for (let i = 0; i < names.length; i++) {
-					const name = names[i]
-					if (node[name] == null) node[name] = {}
-					node = node[name] as Dictionaries
+				const dv = dict[key]
+
+				for (let dvKey in dv) {
+					let node = _dictionaries
+
+					// 將 _dictionaries 根寫上語系
+					if (node[dvKey] == null) node[dvKey] = {}
+					node = node[dvKey] as Dictionaries
+
+					for (let i = 0; i < names.length; i++) {
+						const name = names[i]
+						if (node[name] == null) node[name] = {}
+						node = node[name] as Dictionaries
+					}
+
+					node[key] = dv[dvKey]
 				}
-				node[key] = dict[key]
 			}
 		} catch {}
 	}
@@ -109,7 +120,7 @@ async function run() {
 		path.resolve(__dirname, '../packages/ts/vite-react-i18n/example/base/dictionaries/two'),
 	]
 	const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
-	const dictMap = transformSamePathMap(filepathList, dirs)
+	const dictMap = transformSamePathMap(filepathList, dirs, FLAT_NAME)
 	const dictionaries: Dictionaries = await mergeDictionaries(dictMap)
 
 	console.log(dictMap)

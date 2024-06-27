@@ -1,13 +1,12 @@
 import type { Plugin, ViteDevServer } from 'vite'
-import fg from 'fast-glob'
 import fs from 'node:fs'
 import path from 'node:path'
-
-type UniteDictionaries = Record<string, Record<string, string>>
 
 type Dictionaries = {
 	[key: string]: string | Dictionaries
 }
+
+type DictionaryMap = Record<string, { dir: string; names: string[] }>
 
 type I18nOptions = {
 	// 字典檔目錄絕對路徑列表(後蓋前)
@@ -28,6 +27,8 @@ const V_MODULE_NAME = `~i18n`
 const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 const SL = path.normalize('/')
+const DEFAULT_FLAT_NAME = '_'
+const DEFAULT_SEPARATOR = '.'
 
 function _generateLangGlobPath({ dirs }: Pick<I18nOptions, 'dirs'>) {
 	const globMap = {} as _GlobMap
@@ -70,7 +71,7 @@ function _generateLangGlobPath({ dirs }: Pick<I18nOptions, 'dirs'>) {
 
 function _generateStringModule({
 	globMap,
-	separator = '.',
+	separator = DEFAULT_SEPARATOR,
 }: {
 	globMap: _GlobMap
 	separator?: string
@@ -247,50 +248,6 @@ export { dictionary, locale, t, setLocale, App }
 `
 }
 
-async function resultUnitDictionaries(options: Pick<I18nOptions, 'dirs'>) {
-	const { dirs } = options
-
-	if (dirs.length === 0) return null
-
-	const filePatterns: string[] = dirs.map(e => `${e}${SL}**${SL}*.json`)
-	const filePaths = await fg(filePatterns)
-	const fileMap: Record<string, { dir: string }> = {}
-	let dictionaries: Dictionaries = {}
-
-	for (let i = 0; i < filePaths.length; i++) {
-		const filepath = filePaths[i]
-		if (dirs.length > 0) {
-			for (let j = 0; j < dirs.length; j++) {
-				const dtxt = dirs[j]
-				if (filepath[i] !== dtxt) {
-					continue
-				} else if (j === dirs.length - 1) {
-					fileMap[filepath] = {
-						dir: dirs[j],
-					}
-					break
-				}
-			}
-		} else {
-			fileMap[filepath] = {
-				dir: dirs[0],
-			}
-		}
-	}
-
-	return dictionaries
-
-	// const hasUniteDictionaries = uniteDictionaries != null
-	// const hasUniteFilepath = uniteFilepath != null
-	// let dictionaries: UniteDictionaries | null = hasUniteDictionaries ? uniteDictionaries : null
-	//
-	// if (hasUniteDictionaries || hasUniteFilepath) {
-	// 	if (dictionaries == null) {
-	// 		dictionaries = JSON.parse(fs.readFileSync(uniteFilepath!, 'utf-8')) as UniteDictionaries
-	// 	}
-	// }
-}
-
 async function generateLocalesByUniteDictionaries(
 	dirs: string[],
 	uniteDictionaries: UniteDictionaries,
@@ -336,17 +293,25 @@ function moduleHotUpdate(server: ViteDevServer) {
 }
 
 function i18n(options: I18nOptions): any {
-	const { dirs, limitLocales, separator = '.' } = options || {}
-	let globMap: _GlobMap = {} // [[relativePath, filename(no-ext)], ...[]]
+	const {
+		dirs,
+		locales,
+		separator = DEFAULT_SEPARATOR,
+		flatName = DEFAULT_FLAT_NAME,
+	} = options || {}
+	let dictMap: DictionaryMap | null = {}
+	let isBuild = false
 
 	const plugin: Plugin = {
 		name: FULL_PLUGIN_NAME,
 		enforce: 'pre',
+		config(_, { command }) {
+			isBuild = command === 'build'
+		},
 		async configResolved() {
-			const uniteDictionaries = await resultUnitDictionaries(options)
-			if (uniteDictionaries != null)
-				await generateLocalesByUniteDictionaries(dirs, uniteDictionaries)
-			globMap = _generateLangGlobPath({ dirs })
+			const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
+			const dictMap = transformSamePathMap(filepathList, dirs, DEFAULT_FLAT_NAME)
+			const dictionaries: Dictionaries = await mergeDictionaries(dictMap)
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
@@ -415,6 +380,109 @@ function waitMs(timeout = 1000) {
 			resolve()
 		}, timeout)
 	})
+}
+
+async function recursiveFindPaths(dirPath: string, result: string[] = []) {
+	const pathList = await fs.promises.readdir(dirPath, { withFileTypes: true })
+
+	for (let i = 0; i < pathList.length; i++) {
+		const e = pathList[i]
+		const filepath = path.join(dirPath, e.name)
+
+		if (e.isDirectory()) {
+			await recursiveFindPaths(filepath, result)
+		} else if (/\.json$/.test(e.name)) {
+			result.push(filepath)
+		}
+	}
+
+	return result
+}
+
+function transformSamePathMap(filepathList: string[], dirs: string[], flatName: string) {
+	const filepathMap: DictionaryMap = {}
+
+	if (dirs.length === 0) return filepathMap
+
+	for (let i = 0; i < filepathList.length; i++) {
+		const filepath = filepathList[i]
+		if (dirs.length > 0) {
+			for (let j = 0; j < dirs.length; j++) {
+				const dir = dirs[j]
+				let isBreak = false
+
+				for (let k = 0; k < dir.length; k++) {
+					const dirTxt = dir[k]
+
+					if (filepath[k] !== dirTxt) {
+						break
+					} else if (k === dir.length - 1) {
+						const relativeFilepath = filepath.substring(dir.length)
+
+						filepathMap[relativeFilepath] = {
+							dir,
+							names: relativeFilepath
+								.substring(SL.length, relativeFilepath.length - 5)
+								.split(SL)
+								.filter(e => e !== flatName),
+						}
+						isBreak = true
+						break
+					}
+				}
+
+				if (isBreak) break
+			}
+		} else {
+			filepathMap[filepath] = {
+				dir: dirs[0],
+				names: [],
+			}
+		}
+	}
+
+	return filepathMap
+}
+
+async function mergeDictionaries(dictMap: DictionaryMap, dictionaries?: Dictionaries) {
+	const _dictionaries: Dictionaries = dictionaries || {}
+
+	for (let relativeFilepath in dictMap) {
+		const { dir, names } = dictMap[relativeFilepath]
+		const filepath = dir + relativeFilepath
+
+		try {
+			const dict = JSON.parse(await fs.promises.readFile(filepath, 'utf-8'))
+
+			for (let key in dict) {
+				const dv = dict[key]
+
+				for (let dvKey in dv) {
+					let node = _dictionaries
+
+					// 將 _dictionaries 根寫上語系
+					if (node[dvKey] == null) node[dvKey] = {}
+					node = node[dvKey] as Dictionaries
+
+					for (let i = 0; i < names.length; i++) {
+						const name = names[i]
+						if (node[name] == null) node[name] = {}
+						node = node[name] as Dictionaries
+					}
+
+					node[key] = dv[dvKey]
+				}
+			}
+		} catch {}
+	}
+
+	/* 結果會像是
+		{
+			zh_CN: { hello: '你好', skill: { code: '寫程式' } },
+			en_US: { hello: 'hello', skill: { code: 'coding' } },
+		}
+	 */
+	return _dictionaries
 }
 
 export { type UniteDictionaries, type I18nOptions, i18n }
