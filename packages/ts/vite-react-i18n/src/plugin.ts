@@ -1,13 +1,20 @@
 import type { Plugin, ViteDevServer } from 'vite'
 import fs from 'node:fs'
 import path from 'node:path'
-import { generateModuleFolder } from '../../../../utils/ts/node/generate-module-folder'
+import { generateModuleFolder } from '../../../../utils/ts/node/src/generate-module-folder'
+import { waitMs } from '../../../../utils/ts/node/src/wait-ms'
 
 type Dictionaries = {
 	[key: string]: string | Dictionaries
 }
 
 type DictionaryMap = Record<string, { dir: string; names: string[] }>
+
+type InjectIdxes = {
+	Dictionary: [number, number]
+	// Locale 直接插入，因為不會變了
+	// Locale: [number, number]
+}
 
 export type I18nOptions = {
 	// 字典檔目錄絕對路徑列表(後蓋前)
@@ -31,6 +38,8 @@ const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 const SL = path.normalize('/')
 const DEFAULT_FLAT_NAME = '_'
 const DEFAULT_SEPARATOR = '.'
+const INJECT_SYM = '__INJECT__'
+const VIRTUAL_CLIENT_TYPE_NAME = 'client.d.ts'
 
 function _generateLangGlobPath({ dirs }: Pick<I18nOptions, 'dirs'>) {
 	const globMap = {} as _GlobMap
@@ -316,7 +325,7 @@ export function i18n(options: I18nOptions): any {
 			const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
 			dictMap = transformSamePathMap(filepathList, dirs, DEFAULT_FLAT_NAME)
 			dictionaries = await mergeDictionaries(dictMap)
-			await generateVirtualTypes()
+			await matchVirtualTypes(locales)
 			if (isBuild) await generateDictionaryFiles(dictionaries)
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
@@ -378,14 +387,6 @@ export function i18n(options: I18nOptions): any {
 	}
 
 	return plugin
-}
-
-function waitMs(timeout = 1000) {
-	return new Promise<void>(resolve => {
-		setTimeout(() => {
-			resolve()
-		}, timeout)
-	})
 }
 
 async function recursiveFindPaths(dirPath: string, result: string[] = []) {
@@ -495,7 +496,65 @@ async function mergeDictionaries(dictMap: DictionaryMap, dictionaries?: Dictiona
 
 async function generateDictionaryFiles(dictionaries: Dictionaries | null) {
 	if (dictionaries == null) return
-	await generateModuleFolder(PACKAGE_NAME)
+	const moduleFolderPath = await generateModuleFolder(PACKAGE_NAME)
+	if (moduleFolderPath == null) return
+
+	return Promise.all(
+		Object.keys(dictionaries).map(locale =>
+			fs.promises.writeFile(
+				path.join(moduleFolderPath, `${locale}.ts`),
+				`export default ${JSON.stringify(dictionaries[locale], null, 2)}`,
+			),
+		),
+	)
 }
 
-async function generateVirtualTypes() {}
+async function matchVirtualTypes(locales: string[]) {
+	let typeStr = await fs.promises.readFile(
+		path.join(__dirname, `templates/${VIRTUAL_CLIENT_TYPE_NAME}`),
+		'utf-8',
+	)
+	const injectIdxes = {
+		Dictionary: [0, 0] as [number, number],
+		// Locale 直接插入，因為不會變了
+		// Locale: [0, 0] as [number, number],
+	}
+	const injectRegexp = new RegExp(`type\\s([A-z0-9]+)\\s?=\\s?(${INJECT_SYM})`, 'g')
+	let matchArray
+
+	while ((matchArray = injectRegexp.exec(typeStr)) !== null) {
+		const startIdx = matchArray.index
+		const endIdx = injectRegexp.lastIndex
+
+		if (matchArray[1] === 'Locale') {
+			appendInjectText(startIdx, endIdx, typeStr, createLocaleTypeString(locales))
+		} else {
+			injectIdxes[matchArray[1] as keyof typeof injectIdxes] = [startIdx, endIdx]
+		}
+	}
+
+	return {
+		baseTypeString: typeStr,
+		injectIdxes,
+	}
+}
+
+async function generateVirtualTypes(dirPath: string, baseTypeString: string, injectIdxes: {}) {
+	await fs.promises.writeFile(
+		path.join(dirPath, VIRTUAL_CLIENT_TYPE_NAME),
+		createDictionaryTypeString(),
+	)
+}
+
+function appendInjectText(start: number, end: number, text: string, injectText: string) {
+	return `${text.substring(0, start + end - INJECT_SYM.length)}${injectText}${text.substring(end)}`
+}
+
+function createDictionaryTypeString(dict: Dictionaries) {
+	if (Object.keys(dict).length === 0) return 'Record<string, string>'
+	return JSON.stringify(dict)
+}
+
+function createLocaleTypeString(locales: string[]) {
+	return locales.join(' | ')
+}
