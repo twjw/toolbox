@@ -1,6 +1,7 @@
 import type { Plugin, ViteDevServer } from 'vite'
 import fs from 'node:fs'
 import path from 'node:path'
+import { generateModuleFolder } from '../../../../utils/ts/node/generate-module-folder'
 
 type Dictionaries = {
 	[key: string]: string | Dictionaries
@@ -8,7 +9,7 @@ type Dictionaries = {
 
 type DictionaryMap = Record<string, { dir: string; names: string[] }>
 
-type I18nOptions = {
+export type I18nOptions = {
 	// 字典檔目錄絕對路徑列表(後蓋前)
 	dirs: string[]
 	// 字典語系檔名(zh_CN, en...)，對應字典 json 的 key，如果字典 key 比 locales 語系多也只會取出 locales 配置的語系
@@ -21,7 +22,8 @@ type I18nOptions = {
 
 type _GlobMap = Record<string, string> // <locale, globPath>
 
-const PLUGIN_NAME = '@wtbx/vite-react-i18n'
+const PACKAGE_NAME = 'vite-react-i18n'
+const PLUGIN_NAME = `@wtbx/${PACKAGE_NAME}`
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const V_MODULE_NAME = `~i18n`
 const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`
@@ -292,16 +294,18 @@ function moduleHotUpdate(server: ViteDevServer) {
 	}
 }
 
-function i18n(options: I18nOptions): any {
+export function i18n(options: I18nOptions): any {
 	const {
 		dirs,
 		locales,
 		separator = DEFAULT_SEPARATOR,
 		flatName = DEFAULT_FLAT_NAME,
 	} = options || {}
-	let dictMap: DictionaryMap | null = {}
+	let dictMap: DictionaryMap | null = null
+	let dictionaries: Dictionaries | null = null
 	let isBuild = false
 
+	// TODO 之後要擴展 tnode() 功能
 	const plugin: Plugin = {
 		name: FULL_PLUGIN_NAME,
 		enforce: 'pre',
@@ -310,8 +314,10 @@ function i18n(options: I18nOptions): any {
 		},
 		async configResolved() {
 			const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
-			const dictMap = transformSamePathMap(filepathList, dirs, DEFAULT_FLAT_NAME)
-			const dictionaries: Dictionaries = await mergeDictionaries(dictMap)
+			dictMap = transformSamePathMap(filepathList, dirs, DEFAULT_FLAT_NAME)
+			dictionaries = await mergeDictionaries(dictMap)
+			await generateVirtualTypes()
+			if (isBuild) await generateDictionaryFiles(dictionaries)
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
@@ -476,6 +482,8 @@ async function mergeDictionaries(dictMap: DictionaryMap, dictionaries?: Dictiona
 		} catch {}
 	}
 
+	if (Object.keys(_dictionaries).length === 0) return null
+
 	/* 結果會像是
 		{
 			zh_CN: { hello: '你好', skill: { code: '寫程式' } },
@@ -485,4 +493,9 @@ async function mergeDictionaries(dictMap: DictionaryMap, dictionaries?: Dictiona
 	return _dictionaries
 }
 
-export { type UniteDictionaries, type I18nOptions, i18n }
+async function generateDictionaryFiles(dictionaries: Dictionaries | null) {
+	if (dictionaries == null) return
+	await generateModuleFolder(PACKAGE_NAME)
+}
+
+async function generateVirtualTypes() {}

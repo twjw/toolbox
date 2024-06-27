@@ -38,7 +38,6 @@
 		"@types/react": "^18.2.64",
 		"@types/react-dom": "^18.2.21",
 		"@vitejs/plugin-react-swc": "^3.5.0",
-		"fast-glob": "^3.3.2",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"tsup": "^8.0.1",
@@ -47,7 +46,6 @@
 		"wtbx-types": "^1.0.3"
 	},
 	"peerDependencies": {
-		"fast-glob": ">=3",
 		"react": ">=17",
 		"vite": ">=4"
 	}
