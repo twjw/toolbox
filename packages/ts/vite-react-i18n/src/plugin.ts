@@ -2,7 +2,9 @@ import type { Plugin, ViteDevServer } from 'vite'
 import fs from 'node:fs'
 import path from 'node:path'
 import { generateModuleFolder } from '../../../../utils/ts/node/src/generate-module-folder'
-import { waitMs } from '../../../../utils/ts/node/src/wait-ms'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 type Dictionaries = {
 	[key: string]: string | Dictionaries
@@ -259,38 +261,38 @@ export { dictionary, locale, t, setLocale, App }
 `
 }
 
-async function generateLocalesByUniteDictionaries(
-	dirs: string[],
-	uniteDictionaries: UniteDictionaries,
-) {
-	let locales: Record<string, Record<string, string>> = {}
-
-	for (let k in uniteDictionaries) {
-		const dict = uniteDictionaries[k]
-
-		for (let dk in dict) {
-			const locale = dk.match(/\(([-_A-z]+)\)$/)
-			if (locale != null) {
-				if (locales[locale[1]] == null) locales[locale[1]] = {}
-				locales[locale[1]][k] = dict[dk]
-			}
-		}
-	}
-
-	const localesKeys = Object.keys(locales)
-	if (dirs.length === 0 || localesKeys.length === 0) return
-
-	await Promise.all(
-		localesKeys.map(locale =>
-			fs.promises.writeFile(
-				path.resolve(dirs[dirs.length - 1], `${locale}.ts`),
-				`const lang = ${JSON.stringify(locales[locale], null, 2)} as const
-
-export default lang`,
-			),
-		),
-	)
-}
+// async function generateLocalesByUniteDictionaries(
+// 	dirs: string[],
+// 	uniteDictionaries: UniteDictionaries,
+// ) {
+// 	let locales: Record<string, Record<string, string>> = {}
+//
+// 	for (let k in uniteDictionaries) {
+// 		const dict = uniteDictionaries[k]
+//
+// 		for (let dk in dict) {
+// 			const locale = dk.match(/\(([-_A-z]+)\)$/)
+// 			if (locale != null) {
+// 				if (locales[locale[1]] == null) locales[locale[1]] = {}
+// 				locales[locale[1]][k] = dict[dk]
+// 			}
+// 		}
+// 	}
+//
+// 	const localesKeys = Object.keys(locales)
+// 	if (dirs.length === 0 || localesKeys.length === 0) return
+//
+// 	await Promise.all(
+// 		localesKeys.map(locale =>
+// 			fs.promises.writeFile(
+// 				path.resolve(dirs[dirs.length - 1], `${locale}.ts`),
+// 				`const lang = ${JSON.stringify(locales[locale], null, 2)} as const
+//
+// export default lang`,
+// 			),
+// 		),
+// 	)
+// }
 
 function moduleHotUpdate(server: ViteDevServer) {
 	const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
@@ -312,6 +314,7 @@ export function i18n(options: I18nOptions): any {
 	} = options || {}
 	let dictMap: DictionaryMap | null = null
 	let dictionaries: Dictionaries | null = null
+	let moduleFolderPath: string | null = null
 	let isBuild = false
 
 	// TODO 之後要擴展 tnode() 功能
@@ -325,65 +328,74 @@ export function i18n(options: I18nOptions): any {
 			const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
 			dictMap = transformSamePathMap(filepathList, dirs, DEFAULT_FLAT_NAME)
 			dictionaries = await mergeDictionaries(dictMap)
-			await matchVirtualTypes(locales)
-			if (isBuild) await generateDictionaryFiles(dictionaries)
+			const { baseTypeString, injectIdxes } = await matchVirtualTypes(locales)
+			moduleFolderPath = await generateModuleFolder(PACKAGE_NAME)
+			if (isBuild && moduleFolderPath != null)
+				await generateDictionaryFiles(moduleFolderPath!, dictionaries)
+			if (dictionaries != null && moduleFolderPath != null)
+				await generateVirtualTypes(
+					dictionaries[Object.keys(dictionaries)[0]] as Dictionaries,
+					moduleFolderPath!,
+					baseTypeString,
+					injectIdxes,
+				)
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
-			let isUpdating = false
-
-			async function debounceGenerate(filepath: string) {
-				let filename = null as string | null
-
-				for (let i = 0; i < dirs.length; i++) {
-					const [, _filename] = filepath.split(dirs[i])
-					if (_filename != null) filename = _filename
-				}
-
-				if (isUpdating || !filename || !/^\\[A-z0-9-_]+\.(ts|json)$/.test(filename)) return
-
-				isUpdating = true
-				globMap = _generateLangGlobPath({ dirs })
-				await waitMs(250)
-				isUpdating = false
-
-				moduleHotUpdate(server)
-			}
-
-			server.watcher.on('unlink', debounceGenerate)
-			server.watcher.on('add', debounceGenerate)
-
-			const { uniteFilepath } = options
-			if (uniteFilepath != null) {
-				server.watcher.add(uniteFilepath)
-				server.watcher.on('change', async filepath => {
-					if (filepath === uniteFilepath) {
-						try {
-							const uniteDictionaries = JSON.parse(
-								fs.readFileSync(filepath, 'utf-8'),
-							) as UniteDictionaries
-							// TODO 尚有優化空間，比方說頻繁更改導致衝突可以使用排隊處理，但先不做，發生頻率不高
-							await generateLocalesByUniteDictionaries(dirs, uniteDictionaries)
-							await waitMs(250)
-							moduleHotUpdate(server)
-						} catch {
-							console.error(`[ERROR]${CONSOLE_NAME} 整合字典json檔語法錯誤導至熱更失敗，請確認`)
-						}
-					}
-				})
-			}
+			// let isUpdating = false
+			//
+			// async function debounceGenerate(filepath: string) {
+			// 	let filename = null as string | null
+			//
+			// 	for (let i = 0; i < dirs.length; i++) {
+			// 		const [, _filename] = filepath.split(dirs[i])
+			// 		if (_filename != null) filename = _filename
+			// 	}
+			//
+			// 	if (isUpdating || !filename || !/^\\[A-z0-9-_]+\.(ts|json)$/.test(filename)) return
+			//
+			// 	isUpdating = true
+			// 	globMap = _generateLangGlobPath({ dirs })
+			// 	await waitMs(250)
+			// 	isUpdating = false
+			//
+			// 	moduleHotUpdate(server)
+			// }
+			//
+			// server.watcher.on('unlink', debounceGenerate)
+			// server.watcher.on('add', debounceGenerate)
+			//
+			// const { uniteFilepath } = options
+			// if (uniteFilepath != null) {
+			// 	server.watcher.add(uniteFilepath)
+			// 	server.watcher.on('change', async filepath => {
+			// 		if (filepath === uniteFilepath) {
+			// 			try {
+			// 				const uniteDictionaries = JSON.parse(
+			// 					fs.readFileSync(filepath, 'utf-8'),
+			// 				) as UniteDictionaries
+			// 				// TODO 尚有優化空間，比方說頻繁更改導致衝突可以使用排隊處理，但先不做，發生頻率不高
+			// 				await generateLocalesByUniteDictionaries(dirs, uniteDictionaries)
+			// 				await waitMs(250)
+			// 				moduleHotUpdate(server)
+			// 			} catch {
+			// 				console.error(`[ERROR]${CONSOLE_NAME} 整合字典json檔語法錯誤導至熱更失敗，請確認`)
+			// 			}
+			// 		}
+			// 	})
+			// }
 		},
-		resolveId(id) {
-			if (id === V_MODULE_NAME) {
-				return V_MODULE_ID
-			}
-		},
-		load(id) {
-			if (id === V_MODULE_ID) {
-				if (Object.keys(globMap).length === 0) return
-				return _generateStringModule({ globMap, separator })
-			}
-		},
+		// resolveId(id) {
+		// 	if (id === V_MODULE_NAME) {
+		// 		return V_MODULE_ID
+		// 	}
+		// },
+		// load(id) {
+		// 	if (id === V_MODULE_ID) {
+		// 		if (Object.keys(globMap).length === 0) return
+		// 		return _generateStringModule({ globMap, separator })
+		// 	}
+		// },
 	}
 
 	return plugin
@@ -494,15 +506,12 @@ async function mergeDictionaries(dictMap: DictionaryMap, dictionaries?: Dictiona
 	return _dictionaries
 }
 
-async function generateDictionaryFiles(dictionaries: Dictionaries | null) {
+async function generateDictionaryFiles(dirPath: string, dictionaries: Dictionaries | null) {
 	if (dictionaries == null) return
-	const moduleFolderPath = await generateModuleFolder(PACKAGE_NAME)
-	if (moduleFolderPath == null) return
-
 	return Promise.all(
 		Object.keys(dictionaries).map(locale =>
 			fs.promises.writeFile(
-				path.join(moduleFolderPath, `${locale}.ts`),
+				path.join(dirPath, `${locale}.ts`),
 				`export default ${JSON.stringify(dictionaries[locale], null, 2)}`,
 			),
 		),
@@ -514,8 +523,8 @@ async function matchVirtualTypes(locales: string[]) {
 		path.join(__dirname, `templates/${VIRTUAL_CLIENT_TYPE_NAME}`),
 		'utf-8',
 	)
-	const injectIdxes = {
-		Dictionary: [0, 0] as [number, number],
+	const injectIdxes: InjectIdxes = {
+		Dictionary: [0, 0],
 		// Locale 直接插入，因為不會變了
 		// Locale: [0, 0] as [number, number],
 	}
@@ -539,10 +548,20 @@ async function matchVirtualTypes(locales: string[]) {
 	}
 }
 
-async function generateVirtualTypes(dirPath: string, baseTypeString: string, injectIdxes: {}) {
+async function generateVirtualTypes(
+	dict: Dictionaries,
+	dirPath: string,
+	baseTypeString: string,
+	injectIdxes: InjectIdxes,
+) {
 	await fs.promises.writeFile(
 		path.join(dirPath, VIRTUAL_CLIENT_TYPE_NAME),
-		createDictionaryTypeString(),
+		appendInjectText(
+			injectIdxes.Dictionary[0],
+			injectIdxes.Dictionary[1],
+			baseTypeString,
+			createDictionaryTypeString(dict),
+		),
 	)
 }
 

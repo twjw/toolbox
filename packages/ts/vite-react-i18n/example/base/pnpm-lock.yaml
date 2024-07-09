@@ -12,6 +12,7 @@ specifiers:
   typescript: ^5.2.2
   vite: ^5.1.6
   wtbx-types: ^1.0.3
+  wtbx-vite-react-i18n: link:..\..
 
 devDependencies:
   '@types/node': 20.14.5
@@ -25,6 +26,7 @@ devDependencies:
   typescript: 5.4.5
   vite: 5.3.1_@types+node@20.14.5
   wtbx-types: 1.0.4
+  wtbx-vite-react-i18n: link:../..
 
 packages:
 
