@@ -12,6 +12,9 @@ type CycleConvertPngAndWebpOptions = {
 
 	/** @desc 轉換到 png 的選項配置 */
 	formatPngSharpOptions?: PngOptions
+
+	/** @desc 將 zip-png 目錄轉換到 png 目錄下 */
+	zipPngSharpOptions?: PngOptions
 }
 
 type SupportExt = 'png' | 'webp'
@@ -20,6 +23,7 @@ const SL = path.normalize('/')
 const PLUGIN_NAME = 'wtbx-vite-cycle-convert-png-and-webp'
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
+const ZIP_PNG_DIR_NAME = 'zip-png'
 
 async function _convert(options: CycleConvertPngAndWebpOptions) {
 	for (let i = 0; i < options.dirs.length; i++) {
@@ -47,7 +51,9 @@ async function _convert(options: CycleConvertPngAndWebpOptions) {
 		if (!hasPngDir) await fs.promises.mkdir(pngDirPath)
 		if (!hasWebpDir) await fs.promises.mkdir(webpDirPath)
 
-		await _recursiveFindPicDir(
+		if (options.zipPngSharpOptions != null)
+			await _recursiveZipPng(dir, '', options.zipPngSharpOptions)
+		await _recursiveFindPicDirAndCreate(
 			'png',
 			dir,
 			relativeFilepathExistsMap,
@@ -55,7 +61,7 @@ async function _convert(options: CycleConvertPngAndWebpOptions) {
 			options.toWebpSharpOptions,
 			options.formatPngSharpOptions,
 		)
-		await _recursiveFindPicDir(
+		await _recursiveFindPicDirAndCreate(
 			'webp',
 			dir,
 			relativeFilepathExistsMap,
@@ -66,7 +72,40 @@ async function _convert(options: CycleConvertPngAndWebpOptions) {
 	}
 }
 
-async function _recursiveFindPicDir(
+async function _recursiveZipPng(
+	rootDirPath: string,
+	dirPath: string,
+	pngSharpOptions?: PngOptions,
+) {
+	const lstatList = await fs.promises.readdir(
+		`${rootDirPath}${SL}${ZIP_PNG_DIR_NAME}${dirPath}`,
+		{ withFileTypes: true },
+	)
+
+	for (let i = 0; i < lstatList.length; i++) {
+		const lstat = lstatList[i]
+		const filepath = `${dirPath}${SL}${lstat.name}`
+		if (lstat.isDirectory()) {
+			await _recursiveZipPng(rootDirPath, filepath)
+		} else {
+			const zipFilepath = `${rootDirPath}${SL}${ZIP_PNG_DIR_NAME}${filepath}`
+			const toFilepath = `${rootDirPath}${SL}png${filepath}`
+			const toDirPath = toFilepath.replace(/[^\/\\]+$/, '')
+
+			try {
+				await fs.promises.access(toDirPath)
+			} catch {
+				await fs.promises.mkdir(toDirPath, { recursive: true })
+			}
+
+			await sharp(zipFilepath).png(pngSharpOptions).toFile(toFilepath)
+
+			await fs.promises.rm(zipFilepath)
+		}
+	}
+}
+
+async function _recursiveFindPicDirAndCreate(
 	ext: SupportExt,
 	rootDirPath: string,
 	relativeFilepathExistsMap: Record<string, 1>,
@@ -85,7 +124,7 @@ async function _recursiveFindPicDir(
 		)[]
 
 		if (lstat.isDirectory()) {
-			await _recursiveFindPicDir(ext, rootDirPath, relativeFilepathExistsMap, filepath)
+			await _recursiveFindPicDirAndCreate(ext, rootDirPath, relativeFilepathExistsMap, filepath)
 		} else if (fileExt != null && fileExt === ext) {
 			const relativeFilepath = filepath.substring(rootDirPath.length)
 

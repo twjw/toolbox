@@ -1,0 +1,21 @@
+{
+	"name": "wtbx-vite-react-i18n-example-base",
+	"version": "0.0.0",
+	"type": "module",
+	"description": "",
+	"scripts": {
+		"dev": "node ./server.js"
+	},
+	"keywords": [],
+	"license": "ISC",
+	"dependencies": {},
+	"devDependencies": {
+		"sharp": "^0.33.4",
+		"vite": "^5.2.0",
+		"wtbx-vite-cycle-convert-png-and-webp": "link:..\\.."
+	},
+	"peerDependencies": {
+		"vite": ">=4",
+		"react": ">=17"
+	}
+}
