@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-cycle-convert-png-and-webp",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"type": "module",
-	"description": "實時轉換 webp, png 檔案 (更: 新增 zip-png 功能用來將初始檔案壓縮)",
+	"description": "實時轉換 webp, png 檔案 (更: 新增 zip-png 即時轉換功能)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist", "readme.md"],

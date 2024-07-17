@@ -11,4 +11,4 @@ await server.listen()
 server.printUrls()
 server.bindCLIShortcuts({ print: true })
 
-process.exit(0)
+// process.exit(0)

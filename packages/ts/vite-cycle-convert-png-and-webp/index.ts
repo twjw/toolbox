@@ -18,6 +18,15 @@ type CycleConvertPngAndWebpOptions = {
 }
 
 type SupportExt = 'png' | 'webp'
+type GetPathInfoParametersDirname = typeof ZIP_PNG_DIR_NAME | SupportExt
+type GetPathInfoParametersObjReturn = {
+	dirName: GetPathInfoParametersDirname
+	fileExt: SupportExt
+	rootDirPath: string
+	fileDirPath: string
+	noExtFilename: string
+}
+type GetPathInfoParametersReturn = null | GetPathInfoParametersObjReturn
 
 const SL = path.normalize('/')
 const PLUGIN_NAME = 'wtbx-vite-cycle-convert-png-and-webp'
@@ -51,8 +60,7 @@ async function _convert(options: CycleConvertPngAndWebpOptions) {
 		if (!hasPngDir) await fs.promises.mkdir(pngDirPath)
 		if (!hasWebpDir) await fs.promises.mkdir(webpDirPath)
 
-		if (options.zipPngSharpOptions != null)
-			await _recursiveZipPng(dir, '', options.zipPngSharpOptions)
+		await _recursiveZipPng(dir, '', options.zipPngSharpOptions)
 		await _recursiveFindPicDirAndCreate(
 			'png',
 			dir,
@@ -88,21 +96,28 @@ async function _recursiveZipPng(
 		if (lstat.isDirectory()) {
 			await _recursiveZipPng(rootDirPath, filepath)
 		} else {
-			const zipFilepath = `${rootDirPath}${SL}${ZIP_PNG_DIR_NAME}${filepath}`
-			const toFilepath = `${rootDirPath}${SL}png${filepath}`
-			const toDirPath = toFilepath.replace(/[^\/\\]+$/, '')
-
-			try {
-				await fs.promises.access(toDirPath)
-			} catch {
-				await fs.promises.mkdir(toDirPath, { recursive: true })
-			}
-
-			await sharp(zipFilepath).png(pngSharpOptions).toFile(toFilepath)
-
-			await fs.promises.rm(zipFilepath)
+			await _zipPngFile(rootDirPath, filepath, pngSharpOptions)
 		}
 	}
+}
+
+async function _zipPngFile(
+	rootDirPath: string,
+	relativeFilepath: string,
+	pngSharpOptions?: PngOptions,
+) {
+	const zipFilepath = `${rootDirPath}${SL}${ZIP_PNG_DIR_NAME}${relativeFilepath}`
+	const toFilepath = `${rootDirPath}${SL}png${relativeFilepath}`
+	const toDirPath = toFilepath.replace(/[^\/\\]+$/, '')
+
+	try {
+		await fs.promises.access(toDirPath)
+	} catch {
+		await fs.promises.mkdir(toDirPath, { recursive: true })
+	}
+
+	const buffer = await sharp(zipFilepath).png(pngSharpOptions).toBuffer()
+	await Promise.all([fs.promises.writeFile(toFilepath, buffer), fs.promises.rm(zipFilepath)])
 }
 
 async function _recursiveFindPicDirAndCreate(
@@ -206,41 +221,64 @@ function _getRootDirPath(options: CycleConvertPngAndWebpOptions, filepath: strin
 	for (let i = 0; i < options.dirs.length; i++) {
 		const dir = options.dirs[i]
 		const [s1, s2] = filepath.split(dir)
-		if (s1 === '' && s2[0] === SL) return dir
+		if (s1 === '') {
+			const [, dirName] = s2.match(new RegExp(`\\${SL}(png|webp|${ZIP_PNG_DIR_NAME})`)) || []
+			if (dirName != null) {
+				return {
+					dirPath: dir,
+					dirName,
+				}
+			}
+		}
 	}
 
 	return null
 }
 
-function _onUpdate(options: CycleConvertPngAndWebpOptions) {
+function _onUpdate(eventName: string, options: CycleConvertPngAndWebpOptions) {
 	return async (filepath: string) => {
 		const pathInfoParameters = _getPathInfoParameters(options, filepath)
 		if (pathInfoParameters == null) return
 
-		await _checkCreateAnotherPic(
-			...pathInfoParameters,
-			options.toWebpSharpOptions,
-			options.formatPngSharpOptions,
-		)
+		if (pathInfoParameters.dirName === ZIP_PNG_DIR_NAME) {
+			await _zipPngFile(
+				pathInfoParameters.rootDirPath,
+				`${pathInfoParameters.fileDirPath.substring(pathInfoParameters.rootDirPath.length + SL.length + ZIP_PNG_DIR_NAME.length, pathInfoParameters.fileDirPath.length)}${SL}${pathInfoParameters.noExtFilename}.${pathInfoParameters.fileExt}`,
+				options.zipPngSharpOptions,
+			)
+		} else {
+			await _checkCreateAnotherPic(
+				pathInfoParameters.fileExt,
+				pathInfoParameters.rootDirPath,
+				pathInfoParameters.fileDirPath,
+				pathInfoParameters.noExtFilename,
+				options.toWebpSharpOptions,
+				options.formatPngSharpOptions,
+			)
+		}
 	}
 }
 
-function _getPathInfoParameters(options: CycleConvertPngAndWebpOptions, filepath: string) {
-	const rootDirPath = _getRootDirPath(options, filepath)
-	if (rootDirPath == null) return rootDirPath
+function _getPathInfoParameters(
+	options: CycleConvertPngAndWebpOptions,
+	filepath: string,
+): GetPathInfoParametersReturn {
+	const { dirPath: rootDirPath, dirName } = _getRootDirPath(options, filepath) || {}
+	if (rootDirPath == null) return null
 
 	const filename = filepath.match(/[\\\/]([^\\\/]+)$/)?.[1]!
-	const [, noExtFilename, fileExt] = (filename.match(new RegExp(`(.+)\\.(.+)$`)) || []) as (
+	const [, noExtFilename, fileExt] = (filename.match(/(.+)\.(.+)$/) || []) as (
 		| string
 		| undefined
 	)[]
 
-	return [
-		fileExt as SupportExt,
+	return {
+		dirName: dirName as GetPathInfoParametersDirname,
+		fileExt: fileExt as SupportExt,
 		rootDirPath,
-		filepath.substring(0, filepath.length - filename.length - 1),
-		noExtFilename!,
-	] as const
+		fileDirPath: filepath.substring(0, filepath.length - filename.length - 1),
+		noExtFilename: noExtFilename!,
+	}
 }
 
 function cycleConvertPngAndWebp(options: CycleConvertPngAndWebpOptions): any {
@@ -252,16 +290,21 @@ function cycleConvertPngAndWebp(options: CycleConvertPngAndWebpOptions): any {
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟 png ⇆ webp 圖片轉換功能...`)
 		},
 		async configureServer(server) {
-			server.watcher.on('add', _onUpdate(options))
-			server.watcher.on('change', _onUpdate(options))
+			server.watcher.on('add', _onUpdate('add', options))
+			server.watcher.on('change', _onUpdate('change', options))
 			server.watcher.on('unlink', async filepath => {
 				const pathInfoParameters = _getPathInfoParameters(options, filepath)
-				if (pathInfoParameters == null) return
+				if (pathInfoParameters == null || pathInfoParameters.dirName === ZIP_PNG_DIR_NAME)
+					return
 
-				const { another, self } = _getPathInfo(...pathInfoParameters)
+				const { another, self } = _getPathInfo(
+					pathInfoParameters.fileExt,
+					pathInfoParameters.rootDirPath,
+					pathInfoParameters.fileDirPath,
+					pathInfoParameters.noExtFilename,
+				)
 
 				try {
-					await fs.promises.access(another.filepath)
 					await fs.promises.rm(another.filepath)
 				} catch {}
 			})
