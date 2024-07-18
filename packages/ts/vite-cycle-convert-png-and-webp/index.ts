@@ -85,20 +85,22 @@ async function _recursiveZipPng(
 	dirPath: string,
 	pngSharpOptions?: PngOptions,
 ) {
-	const lstatList = await fs.promises.readdir(
-		`${rootDirPath}${SL}${ZIP_PNG_DIR_NAME}${dirPath}`,
-		{ withFileTypes: true },
-	)
+	try {
+		const lstatList = await fs.promises.readdir(
+			`${rootDirPath}${SL}${ZIP_PNG_DIR_NAME}${dirPath}`,
+			{ withFileTypes: true },
+		)
 
-	for (let i = 0; i < lstatList.length; i++) {
-		const lstat = lstatList[i]
-		const filepath = `${dirPath}${SL}${lstat.name}`
-		if (lstat.isDirectory()) {
-			await _recursiveZipPng(rootDirPath, filepath)
-		} else {
-			await _zipPngFile(rootDirPath, filepath, pngSharpOptions)
+		for (let i = 0; i < lstatList.length; i++) {
+			const lstat = lstatList[i]
+			const filepath = `${dirPath}${SL}${lstat.name}`
+			if (lstat.isDirectory()) {
+				await _recursiveZipPng(rootDirPath, filepath)
+			} else {
+				await _zipPngFile(rootDirPath, filepath, pngSharpOptions)
+			}
 		}
-	}
+	} catch {}
 }
 
 async function _zipPngFile(
