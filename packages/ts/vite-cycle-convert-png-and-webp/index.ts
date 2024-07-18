@@ -194,7 +194,7 @@ async function _checkCreateAnotherPic(
 	dirPath: string,
 	noExtFilename: string,
 	toWebpSharpOptions?: WebpOptions,
-	formatPngSharpOptions?: WebpOptions,
+	formatPngSharpOptions?: PngOptions,
 ) {
 	const { another, self } = _getPathInfo(ext, rootDirPath, dirPath, noExtFilename)
 
