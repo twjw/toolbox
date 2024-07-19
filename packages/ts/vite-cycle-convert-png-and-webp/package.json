@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-cycle-convert-png-and-webp",
-	"version": "1.3.1",
+	"version": "1.4.0",
 	"type": "module",
-	"description": "實時轉換 webp, png 檔案 (更: 修正不用強制要求有 zip-png 目錄)",
+	"description": "實時轉換 webp, png 檔案 (更: png 壓縮使用 imagemin 庫來處理)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -24,22 +24,15 @@
 		"vite": "^5.0.10"
 	},
 	"devDependencies": {
+		"@types/imagemin": "^9.0.0",
 		"@types/node": "^20.9.0",
 		"tsup": "^8.0.1",
 		"typescript": "^5.2.2"
 	},
 	"peerDependencies": {
-		"sharp": ">=0",
-		"vite": ">=5",
 		"imagemin": ">=9",
-		"imagemin-pngquant": ">=10"
-	},
-	"peerDependenciesMeta": {
-		"imagemin": {
-			"optional": true
-		},
-		"imagemin-pngquant": {
-			"optional": true
-		}
+		"imagemin-pngquant": ">=10",
+		"sharp": ">=0",
+		"vite": ">=5"
 	}
 }

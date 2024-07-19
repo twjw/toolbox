@@ -2,6 +2,8 @@ import type { Plugin } from 'vite'
 import path from 'path'
 import fs from 'fs'
 import sharp, { type PngOptions, type WebpOptions } from 'sharp'
+import imagemin from 'imagemin'
+import imageminPngquant, { Options as ImageminPngOptions } from 'imagemin-pngquant'
 
 type CycleConvertPngAndWebpOptions = {
 	/** @desc 要轉換的目錄(absolute path) */
@@ -14,7 +16,7 @@ type CycleConvertPngAndWebpOptions = {
 	formatPngSharpOptions?: PngOptions
 
 	/** @desc 將 zip-png 目錄轉換到 png 目錄下 */
-	zipPngSharpOptions?: PngOptions
+	zipPngImageminOptions?: ImageminPngOptions
 }
 
 type SupportExt = 'png' | 'webp'
@@ -60,7 +62,7 @@ async function _convert(options: CycleConvertPngAndWebpOptions) {
 		if (!hasPngDir) await fs.promises.mkdir(pngDirPath)
 		if (!hasWebpDir) await fs.promises.mkdir(webpDirPath)
 
-		await _recursiveZipPng(dir, '', options.zipPngSharpOptions)
+		await _recursiveZipPng(dir, '', options.zipPngImageminOptions)
 		await _recursiveFindPicDirAndCreate(
 			'png',
 			dir,
@@ -83,7 +85,7 @@ async function _convert(options: CycleConvertPngAndWebpOptions) {
 async function _recursiveZipPng(
 	rootDirPath: string,
 	dirPath: string,
-	pngSharpOptions?: PngOptions,
+	pngImageminOptions?: ImageminPngOptions,
 ) {
 	try {
 		const lstatList = await fs.promises.readdir(
@@ -97,7 +99,7 @@ async function _recursiveZipPng(
 			if (lstat.isDirectory()) {
 				await _recursiveZipPng(rootDirPath, filepath)
 			} else {
-				await _zipPngFile(rootDirPath, filepath, pngSharpOptions)
+				await _zipPngFile(rootDirPath, filepath, pngImageminOptions)
 			}
 		}
 	} catch {}
@@ -106,20 +108,18 @@ async function _recursiveZipPng(
 async function _zipPngFile(
 	rootDirPath: string,
 	relativeFilepath: string,
-	pngSharpOptions?: PngOptions,
+	pngImageminOptions?: ImageminPngOptions,
 ) {
 	const zipFilepath = `${rootDirPath}${SL}${ZIP_PNG_DIR_NAME}${relativeFilepath}`
 	const toFilepath = `${rootDirPath}${SL}png${relativeFilepath}`
-	const toDirPath = toFilepath.replace(/[^\/\\]+$/, '')
+	const imageminInputFilepath = zipFilepath.replace(/\\/g, '/')
+	const imageminToDirPath = toFilepath.replace(/\\/g, '/').replace(/(\/)[^\/]+$/, '$1')
 
-	try {
-		await fs.promises.access(toDirPath)
-	} catch {
-		await fs.promises.mkdir(toDirPath, { recursive: true })
-	}
-
-	const buffer = await sharp(zipFilepath).png(pngSharpOptions).toBuffer()
-	await Promise.all([fs.promises.writeFile(toFilepath, buffer), fs.promises.rm(zipFilepath)])
+	await imagemin([imageminInputFilepath], {
+		destination: imageminToDirPath,
+		plugins: [imageminPngquant(pngImageminOptions)],
+	})
+	await fs.promises.rm(zipFilepath)
 }
 
 async function _recursiveFindPicDirAndCreate(
@@ -246,7 +246,7 @@ function _onUpdate(eventName: string, options: CycleConvertPngAndWebpOptions) {
 			await _zipPngFile(
 				pathInfoParameters.rootDirPath,
 				`${pathInfoParameters.fileDirPath.substring(pathInfoParameters.rootDirPath.length + SL.length + ZIP_PNG_DIR_NAME.length, pathInfoParameters.fileDirPath.length)}${SL}${pathInfoParameters.noExtFilename}.${pathInfoParameters.fileExt}`,
-				options.zipPngSharpOptions,
+				options.zipPngImageminOptions,
 			)
 		} else {
 			await _checkCreateAnotherPic(

@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@types/imagemin': ^9.0.0
   '@types/node': ^20.9.0
   imagemin: ^9.0.0
   imagemin-pngquant: ^10.0.0
@@ -16,6 +17,7 @@ dependencies:
   vite: 5.0.11_@types+node@20.11.5
 
 devDependencies:
+  '@types/imagemin': 9.0.0
   '@types/node': 20.11.5
   tsup: 8.0.1_typescript@5.3.3
   typescript: 5.3.3
@@ -581,6 +583,12 @@ packages:
 
   /@types/estree/1.0.5:
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
+
+  /@types/imagemin/9.0.0:
+    resolution: {integrity: sha512-4IaT+BdPUAFf/AAy3XlFAbqGk4RawhdidxWO5XTe+PJAYAr4d7m2FHiqyEPXbDpwS+IaLIJq5AIjLE9HcwMGBg==}
+    dependencies:
+      '@types/node': 20.11.5
+    dev: true
 
   /@types/keyv/3.1.4:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}

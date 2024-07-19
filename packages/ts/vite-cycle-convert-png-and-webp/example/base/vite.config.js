@@ -5,8 +5,8 @@ export default {
 	plugins: [
 		cycleConvertPngAndWebp({
 			dirs: [path.resolve(process.cwd(), 'public')],
-			zipPngSharpOptions: {
-				quality: 70,
+			zipPngImageminOptions: {
+				quality: [0.7, 0.7],
 			},
 		}),
 	],
