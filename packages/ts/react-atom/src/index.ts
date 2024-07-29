@@ -16,52 +16,120 @@ export type ApiModel<T> = {
 	watch: Watch<T>
 }
 
-export type Model<T> = T & SetModel<T> & ApiModel<T>
+type PrivateAtom = Atom<any> &
+	Partial<
+		// 取該 atom id
+		| Record<typeof keywordAtomId, number>
+		// 更換該 atom 的 value
+		| Record<typeof keywordAtomUpdateCombineValue, () => void>
+	>
+
+export type Atom<T> = T & SetModel<T> & ApiModel<T>
+
+export type AtomFuncValue<T> = (
+	get: <M extends Atom<any>>(atom: M) => M extends Atom<infer MT> ? MT : never,
+) => T
+
+export type AtomValue<T> = T | AtomFuncValue<T>
 
 const keywordUse = 'use'
 const keywordWatch = 'watch'
+const keywordAtomId = '$1'
+const keywordAtomUpdateCombineValue = '$2'
+/** @desc useSyncExternalStore 監聽的事件們(以 atomId 區分) */
+const listeners: Record<number, Set<VoidFn>> = {}
+/** @desc watch 監聽的事件們(以 atomId 區分) */
+const watchers: Record<number, Set<WatchListener<any>>> = {}
+/** @desc atomId 關聯的 id 們，值裡的 id 為 key id 原子變動時要調用的 id 們 */
+const idCombiners: Record<number, Set<PrivateAtom>> = {}
+let atomId = 0
 
-function watom<T>(model: T) {
-	const ref = { value: model }
-	const listeners: Set<VoidFn> = new Set()
-	const watchers: Set<WatchListener<T>> = new Set()
+export function watom<T>(value: AtomValue<T>) {
+	const id = atomId++
+	const isFuncValue = typeof value === 'function'
+	let currentValue = isFuncValue ? (undefined as T) : value
 
-	function subscribe(listener: VoidFn) {
-		listeners.add(listener)
-		return () => listeners.delete(listener)
+	listeners[id] = new Set()
+	watchers[id] = new Set()
+
+	const result = new Proxy((() => undefined) as unknown as PrivateAtom, {
+		get(_, k) {
+			if (k === keywordUse) return useSyncExternalStore(subscribe(id), getSnapshot)
+			if (k === keywordWatch) return watch(id)
+			if (k === keywordAtomId) return id
+			if (k === keywordAtomUpdateCombineValue) return updateCurrentValue
+			return currentValue
+		},
+		set() {
+			throw new Error('[wtbx-react-atom] Data cannot be changed directly')
+		},
+		apply(_, __, [updaterOrVal]) {
+			const oldValue = currentValue
+			const newValue = updaterOrVal instanceof Function ? updaterOrVal(oldValue) : updaterOrVal
+
+			if (currentValue === newValue) return
+
+			currentValue = newValue
+
+			listeners[id].forEach(fn => fn())
+			watchers[id].forEach(fn => fn(oldValue, newValue))
+			emitCombinerAtoms(idCombiners[id], oldValue, newValue)
+		},
+	})
+
+	if (isFuncValue) {
+		currentValue = combineAtoms(result, value as AtomFuncValue<T>)
 	}
 
 	function getSnapshot() {
-		return ref.value
+		return currentValue
 	}
 
-	function watch(listener: WatchListener<T>) {
-		watchers.add(listener)
-		return () => watchers.delete(listener)
+	function updateCurrentValue() {
+		currentValue = (value as AtomFuncValue<T>)(getAtomValue)
 	}
 
-	return new Proxy((() => undefined) as unknown as Model<T>, {
-		get(_, k) {
-			if (k === keywordUse) return useSyncExternalStore(subscribe, getSnapshot)
-			if (k === keywordWatch) return watch
-			return ref.value
-		},
-		set() {
-			throw new Error('[wtbx-react-atom] 不可直接更改數據')
-		},
-		apply(_, __, [updaterOrVal]) {
-			const oldValue = ref.value
-			const newValue = updaterOrVal instanceof Function ? updaterOrVal(oldValue) : updaterOrVal
+	return result as Atom<T>
+}
 
-			if (ref.value === newValue) return
+function subscribe(id: number) {
+	return function (listener: VoidFn) {
+		listeners[id].add(listener)
+		return () => listeners[id].delete(listener)
+	}
+}
 
-			ref.value = newValue
-			listeners.forEach(e => e())
-			if (watchers.size > 0) {
-				watchers.forEach(e => e(oldValue, newValue))
-			}
-		},
+function watch(id: number) {
+	return function (listener: WatchListener<any>) {
+		watchers[id].add(listener)
+		return () => watchers[id].delete(listener)
+	}
+}
+
+function getAtomValue(atom: PrivateAtom) {
+	return atom.value
+}
+
+function combineAtoms<T>(result: PrivateAtom, combineValue: AtomFuncValue<T>): T {
+	return combineValue((atom: PrivateAtom) => {
+		const combineAtomId = atom[keywordAtomId] as number
+		if (idCombiners[combineAtomId] == null) idCombiners[combineAtomId] = new Set()
+		idCombiners[combineAtomId].add(result)
+		return atom.value
 	})
 }
 
-export { watom }
+function emitCombinerAtoms(
+	combinerAtoms: Set<PrivateAtom> | undefined,
+	oldValue: any,
+	newValue: any,
+) {
+	if (!combinerAtoms) return
+
+	combinerAtoms.forEach(atom => {
+		const combineId = atom[keywordAtomId]
+		atom[keywordAtomUpdateCombineValue]()
+		listeners[combineId].forEach(fn => fn())
+		watchers[combineId].forEach(fn => fn(oldValue, newValue))
+	})
+}

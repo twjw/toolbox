@@ -1,8 +1,9 @@
 import { ChangeTimes } from './change-times.tsx'
 import { watom } from 'wtbx-react-atom'
+import { useState } from 'react'
 
-const $count = watom(0 as number)
-const doubleCount = () => $count.value * 2
+const $count = watom<number>(0)
+const $doubleCount = watom(get => get($count) * 2)
 
 const stop = $count.watch((before, after) => {
 	console.log(`$count before: ${before}, after: ${after}`)
@@ -23,10 +24,12 @@ function Count() {
 	)
 }
 
-function ComputedCount() {
+function DoubleCount() {
+	const doubleCount = $doubleCount.use
+
 	return (
 		<span>
-			(x2 = {doubleCount()}
+			(x2 = {doubleCount}
 			<ChangeTimes />)
 		</span>
 	)
@@ -45,6 +48,9 @@ function ResetBtn() {
 }
 
 function BaseSample() {
+	const [isShowCount, setIsShowCount] = useState(true)
+	const [isShowDoubleCount, setIsShowDoubleCount] = useState(true)
+
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 			<h5 style={{ margin: '0 0 8px', textAlign: 'center' }}>
@@ -52,8 +58,19 @@ function BaseSample() {
 				<div>(components/base-sample.tsx)</div>
 			</h5>
 
-			<Count />
-			{/*<ComputedCount />*/}
+			{isShowCount && <Count />}
+			{isShowDoubleCount && <DoubleCount />}
+
+			<hr />
+			<div style={{ display: 'flex' }}>
+				<button onClick={() => setIsShowCount(e => !e)}>
+					{isShowCount ? '隱藏' : '顯示'} count
+				</button>
+				<button onClick={() => setIsShowDoubleCount(e => !e)}>
+					{isShowDoubleCount ? '隱藏' : '顯示'} doubleCount
+				</button>
+			</div>
+			<hr />
 
 			<div style={{ display: 'flex' }}>
 				<ChangeTimes />
