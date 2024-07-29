@@ -2,6 +2,7 @@ import { ChangeTimes } from './change-times.tsx'
 import { watom } from 'wtbx-react-atom'
 
 const $count = watom(0 as number)
+const doubleCount = () => $count.value * 2
 
 const stop = $count.watch((before, after) => {
 	console.log(`$count before: ${before}, after: ${after}`)
@@ -13,10 +14,20 @@ const stop = $count.watch((before, after) => {
 
 function Count() {
 	const count = $count.use
+
 	return (
 		<span>
 			{count}
 			<ChangeTimes />
+		</span>
+	)
+}
+
+function ComputedCount() {
+	return (
+		<span>
+			(x2 = {doubleCount()}
+			<ChangeTimes />)
 		</span>
 	)
 }
@@ -40,7 +51,10 @@ function BaseSample() {
 				<div>基本計數器範例</div>
 				<div>(components/base-sample.tsx)</div>
 			</h5>
+
 			<Count />
+			{/*<ComputedCount />*/}
+
 			<div style={{ display: 'flex' }}>
 				<ChangeTimes />
 				<div style={{ width: 8 }} />

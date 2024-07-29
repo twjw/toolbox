@@ -5,15 +5,13 @@
   "description": "極簡 react18+ 原子狀態管理 (更: package.json 更新)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist",
+  "files": [
+    "dist",
     "readme.md"
   ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "build-package": "tsup src/index.ts --format esm --dts --clean",
-    "publish-package": "pnpm run build-package && npm publish"
+    "build-package:react-atom-example": "tsup src/index.ts --format esm --dts --clean",
+    "publish-package:react-atom-example": "pnpm run build-package:react-atom-example && npm publish"
   },
   "keywords": [
     "wtbx",
@@ -23,17 +21,13 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^18.2.0"
   },
   "devDependencies": {
     "@types/node": "^18.19.23",
     "@types/react": "^18.2.64",
-    "@types/react-dom": "^18.2.21",
-    "@vitejs/plugin-react-swc": "^3.5.0",
     "tsup": "^8.0.2",
-    "typescript": "^5.2.2",
-    "vite": "^5.1.6"
+    "typescript": "^5.2.2"
   },
   "peerDependencies": {
     "react": ">=18"
