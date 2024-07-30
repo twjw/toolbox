@@ -7,8 +7,8 @@
 	"types": "dist/index.d.ts",
 	"files": ["dist", "readme.md"],
 	"scripts": {
-		"build": "tsup-node src/index.ts --platform node --format esm --dts --clean",
-		"publish-package": "pnpm run build && npm publish"
+		"build-package:vite-react-page-routes": "tsup-node src/index.ts --platform node --format esm --dts --clean",
+		"publish-package:vite-react-page-routes": "pnpm run build && npm publish"
 	},
 	"keywords": ["typescript", "vite", "plugin", "react", "react-router"],
 	"license": "ISC",

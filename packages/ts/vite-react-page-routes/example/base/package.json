@@ -1,0 +1,40 @@
+{
+  "name": "base-example",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "readme.md"
+  ],
+  "scripts": {
+    "vite-dev:vite-react-page-routes": "vite",
+    "vite-build:vite-react-page-routes": "tsc && vite build",
+    "vite-preview:vite-react-page-routes": "vite preview"
+  },
+  "keywords": [
+    "wtbx",
+    "typescript",
+    "react",
+    "store manager"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "6.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.64",
+    "@types/react-dom": "^18.2.21",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.6",
+    "wtbx-vite-react-page-routes": "link:..\\.."
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  }
+}
