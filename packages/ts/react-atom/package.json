@@ -1,8 +1,8 @@
 {
   "name": "wtbx-react-atom",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
-  "description": "極簡 react18+ 原子狀態管理 (更: 新增類 vue 的 computed 擴展)",
+  "description": "極簡 react18+ 原子狀態管理 (更: 內部代碼美化)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

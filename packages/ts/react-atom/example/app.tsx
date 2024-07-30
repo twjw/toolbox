@@ -4,13 +4,11 @@ function App() {
 	return (
 		<div
 			style={{
-				width: '100vw',
-				minHeight: '100vh',
+				width: '100%',
+				height: '100%',
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center',
-				fontSize: 32,
-				flexDirection: 'column',
 			}}
 		>
 			<BaseSample />
