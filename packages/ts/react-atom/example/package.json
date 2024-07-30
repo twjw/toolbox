@@ -1,5 +1,5 @@
 {
-  "name": "wtbx-react-atom-example",
+  "name": "example",
   "version": "0.0.0",
   "type": "module",
   "description": "",
@@ -9,9 +9,9 @@
     "readme.md"
   ],
   "scripts": {
-    "dev:react-atom-example": "vite",
-    "build:react-atom-example": "tsc && vite build",
-    "preview:react-atom-example": "vite preview"
+    "vite-dev:react-atom-example": "vite",
+    "vite-build:react-atom-example": "tsc && vite build",
+    "vite-preview:react-atom-example": "vite preview"
   },
   "keywords": [
     "wtbx",
@@ -22,15 +22,15 @@
   "license": "ISC",
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "wtbx-react-atom": "link:.."
   },
   "devDependencies": {
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "typescript": "^5.2.2",
-    "vite": "^5.1.6",
-    "wtbx-react-atom": "link:.."
+    "vite": "^5.1.6"
   },
   "peerDependencies": {
     "react": ">=18"
