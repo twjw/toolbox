@@ -26,6 +26,7 @@
   "devDependencies": {
     "@types/node": "^18.19.23",
     "@types/react": "^18.2.64",
+    "benny": "^3.7.1",
     "tsup": "^8.0.2",
     "typescript": "^5.2.2"
   },

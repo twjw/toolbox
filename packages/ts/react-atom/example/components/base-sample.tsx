@@ -6,14 +6,14 @@ const $count = watom<number>(0)
 const $doubleCount = watom(get => get($count) * 2)
 
 const stop = $count.watch((before, after) => {
-	console.log(`[$count watch] before: ${before}, after: ${after}`)
+	console.log(
+		`[$count watch] before: ${before}, after: ${after}, doubleCount: ${$doubleCount.value}`,
+	)
 	if (after === 0) {
 		alert('$count 已經歸 0，清除監聽器(watch)')
 		stop()
 	}
 })
-
-// $count(e => e + 1)
 
 function Count() {
 	const count = $count.use()
@@ -49,7 +49,7 @@ function ResetBtn() {
 	return <button onClick={() => $count(0)}>歸 0</button>
 }
 
-function BaseSample() {
+export function BaseSample() {
 	const [isShowCount, setIsShowCount] = useState(true)
 	const [isShowDoubleCount, setIsShowDoubleCount] = useState(true)
 
@@ -86,5 +86,3 @@ function BaseSample() {
 		</div>
 	)
 }
-
-export { BaseSample }

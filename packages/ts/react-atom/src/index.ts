@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
 export type WatchListener<T> = (before: T, after: T) => void
+
 export type Watch<T> = (listener: WatchListener<T>) => () => void
 
 export type AtomUpdater<T> = {
@@ -100,8 +101,8 @@ function atomApply(this: AtomRef, _: any, __: any, [updaterOrVal]: [AtomUpdater<
 	this.set(REF_K_VALUE, newValue)
 
 	const atom = this.get(REF_PK_ATOM)
-	emitListener(atom, oldValue, newValue)
 	emitCombinerAtoms(atomCombiners.get(atom), oldValue, newValue)
+	emitListener(atom, oldValue, newValue)
 }
 
 function subscribe(atom: PrivateAtom, listener: VoidFn) {
