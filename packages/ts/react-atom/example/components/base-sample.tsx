@@ -6,15 +6,17 @@ const $count = watom<number>(0)
 const $doubleCount = watom(get => get($count) * 2)
 
 const stop = $count.watch((before, after) => {
-	console.log(`$count before: ${before}, after: ${after}`)
+	console.log(`[$count watch] before: ${before}, after: ${after}`)
 	if (after === 0) {
-		alert('$count 已經歸 0，清除監聽器')
+		alert('$count 已經歸 0，清除監聽器(watch)')
 		stop()
 	}
 })
 
+// $count(e => e + 1)
+
 function Count() {
-	const count = $count.use
+	const count = $count.use()
 
 	return (
 		<span>
@@ -25,7 +27,7 @@ function Count() {
 }
 
 function DoubleCount() {
-	const doubleCount = $doubleCount.use
+	const doubleCount = $doubleCount.use()
 
 	return (
 		<span>
