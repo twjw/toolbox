@@ -7,6 +7,15 @@ function Page() {
 				<Link to={'/home'}>
 					<button>/home</button>
 				</Link>
+				<Link to={'/account'}>
+					<button>/account</button>
+				</Link>
+				<Link to={'/purple'}>
+					<button>/purple</button>
+				</Link>
+				<Link to={'/purple/list'}>
+					<button>/purple/list</button>
+				</Link>
 			</div>
 
 			<hr />

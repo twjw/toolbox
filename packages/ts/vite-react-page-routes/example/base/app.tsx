@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { createPageRoutes } from '~page-routes'
 
@@ -24,5 +24,5 @@ export function App() {
 }
 
 function RouteGuard({ path, children }: { path: string; children: ReactNode }) {
-	return children
+	return <Suspense fallback={null}>{children}</Suspense>
 }

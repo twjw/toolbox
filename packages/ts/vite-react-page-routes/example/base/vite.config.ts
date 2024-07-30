@@ -8,7 +8,10 @@ export default defineConfig({
 	plugins: [
 		react(),
 		pageRoutes({
-			pages: [path.resolve(process.cwd(), 'pages')],
+			pages: [
+				path.resolve(process.cwd(), 'pages', 'common'),
+				path.resolve(process.cwd(), 'pages', 'purple'),
+			],
 		}),
 	],
 	publicDir: false,
