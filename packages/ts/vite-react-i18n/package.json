@@ -19,7 +19,7 @@
 		}
 	},
 	"scripts": {
-		"build-package:vite-react-i18n": "tsup-node src/index.ts --platform node --format esm --dts --clean",
+		"build-package:vite-react-i18n": "tsx build.ts",
 		"publish-package:vite-react-i18n": "pnpm run build-package && npm publish"
 	},
 	"keywords": [
@@ -38,6 +38,7 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"tsup": "^8.0.1",
+		"tsx": "^4.16.3",
 		"typescript": "^5.2.2",
 		"vite": "^5.1.6",
 		"wtbx-types": "^1.0.3"
