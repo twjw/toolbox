@@ -23,24 +23,15 @@ export type AtomInitialValue<T> = T | AtomInitialCombineFunction<T>
 
 type VoidFn = () => void
 
-type KeyOfMap<M extends Map<unknown, unknown>> = M extends Map<infer K, unknown> ? K : never
-
 type PrivateAtom = Atom<any> &
 	Partial<
 		// 更換該 atom 的 value
 		Record<typeof REF_PK_COMBINE_VALUE, () => void>
 	>
 
-type AtomRef = Map<typeof REF_K_USE, VoidFn> &
-	Map<typeof REF_K_WATCH, (listener: WatchListener<any>) => void> &
-	Map<typeof REF_K_VALUE, any> &
-	Map<typeof REF_PK_ATOM, PrivateAtom> &
-	Map<typeof REF_PK_COMBINE_VALUE, VoidFn>
-
 const REF_K_USE = 'use'
 const REF_K_WATCH = 'watch'
 const REF_K_VALUE = 'value'
-const REF_PK_ATOM = 'a'
 const REF_PK_COMBINE_VALUE = 'c'
 /** @desc useSyncExternalStore 監聽的事件們(以 atomId 區分) */
 const listeners: Map<PrivateAtom, Set<VoidFn>> = new Map()
@@ -52,21 +43,22 @@ const atomCombiners: Map<PrivateAtom, Set<PrivateAtom>> = new Map()
 export function watom<T>(initialValue: AtomInitialValue<T>) {
 	const isCombineValue = typeof initialValue === 'function'
 	// ref 值在下方延遲塞入
-	const ref = new Map() as AtomRef
-	const atom = new Proxy((() => undefined) as unknown as PrivateAtom, atomHandler(ref) as any)
+	const atom = function (updaterOrVal: AtomUpdater<T> | T) {
+		updateAtom.call(atom, updaterOrVal)
+	} as PrivateAtom
+
+	atom[REF_K_USE] = useAtom.bind(atom)
+	atom[REF_K_WATCH] = watch.bind(atom)
 
 	// 塞入 ref 值
 	if (isCombineValue) {
-		ref.set(REF_K_VALUE, combineAtoms(atom, initialValue as AtomInitialCombineFunction<T>))
-		ref.set(REF_PK_COMBINE_VALUE, () => {
-			ref.set(REF_K_VALUE, (initialValue as AtomInitialCombineFunction<T>)(getAtomValue))
-		})
+		atom[REF_K_VALUE] = combineAtoms.call(atom, initialValue as AtomInitialCombineFunction<T>)
+		atom[REF_PK_COMBINE_VALUE] = () => {
+			atom[REF_K_VALUE] = (initialValue as AtomInitialCombineFunction<T>)(getAtomValue)
+		}
 	} else {
-		ref.set(REF_K_VALUE, initialValue)
+		atom[REF_K_VALUE] = initialValue
 	}
-	ref.set(REF_PK_ATOM, atom)
-	ref.set(REF_K_USE, () => useSyncExternalStore(subscribe(atom), () => ref.get(REF_K_VALUE)!))
-	ref.set(REF_K_WATCH, watch(atom))
 
 	listeners.set(atom, new Set())
 	watchers.set(atom, new Set())
@@ -74,59 +66,40 @@ export function watom<T>(initialValue: AtomInitialValue<T>) {
 	return atom as Atom<T>
 }
 
-function atomHandler(ref: AtomRef) {
-	return {
-		get: atomGet(ref),
-		set: atomSet,
-		apply: atomApply(ref),
-	}
+function useAtom(this: PrivateAtom) {
+	return useSyncExternalStore(subscribe.bind(this), () => this[REF_K_VALUE])
 }
 
-function atomGet(ref: AtomRef) {
-	return (_: any, k: KeyOfMap<AtomRef>) => ref.get(k)
+function updateAtom<T = any>(this: PrivateAtom, updaterOrVal: AtomUpdater<T> | T) {
+	const oldValue = this[REF_K_VALUE]
+	const newValue = updaterOrVal instanceof Function ? updaterOrVal(oldValue) : updaterOrVal
+
+	if (oldValue === newValue) return
+
+	this[REF_K_VALUE] = newValue
+
+	emitCombinerAtoms(atomCombiners.get(this), oldValue, newValue)
+	emitListener(this, oldValue, newValue)
 }
 
-function atomSet() {
-	throw new Error('[wtbx-react-atom] Data cannot be changed directly')
+function subscribe(this: PrivateAtom, listener: VoidFn) {
+	listeners.get(this)!.add(listener)
+	return () => listeners.get(this)!.delete(listener)
 }
 
-function atomApply(ref: AtomRef) {
-	return (_: any, __: any, [updaterOrVal]: [AtomUpdater<any> | any]) => {
-		const oldValue = ref.get(REF_K_VALUE)
-		const newValue = updaterOrVal instanceof Function ? updaterOrVal(oldValue) : updaterOrVal
-
-		if (oldValue === newValue) return
-
-		ref.set(REF_K_VALUE, newValue)
-
-		const atom = ref.get(REF_PK_ATOM)
-		emitCombinerAtoms(atomCombiners.get(atom), oldValue, newValue)
-		emitListener(atom, oldValue, newValue)
-	}
-}
-
-function subscribe(atom: PrivateAtom) {
-	return (listener: VoidFn) => {
-		listeners.get(atom)!.add(listener)
-		return () => listeners.get(atom)!.delete(listener)
-	}
-}
-
-function watch(atom: PrivateAtom) {
-	return (listener: WatchListener<any>) => {
-		watchers.get(atom)!.add(listener)
-		return () => watchers.get(atom)!.delete(listener)
-	}
+function watch(this: PrivateAtom, listener: WatchListener<any>) {
+	watchers.get(this)!.add(listener)
+	return () => watchers.get(this)!.delete(listener)
 }
 
 function getAtomValue(atom: PrivateAtom) {
 	return atom.value
 }
 
-function combineAtoms<T>(atom: PrivateAtom, combineValue: AtomInitialCombineFunction<T>): T {
+function combineAtoms<T>(this: PrivateAtom, combineValue: AtomInitialCombineFunction<T>): T {
 	return combineValue((combineAtom: PrivateAtom) => {
 		if (atomCombiners.get(combineAtom) == null) atomCombiners.set(combineAtom, new Set())
-		atomCombiners.get(combineAtom)!.add(atom)
+		atomCombiners.get(combineAtom)!.add(this)
 		return combineAtom.value
 	})
 }
