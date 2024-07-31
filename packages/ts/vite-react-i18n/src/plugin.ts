@@ -271,6 +271,7 @@ export function i18n(options: I18nOptions): any {
 		separator = DEFAULT_SEPARATOR,
 		flatName = DEFAULT_FLAT_NAME,
 	} = options || {}
+	let dictMap: DictionaryMap | null = null
 	let dictionaries: Dictionaries | null = null
 	let isBuild = false
 
@@ -283,7 +284,7 @@ export function i18n(options: I18nOptions): any {
 		},
 		async configResolved() {
 			const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
-			const dictMap: DictionaryMap | null = transformSamePathMap(filepathList, dirs, flatName)
+			dictMap = transformSamePathMap(filepathList, dirs, flatName)
 			dictionaries = await mergeDictionaries(dictMap)
 			const { baseTypeString, injectIdxes } = await matchVirtualTypes(locales)
 			if (isBuild) await generateDictionaryFiles(dictionaries)
