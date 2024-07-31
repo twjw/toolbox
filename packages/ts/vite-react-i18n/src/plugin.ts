@@ -1,10 +1,7 @@
 import type { Plugin, ViteDevServer } from 'vite'
 import fs from 'node:fs'
 import path from 'node:path'
-import { generateModuleFolder } from '../../../../utils/ts/node/src/generate-module-folder'
 import { fileURLToPath } from 'node:url'
-
-const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 type Dictionaries = {
 	[key: string]: string | Dictionaries
@@ -38,6 +35,7 @@ const V_MODULE_NAME = `~i18n`
 const V_MODULE_ID = `~${V_MODULE_NAME}.jsx`
 const CONSOLE_NAME = `[${PLUGIN_NAME}]`
 const SL = path.normalize('/')
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const DEFAULT_FLAT_NAME = '_'
 const DEFAULT_SEPARATOR = '.'
 const INJECT_SYM = '__INJECT__'
@@ -314,7 +312,6 @@ export function i18n(options: I18nOptions): any {
 	} = options || {}
 	let dictMap: DictionaryMap | null = null
 	let dictionaries: Dictionaries | null = null
-	let moduleFolderPath: string | null = null
 	let isBuild = false
 
 	// TODO 之後要擴展 tnode() 功能
@@ -329,13 +326,10 @@ export function i18n(options: I18nOptions): any {
 			dictMap = transformSamePathMap(filepathList, dirs, DEFAULT_FLAT_NAME)
 			dictionaries = await mergeDictionaries(dictMap)
 			const { baseTypeString, injectIdxes } = await matchVirtualTypes(locales)
-			moduleFolderPath = await generateModuleFolder(PACKAGE_NAME)
-			if (isBuild && moduleFolderPath != null)
-				await generateDictionaryFiles(moduleFolderPath!, dictionaries)
-			if (dictionaries != null && moduleFolderPath != null)
+			if (isBuild) await generateDictionaryFiles(dictionaries)
+			if (dictionaries != null)
 				await generateVirtualTypes(
 					dictionaries[Object.keys(dictionaries)[0]] as Dictionaries,
-					moduleFolderPath!,
 					baseTypeString,
 					injectIdxes,
 				)
@@ -506,12 +500,12 @@ async function mergeDictionaries(dictMap: DictionaryMap, dictionaries?: Dictiona
 	return _dictionaries
 }
 
-async function generateDictionaryFiles(dirPath: string, dictionaries: Dictionaries | null) {
+async function generateDictionaryFiles(dictionaries: Dictionaries | null) {
 	if (dictionaries == null) return
 	return Promise.all(
 		Object.keys(dictionaries).map(locale =>
 			fs.promises.writeFile(
-				path.join(dirPath, `${locale}.ts`),
+				path.join(__dirname, `${locale}.ts`),
 				`export default ${JSON.stringify(dictionaries[locale], null, 2)}`,
 			),
 		),
@@ -536,7 +530,7 @@ async function matchVirtualTypes(locales: string[]) {
 		const endIdx = injectRegexp.lastIndex
 
 		if (matchArray[1] === 'Locale') {
-			appendInjectText(startIdx, endIdx, typeStr, createLocaleTypeString(locales))
+			typeStr = appendInjectText(endIdx, typeStr, createLocaleTypeString(locales))
 		} else {
 			injectIdxes[matchArray[1] as keyof typeof injectIdxes] = [startIdx, endIdx]
 		}
@@ -550,14 +544,12 @@ async function matchVirtualTypes(locales: string[]) {
 
 async function generateVirtualTypes(
 	dict: Dictionaries,
-	dirPath: string,
 	baseTypeString: string,
 	injectIdxes: InjectIdxes,
 ) {
 	await fs.promises.writeFile(
-		path.join(dirPath, VIRTUAL_CLIENT_TYPE_NAME),
+		path.join(__dirname, VIRTUAL_CLIENT_TYPE_NAME),
 		appendInjectText(
-			injectIdxes.Dictionary[0],
 			injectIdxes.Dictionary[1],
 			baseTypeString,
 			createDictionaryTypeString(dict),
@@ -565,15 +557,37 @@ async function generateVirtualTypes(
 	)
 }
 
-function appendInjectText(start: number, end: number, text: string, injectText: string) {
-	return `${text.substring(0, start + end - INJECT_SYM.length)}${injectText}${text.substring(end)}`
+function appendInjectText(endIdx: number, text: string, injectText: string) {
+	return `${text.substring(0, endIdx - INJECT_SYM.length)}${injectText}${text.substring(endIdx)}`
 }
 
 function createDictionaryTypeString(dict: Dictionaries) {
 	if (Object.keys(dict).length === 0) return 'Record<string, string>'
-	return JSON.stringify(dict)
+	let result = '{'
+
+	recursiveEachObj<string>(dict as Record<string, string>, (k, v) => {
+		result += `${result.length > 1 ? ',' : ''}'${k}':string`
+	})
+
+	return `${result}}`
 }
 
 function createLocaleTypeString(locales: string[]) {
-	return locales.join(' | ')
+	return locales.map(e => `'${e}'`).join(' | ')
+}
+
+function recursiveEachObj<T = any>(
+	obj: Record<string, T>,
+	callback: (key: string, value: T) => void,
+	prevKey = '',
+) {
+	for (let k in obj) {
+		const nextKey = `${prevKey ? `${prevKey}.` : ''}${k}`
+
+		if (typeof obj[k] === 'object') {
+			recursiveEachObj(obj[k] as Record<string, T>, callback, nextKey)
+		} else {
+			callback(nextKey, obj[k])
+		}
+	}
 }
