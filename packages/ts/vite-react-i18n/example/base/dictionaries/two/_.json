@@ -2,5 +2,9 @@
   "handsome": {
     "zh_CN": "英俊 two",
     "en_US": "Handsome two"
+  },
+  "skills": {
+    "zh_CN": "技能：{0}, {1}, {name} two",
+    "en_US": "skills: {0}, {1}, {name} two"
   }
 }

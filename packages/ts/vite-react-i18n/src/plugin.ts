@@ -89,21 +89,26 @@ function _generateStringModule({
 }) {
 	const firstLocale = Object.keys(globMap)[0]
 	const firstLocaleStr = firstLocale ? `'${firstLocale}'` : null
+	const globMapEntries = Object.entries(globMap)
+	const globImportStrings = globMapEntries.map(
+		([locale, path]) => `'${locale}': () => import('${path}', { assert: { type: "json" } })`,
+	)
+	const locales = globMapEntries.map(([locale]) => `'${locale}'`)
 
 	return `
 import { useState, useEffect, Fragment } from 'react'
 
-const _dictionaryMap = {
-  ${Object.entries(globMap)
-		.map(([locale, path]) => `'${locale}': () => import('${path}')`)
-		.join(',\n')}
-} // Record{string, Promise{any} | any} _globMap 轉換 key 為 locale 塞入的字典檔
-let dictionary = {} // 當前字典
+// Record{string, Promise{any} | any} _globMap 轉換 key 為 locale 塞入的字典檔
+const _dictionaryMap = { ${globImportStrings.join(',\n')} } 
 
-const localeList = ${`[${Object.keys(globMap)
-		.map(e => `'${e}'`)
-		.join(', ')}]`} // string[] 項目的語系列表
-let locale = localeList[0] // 當前語系
+// 當前字典
+let dictionary = {} 
+
+// string[] 項目的語系列表
+const localeList = [${locales.join(', ')}]
+
+// 當前語系
+let locale = localeList[0]
 
 let _forceUpdate // 強刷 APP 組件
 
@@ -206,14 +211,14 @@ function t(key, idxValList, keyValMap) {
 
 async function _updateLocale(_locale) {
   if (typeof _dictionaryMap[_locale] === 'function') {
-    _dictionaryMap[_locale] = (await _dictionaryMap[_locale]()).default
+    _dictionaryMap[_locale] = await _dictionaryMap[_locale]()
   }
   
   dictionary = _dictionaryMap[_locale]
   locale = _locale
 }
 
-function _notFoundLocaleWarn () {
+function _notFoundLocaleWarn (_locale = locale) {
   console.warn(\`not found locale \${_locale}\`)
 }
 
@@ -259,39 +264,6 @@ export { dictionary, locale, t, setLocale, App }
 `
 }
 
-// async function generateLocalesByUniteDictionaries(
-// 	dirs: string[],
-// 	uniteDictionaries: UniteDictionaries,
-// ) {
-// 	let locales: Record<string, Record<string, string>> = {}
-//
-// 	for (let k in uniteDictionaries) {
-// 		const dict = uniteDictionaries[k]
-//
-// 		for (let dk in dict) {
-// 			const locale = dk.match(/\(([-_A-z]+)\)$/)
-// 			if (locale != null) {
-// 				if (locales[locale[1]] == null) locales[locale[1]] = {}
-// 				locales[locale[1]][k] = dict[dk]
-// 			}
-// 		}
-// 	}
-//
-// 	const localesKeys = Object.keys(locales)
-// 	if (dirs.length === 0 || localesKeys.length === 0) return
-//
-// 	await Promise.all(
-// 		localesKeys.map(locale =>
-// 			fs.promises.writeFile(
-// 				path.resolve(dirs[dirs.length - 1], `${locale}.ts`),
-// 				`const lang = ${JSON.stringify(locales[locale], null, 2)} as const
-//
-// export default lang`,
-// 			),
-// 		),
-// 	)
-// }
-
 function moduleHotUpdate(server: ViteDevServer) {
 	const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
 
@@ -327,12 +299,15 @@ export function i18n(options: I18nOptions): any {
 			dictionaries = await mergeDictionaries(dictMap)
 			const { baseTypeString, injectIdxes } = await matchVirtualTypes(locales)
 			if (isBuild) await generateDictionaryFiles(dictionaries)
-			if (dictionaries != null)
+			if (dictionaries != null) {
 				await generateVirtualTypes(
 					dictionaries[Object.keys(dictionaries)[0]] as Dictionaries,
 					baseTypeString,
 					injectIdxes,
 				)
+
+				await generateLocaleFiles(dictionaries)
+			}
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
@@ -379,17 +354,37 @@ export function i18n(options: I18nOptions): any {
 			// 	})
 			// }
 		},
-		// resolveId(id) {
-		// 	if (id === V_MODULE_NAME) {
-		// 		return V_MODULE_ID
-		// 	}
-		// },
-		// load(id) {
-		// 	if (id === V_MODULE_ID) {
-		// 		if (Object.keys(globMap).length === 0) return
-		// 		return _generateStringModule({ globMap, separator })
-		// 	}
-		// },
+		resolveId(id) {
+			if (id === V_MODULE_NAME) {
+				return V_MODULE_ID
+			}
+		},
+		load(id) {
+			if (id === V_MODULE_ID) {
+				if (locales.length === 0) return
+
+				const globMap: Record<string, string> = {}
+
+				locales.forEach(locale => {
+					// prettier-ignore
+					globMap[locale] = `./${
+						path.relative(
+							process.cwd(),
+							// TODO 編譯要手動切換(懶得自動了)
+							// production
+							// path.resolve(__dirname, `locales/${locale}.json`),
+							
+							// development
+							// prettier-ignore
+							path.resolve(process.cwd(), `node_modules/wtbx-${PACKAGE_NAME}/dist/locales/${locale}.json`),
+						)
+							.replace(/\\/g, '/')
+					}`
+				})
+
+				return _generateStringModule({ globMap, separator })
+			}
+		},
 	}
 
 	return plugin
@@ -555,6 +550,15 @@ async function generateVirtualTypes(
 			createDictionaryTypeString(dict),
 		),
 	)
+}
+
+async function generateLocaleFiles(dict: Dictionaries) {
+	for (let locale in dict) {
+		await fs.promises.writeFile(
+			path.join(__dirname, `locales/${locale}.json`),
+			JSON.stringify(dict[locale]),
+		)
+	}
 }
 
 function appendInjectText(endIdx: number, text: string, injectText: string) {

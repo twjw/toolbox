@@ -30,6 +30,14 @@ const promiseExec = util.promisify(exec)
 		await fs.mkdir(path.join(__dirname, 'dist/templates'))
 	}
 
+	console.log('開始檢查創建 dist/locales')
+
+	try {
+		await fs.access(path.join(__dirname, 'dist/locales'))
+	} catch {
+		await fs.mkdir(path.join(__dirname, 'dist/locales'))
+	}
+
 	console.log('將模板類型拷貝至 dist')
 
 	await fs.copyFile(
