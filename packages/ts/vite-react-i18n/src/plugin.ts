@@ -264,17 +264,6 @@ export { dictionary, locale, t, setLocale, App }
 `
 }
 
-function moduleHotUpdate(server: ViteDevServer) {
-	const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
-
-	if (mod) {
-		server.moduleGraph.invalidateModule(mod)
-		server.hot.send({
-			type: 'full-reload',
-		})
-	}
-}
-
 export function i18n(options: I18nOptions): any {
 	const {
 		dirs,
@@ -282,7 +271,6 @@ export function i18n(options: I18nOptions): any {
 		separator = DEFAULT_SEPARATOR,
 		flatName = DEFAULT_FLAT_NAME,
 	} = options || {}
-	let dictMap: DictionaryMap | null = null
 	let dictionaries: Dictionaries | null = null
 	let isBuild = false
 
@@ -295,7 +283,7 @@ export function i18n(options: I18nOptions): any {
 		},
 		async configResolved() {
 			const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
-			dictMap = transformSamePathMap(filepathList, dirs, DEFAULT_FLAT_NAME)
+			const dictMap: DictionaryMap | null = transformSamePathMap(filepathList, dirs, flatName)
 			dictionaries = await mergeDictionaries(dictMap)
 			const { baseTypeString, injectIdxes } = await matchVirtualTypes(locales)
 			if (isBuild) await generateDictionaryFiles(dictionaries)
@@ -311,48 +299,13 @@ export function i18n(options: I18nOptions): any {
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
-			// let isUpdating = false
-			//
-			// async function debounceGenerate(filepath: string) {
-			// 	let filename = null as string | null
-			//
-			// 	for (let i = 0; i < dirs.length; i++) {
-			// 		const [, _filename] = filepath.split(dirs[i])
-			// 		if (_filename != null) filename = _filename
-			// 	}
-			//
-			// 	if (isUpdating || !filename || !/^\\[A-z0-9-_]+\.(ts|json)$/.test(filename)) return
-			//
-			// 	isUpdating = true
-			// 	globMap = _generateLangGlobPath({ dirs })
-			// 	await waitMs(250)
-			// 	isUpdating = false
-			//
-			// 	moduleHotUpdate(server)
-			// }
-			//
-			// server.watcher.on('unlink', debounceGenerate)
-			// server.watcher.on('add', debounceGenerate)
-			//
-			// const { uniteFilepath } = options
-			// if (uniteFilepath != null) {
-			// 	server.watcher.add(uniteFilepath)
-			// 	server.watcher.on('change', async filepath => {
-			// 		if (filepath === uniteFilepath) {
-			// 			try {
-			// 				const uniteDictionaries = JSON.parse(
-			// 					fs.readFileSync(filepath, 'utf-8'),
-			// 				) as UniteDictionaries
-			// 				// TODO 尚有優化空間，比方說頻繁更改導致衝突可以使用排隊處理，但先不做，發生頻率不高
-			// 				await generateLocalesByUniteDictionaries(dirs, uniteDictionaries)
-			// 				await waitMs(250)
-			// 				moduleHotUpdate(server)
-			// 			} catch {
-			// 				console.error(`[ERROR]${CONSOLE_NAME} 整合字典json檔語法錯誤導至熱更失敗，請確認`)
-			// 			}
-			// 		}
-			// 	})
-			// }
+			server.watcher.on('unlink', filepath => {})
+
+			server.watcher.on('add', filepath => {})
+
+			server.watcher.on('change', filepath => {
+				console.log(filepath, dirs)
+			})
 		},
 		resolveId(id) {
 			if (id === V_MODULE_NAME) {
@@ -371,12 +324,9 @@ export function i18n(options: I18nOptions): any {
 						path.relative(
 							process.cwd(),
 							// TODO 編譯要手動切換(懶得自動了)
-							// production
-							// path.resolve(__dirname, `locales/${locale}.json`),
+							// /* production */ path.resolve(__dirname, `locales/${locale}.json`),
 							
-							// development
-							// prettier-ignore
-							path.resolve(process.cwd(), `node_modules/wtbx-${PACKAGE_NAME}/dist/locales/${locale}.json`),
+							/* development */ path.resolve(process.cwd(), `node_modules/wtbx-${PACKAGE_NAME}/dist/locales/${locale}.json`),
 						)
 							.replace(/\\/g, '/')
 					}`
@@ -593,5 +543,16 @@ function recursiveEachObj<T = any>(
 		} else {
 			callback(nextKey, obj[k])
 		}
+	}
+}
+
+function moduleHotUpdate(server: ViteDevServer) {
+	const mod = server.moduleGraph.getModuleById(V_MODULE_ID)
+
+	if (mod) {
+		server.moduleGraph.invalidateModule(mod)
+		server.hot.send({
+			type: 'full-reload',
+		})
 	}
 }
