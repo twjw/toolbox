@@ -1,12 +1,12 @@
 {
-	"name": "wtbx-vite-react-i18n-example-base",
+	"name": "example-base",
 	"version": "0.0.0",
 	"type": "module",
 	"description": "",
 	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
-		"preview": "vite preview"
+		"vite-dev:vite-react-i18n": "vite",
+		"vite-build:vite-react-i18n": "vite build",
+		"vite-preview:vite-react-i18n": "vite preview"
 	},
 	"keywords": [],
 	"license": "ISC",
