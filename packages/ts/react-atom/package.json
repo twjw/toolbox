@@ -1,8 +1,8 @@
 {
   "name": "wtbx-react-atom",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
-  "description": "極簡 react18+ 原子狀態管理 (更: 內部改由 function 實現而非 proxy)",
+  "description": "極簡 react18+ 原子狀態管理 (更: 優化內部內碼，降低包體積與內存占用)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

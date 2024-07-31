@@ -34,9 +34,9 @@ const REF_K_WATCH = 'watch'
 const REF_K_VALUE = 'value'
 const REF_PK_COMBINE_VALUE = 'c'
 /** @desc useSyncExternalStore 監聽的事件們(以 atomId 區分) */
-const listeners: Map<PrivateAtom, Set<VoidFn>> = new Map()
+const listeners: WeakMap<PrivateAtom, Set<VoidFn>> = new WeakMap()
 /** @desc watch 監聽的事件們(以 atomId 區分) */
-const watchers: Map<PrivateAtom, Set<WatchListener<any>>> = new Map()
+const watchers: WeakMap<PrivateAtom, Set<WatchListener<any>>> = new WeakMap()
 /** @desc atomId 關聯的 id 們，值裡的 id 為 key id 原子變動時要調用的 id 們 */
 const atomCombiners: Map<PrivateAtom, Set<PrivateAtom>> = new Map()
 
@@ -47,9 +47,6 @@ export function watom<T>(initialValue: AtomInitialValue<T>) {
 		updateAtom.call(atom, updaterOrVal)
 	} as PrivateAtom
 
-	atom[REF_K_USE] = useAtom.bind(atom)
-	atom[REF_K_WATCH] = watch.bind(atom)
-
 	// 塞入 ref 值
 	if (isCombineValue) {
 		atom[REF_K_VALUE] = combineAtoms.call(atom, initialValue as AtomInitialCombineFunction<T>)
@@ -59,15 +56,14 @@ export function watom<T>(initialValue: AtomInitialValue<T>) {
 	} else {
 		atom[REF_K_VALUE] = initialValue
 	}
-
-	listeners.set(atom, new Set())
-	watchers.set(atom, new Set())
+	atom[REF_K_USE] = useAtom.bind(atom)
+	atom[REF_K_WATCH] = listen.bind(atom, watchers)
 
 	return atom as Atom<T>
 }
 
 function useAtom(this: PrivateAtom) {
-	return useSyncExternalStore(subscribe.bind(this), () => this[REF_K_VALUE])
+	return useSyncExternalStore(listen.bind(this, listeners), () => this[REF_K_VALUE])
 }
 
 function updateAtom<T = any>(this: PrivateAtom, updaterOrVal: AtomUpdater<T> | T) {
@@ -82,14 +78,18 @@ function updateAtom<T = any>(this: PrivateAtom, updaterOrVal: AtomUpdater<T> | T
 	emitListener(this, oldValue, newValue)
 }
 
-function subscribe(this: PrivateAtom, listener: VoidFn) {
-	listeners.get(this)!.add(listener)
-	return () => listeners.get(this)!.delete(listener)
-}
-
-function watch(this: PrivateAtom, listener: WatchListener<any>) {
-	watchers.get(this)!.add(listener)
-	return () => watchers.get(this)!.delete(listener)
+function listen(
+	this: PrivateAtom,
+	listenerMap: WeakMap<PrivateAtom, Set<VoidFn | WatchListener<any>>>,
+	listener: VoidFn | WatchListener<any>,
+) {
+	let mapSet = listenerMap.get(this)
+	if (!mapSet) listenerMap.set(this, (mapSet = new Set()))
+	mapSet!.add(listener)
+	return () => {
+		mapSet!.delete(listener)
+		if (!mapSet.size) listenerMap.delete(this)
+	}
 }
 
 function getAtomValue(atom: PrivateAtom) {
@@ -118,6 +118,6 @@ function emitCombinerAtoms(
 }
 
 function emitListener(atom: PrivateAtom, oldValue: any, newValue: any) {
-	listeners.get(atom)!.forEach(fn => fn())
-	watchers.get(atom)!.forEach(fn => fn(oldValue, newValue))
+	listeners.get(atom)?.forEach(fn => fn())
+	watchers.get(atom)?.forEach(fn => fn(oldValue, newValue))
 }
