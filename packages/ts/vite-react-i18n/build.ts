@@ -11,10 +11,13 @@ const promiseExec = util.promisify(exec)
 	console.log('開始編譯代碼\n')
 
 	try {
-		const { stdout } = await promiseExec(
+		const { stdout, stderr } = await promiseExec(
 			'tsup-node src/index.ts --platform node --format esm --dts --clean',
 		)
 		console.log(stdout)
+		if (stderr) {
+			throw new Error(stderr)
+		}
 	} catch (error) {
 		console.error(error)
 	}
