@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-cycle-convert-png-and-webp",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"type": "module",
-	"description": "實時轉換 webp, png 檔案 (更: png 壓縮使用 imagemin 庫來處理)",
+	"description": "實時轉換 webp, png 檔案 (更: 修正 png/webp 檔在根非 png/webp 目錄也會生成的錯誤)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -11,7 +11,7 @@
 	],
 	"scripts": {
 		"build-package:vite-cycle-convert-png-and-webp": "tsup-node index.ts --platform node --format esm --dts --clean",
-		"publish-package:vite-cycle-convert-png-and-webp": "pnpm run build && npm publish"
+		"publish-package:vite-cycle-convert-png-and-webp": "pnpm run build-package:vite-cycle-convert-png-and-webp && npm publish"
 	},
 	"keywords": [
 		"typescript"
