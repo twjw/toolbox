@@ -1,10 +1,10 @@
 {
-	"name": "wtbx-vite-react-i18n-example-base",
+	"name": "example",
 	"version": "0.0.0",
 	"type": "module",
 	"description": "",
 	"scripts": {
-		"dev": "node ./server.js"
+		"dev:vite-cycle-convert-png-and-webp": "node ./server.js"
 	},
 	"keywords": [],
 	"license": "ISC",

@@ -224,7 +224,7 @@ function _getRootDirPath(options: CycleConvertPngAndWebpOptions, filepath: strin
 		const dir = options.dirs[i]
 		const [s1, s2] = filepath.split(dir)
 		if (s1 === '') {
-			const [, dirName] = s2.match(new RegExp(`\\${SL}(png|webp|${ZIP_PNG_DIR_NAME})`)) || []
+			const [, dirName] = s2.match(new RegExp(`^\\${SL}(png|webp|${ZIP_PNG_DIR_NAME})`)) || []
 			if (dirName != null) {
 				return {
 					dirPath: dir,

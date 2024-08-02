@@ -10,8 +10,8 @@
 		"readme.md"
 	],
 	"scripts": {
-		"build": "tsup-node index.ts --platform node --format esm --dts --clean",
-		"publish-package": "pnpm run build && npm publish"
+		"build-package:vite-cycle-convert-png-and-webp": "tsup-node index.ts --platform node --format esm --dts --clean",
+		"publish-package:vite-cycle-convert-png-and-webp": "pnpm run build && npm publish"
 	},
 	"keywords": [
 		"typescript"
