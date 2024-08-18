@@ -36,8 +36,8 @@ const promiseExec = util.promisify(exec)
 		await fs.access(path.join(__dirname, 'dist/locales'))
 	} catch {
 		await fs.mkdir(path.join(__dirname, 'dist/locales'))
-		await fs.writeFile(path.join(__dirname, 'dist/locales/_'), '')
 	}
+	await fs.writeFile(path.join(__dirname, 'dist/locales/_'), '')
 
 	console.log('將模板類型拷貝至 dist')
 
