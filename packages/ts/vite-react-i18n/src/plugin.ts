@@ -2,6 +2,7 @@ import type { Plugin, ViteDevServer } from 'vite'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { clearTimeout } from 'node:timers'
 
 type Dictionaries = {
 	[key: string]: string | Dictionaries
@@ -26,8 +27,6 @@ export type I18nOptions = {
 	flatName?: string
 }
 
-type _GlobMap = Record<string, string> // <locale, globPath>
-
 const PACKAGE_NAME = 'vite-react-i18n'
 const PLUGIN_NAME = `@wtbx/${PACKAGE_NAME}`
 const FULL_PLUGIN_NAME = `vite-plugin-${PLUGIN_NAME}`
@@ -41,71 +40,72 @@ const DEFAULT_SEPARATOR = '.'
 const INJECT_SYM = '__INJECT__'
 const VIRTUAL_CLIENT_TYPE_NAME = 'client.d.ts'
 
-function _generateLangGlobPath({ dirs }: Pick<I18nOptions, 'dirs'>) {
-	const globMap = {} as _GlobMap
-	const matchExtReg = /\.(ts|json)$/
-
-	try {
-		const filePathMap = {} as Record<string, 1> // <relativeFilepath>
-
-		for (let i = 0; i < dirs.length; i++) {
-			if (i > 0 && !fs.existsSync(dirs[i])) continue
-
-			const dir = dirs[i]
-			const files = fs.readdirSync(dir)
-
-			for (let j = 0; j < files.length; j++) {
-				const file = files[j]
-				const filepath = path.join(dir, file)
-				const stat = fs.lstatSync(filepath)
-
-				if (stat.isFile() && matchExtReg.test(file)) {
-					filePathMap[path.relative(process.cwd(), filepath)] = 1
-				}
-			}
-		}
-
-		for (const relativeFilepath in filePathMap) {
-			const globPath = `${relativeFilepath.replace(/[\\]/g, '/')}`
-			const filename = globPath.match(/[^\\/]+$/)?.[0]!
-
-			globMap[filename.replace(matchExtReg, '')] = `./${globPath}`
-		}
-
-		return globMap
-	} catch (error) {
-		console.error(`[ERROR]${CONSOLE_NAME} 讀取字典檔失敗`)
-		console.error(error)
-		process.exit(0)
-	}
-}
-
 function _generateStringModule({
-	globMap,
+	locales,
+	isBuild,
+	dictionaries,
 	separator = DEFAULT_SEPARATOR,
 }: {
-	globMap: _GlobMap
+	locales: string[]
+	isBuild: boolean
+	dictionaries: Dictionaries | null
 	separator?: string
 }) {
-	const firstLocale = Object.keys(globMap)[0]
-	const firstLocaleStr = firstLocale ? `'${firstLocale}'` : null
-	const globMapEntries = Object.entries(globMap)
-	const globImportStrings = globMapEntries.map(
-		([locale, path]) => `'${locale}': () => import('${path}', { assert: { type: "json" } })`,
-	)
-	const locales = globMapEntries.map(([locale]) => `'${locale}'`)
+	const firstLocaleStr = locales[0] || ''
+	let dictionaryMapContentString: string
+
+	if (isBuild) {
+		const dictImportInfoList: { locale: string; path: string }[] = []
+
+		locales.forEach(locale => {
+			// prettier-ignore
+			dictImportInfoList.push({
+				locale,
+				path: `./${
+					path.relative(
+						process.cwd(),
+						// TODO 編譯要手動切換(懶得自動了)
+						/* production */ path.resolve(__dirname, `locales/${locale}.json`),
+						// /* development */ path.resolve(process.cwd(), `node_modules/wtbx-${PACKAGE_NAME}/dist/locales/${locale}.json`),
+					)
+						.replace(/\\/g, '/')
+				}`
+			})
+		})
+
+		dictionaryMapContentString = dictImportInfoList
+			.map(
+				({ locale, path }) =>
+					`'${locale}': () => import('${path}', { assert: { type: "json" } })`,
+			)
+			.join(',\n')
+	} else {
+		const asyncGetDictInfoList: { locale: string; funcStr: string }[] = []
+
+		locales.forEach(locale => {
+			const dict = dictionaries?.[locale]
+			asyncGetDictInfoList.push({
+				locale,
+				funcStr: `async () => { return ${typeof dict === 'object' ? JSON.stringify(dict) : '{}'} }`,
+			})
+		})
+
+		dictionaryMapContentString = asyncGetDictInfoList
+			.map(({ locale, funcStr }) => `'${locale}': ${funcStr}`)
+			.join(',\n')
+	}
 
 	return `
 import { useState, useEffect, Fragment } from 'react'
 
 // Record{string, Promise{any} | any} _globMap 轉換 key 為 locale 塞入的字典檔
-const _dictionaryMap = { ${globImportStrings.join(',\n')} } 
+const _dictionaryMap = { ${dictionaryMapContentString} } 
 
 // 當前字典
 let dictionary = {} 
 
 // string[] 項目的語系列表
-const localeList = [${locales.join(', ')}]
+const localeList = [${locales.map(locale => `'${locale}'`).join(', ')}]
 
 // 當前語系
 let locale = localeList[0]
@@ -295,18 +295,21 @@ export function i18n(options: I18nOptions): any {
 					injectIdxes,
 				)
 
-				await generateLocaleFiles(dictionaries)
+				if (isBuild) await generateLocaleFiles(dictionaries)
 			}
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
 		configureServer(server) {
-			server.watcher.on('unlink', filepath => {})
-
-			server.watcher.on('add', filepath => {})
-
-			server.watcher.on('change', filepath => {
-				console.log(filepath, dirs)
+			const handleServerEvent = createHandleServerEvent({
+				server,
+				locales,
+				dictionaries,
+				isBuild,
+				dirs,
 			})
+			server.watcher.on('unlink', handleServerEvent('unlink'))
+			server.watcher.on('add', handleServerEvent('add'))
+			server.watcher.on('change', handleServerEvent('change'))
 		},
 		resolveId(id) {
 			if (id === V_MODULE_NAME) {
@@ -315,30 +318,116 @@ export function i18n(options: I18nOptions): any {
 		},
 		load(id) {
 			if (id === V_MODULE_ID) {
-				if (locales.length === 0) return
-
-				const globMap: Record<string, string> = {}
-
-				locales.forEach(locale => {
-					// prettier-ignore
-					globMap[locale] = `./${
-						path.relative(
-							process.cwd(),
-							// TODO 編譯要手動切換(懶得自動了)
-							// /* production */ path.resolve(__dirname, `locales/${locale}.json`),
-							
-							/* development */ path.resolve(process.cwd(), `node_modules/wtbx-${PACKAGE_NAME}/dist/locales/${locale}.json`),
-						)
-							.replace(/\\/g, '/')
-					}`
-				})
-
-				return _generateStringModule({ globMap, separator })
+				return _generateStringModule({ locales, isBuild, dictionaries, separator })
 			}
 		},
 	}
 
 	return plugin
+}
+
+function createHandleServerEvent({
+	server,
+	locales,
+	dictionaries,
+	isBuild,
+	dirs,
+}: {
+	server: ViteDevServer
+	locales: string[]
+	dictionaries: Dictionaries | null
+	isBuild: boolean
+	dirs: string[]
+}) {
+	type Event = 'unlink' | 'add' | 'change'
+	const updateFilepathList: { event: Event; filepath: string }[] = []
+	/** @desc 延遲收集替換，防止多檔案同時儲存併發問題 */
+	let deferCollectTimer: NodeJS.Timeout | undefined
+
+	return (event: Event) => (filepath: string) => {
+		if (!validWatchServerFilepath(filepath)) return
+		if (locales.length === 0) return
+
+		updateFilepathList.push({ event, filepath })
+		if (deferCollectTimer != null) {
+			clearTimeout(deferCollectTimer)
+			deferCollectTimer = undefined
+		}
+
+		deferCollectTimer = setTimeout(async () => {
+			const updateFilepathLength = updateFilepathList.length
+			let isAnyMatch = false
+
+			if (!updateFilepathLength) return
+
+			for (let i = 0; i < updateFilepathList.length; i++) {
+				const { event, filepath } = updateFilepathList[i]
+
+				for (let j = dirs.length - 1; j >= 0; j--) {
+					const dir = dirs[j]
+					const [, dirRelativeFilepath] = filepath.split(dir)
+
+					if (!dirRelativeFilepath) continue
+
+					try {
+						const json = JSON.parse(await fs.promises.readFile(filepath, 'utf-8'))
+						const [, ...keyList] = dirRelativeFilepath.replace(/\.json$/, '').split(SL)
+
+						if (!keyList.length) break
+
+						for (let locale in dictionaries) {
+							let dict: Dictionaries | undefined | string = dictionaries[locale]
+
+							if (event === 'change') {
+								for (let k = 0; k < keyList.length; k++) {
+									if (typeof dict === 'object') {
+										dict[keyList[k]] = {}
+										if (k === keyList.length - 1) {
+											for (let jsonKey in json) {
+												;(dict[keyList[k]] as any)[jsonKey] = json[jsonKey][locale]
+											}
+										} else {
+											dict = dict[keyList[k]]
+										}
+									}
+								}
+							} else if (event === 'unlink') {
+								for (let k = 0; k < keyList.length; k++) {
+									if (typeof dict === 'object') {
+										if (k === keyList.length - 1) {
+											delete dict[keyList[k]]
+										} else {
+											dict = dict[keyList[k]]
+										}
+									}
+								}
+							} else {
+								for (let k = 0; k < keyList.length; k++) {
+									if (typeof dict === 'object') {
+										if (dict[keyList[k]] == null) {
+											dict = dict[keyList[k]] = {}
+										} else {
+											dict = dict[keyList[k]]
+										}
+									}
+								}
+							}
+						}
+
+						isAnyMatch = true
+					} catch {}
+
+					break
+				}
+			}
+
+			if (isAnyMatch) {
+				if (isBuild) await generateLocaleFiles(dictionaries!)
+				moduleHotUpdate(server)
+			}
+			updateFilepathList.splice(0, updateFilepathLength + 1)
+		}, 500)
+	}
 }
 
 async function recursiveFindPaths(dirPath: string, result: string[] = []) {
@@ -350,7 +439,7 @@ async function recursiveFindPaths(dirPath: string, result: string[] = []) {
 
 		if (e.isDirectory()) {
 			await recursiveFindPaths(filepath, result)
-		} else if (/\.json$/.test(e.name)) {
+		} else if (validWatchServerFilepath(e.name)) {
 			result.push(filepath)
 		}
 	}
@@ -505,10 +594,8 @@ async function generateVirtualTypes(
 
 async function generateLocaleFiles(dict: Dictionaries) {
 	for (let locale in dict) {
-		await fs.promises.writeFile(
-			path.join(__dirname, `locales/${locale}.json`),
-			JSON.stringify(dict[locale]),
-		)
+		const filepath = path.join(__dirname, `locales/${locale}.json`)
+		await fs.promises.writeFile(filepath, JSON.stringify(dict[locale]))
 	}
 }
 
@@ -545,6 +632,10 @@ function recursiveEachObj<T = any>(
 			callback(nextKey, obj[k])
 		}
 	}
+}
+
+function validWatchServerFilepath(str: string) {
+	return /\.json$/.test(str)
 }
 
 function moduleHotUpdate(server: ViteDevServer) {
