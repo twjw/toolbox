@@ -42,8 +42,8 @@ const promiseExec = util.promisify(exec)
 	console.log('將模板類型拷貝至 dist')
 
 	await fs.copyFile(
-		path.join(__dirname, 'src/templates/client.d.ts'),
-		path.join(__dirname, 'dist/templates/client.d.ts'),
+		path.join(__dirname, 'src/templates/template-client.d.ts'),
+		path.join(__dirname, 'dist/templates/template-client.d.ts'),
 	)
 
 	console.log('構建完成')

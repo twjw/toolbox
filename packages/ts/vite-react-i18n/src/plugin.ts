@@ -38,6 +38,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const DEFAULT_FLAT_NAME = '_'
 const DEFAULT_SEPARATOR = '.'
 const INJECT_SYM = '__INJECT__'
+const TEMPLATE_CLIENT_TYPE_NAME = 'template-client.d.ts'
 const VIRTUAL_CLIENT_TYPE_NAME = 'client.d.ts'
 
 export function i18n(options: I18nOptions): any {
@@ -342,7 +343,7 @@ async function generateDictionaryFiles(dictionaries: Dictionaries | null) {
 
 async function matchVirtualTypes(locales: string[]) {
 	let typeStr = await fs.promises.readFile(
-		path.join(__dirname, `templates/${VIRTUAL_CLIENT_TYPE_NAME}`),
+		path.join(__dirname, `templates/${TEMPLATE_CLIENT_TYPE_NAME}`),
 		'utf-8',
 	)
 	const injectIdxes: InjectIdxes = {
