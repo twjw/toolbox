@@ -20,7 +20,7 @@
 	},
 	"scripts": {
 		"build-package:vite-react-i18n": "tsx build.ts",
-		"publish-package:vite-react-i18n": "pnpm run build-package && npm publish"
+		"publish-package:vite-react-i18n": "pnpm run build-package:vite-react-i18n && npm publish"
 	},
 	"keywords": [
 		"typescript",
