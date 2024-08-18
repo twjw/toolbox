@@ -1,6 +1,6 @@
 {
 	"name": "wtbx-vite-react-i18n",
-	"version": "2.0.0-beta-3",
+	"version": "2.0.0-beta-4",
 	"type": "module",
 	"description": "vite 與 react 的國際化處理方案",
 	"main": "dist/index.js",

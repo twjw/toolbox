@@ -40,230 +40,6 @@ const DEFAULT_SEPARATOR = '.'
 const INJECT_SYM = '__INJECT__'
 const VIRTUAL_CLIENT_TYPE_NAME = 'client.d.ts'
 
-function _generateStringModule({
-	locales,
-	isBuild,
-	dictionaries,
-	separator = DEFAULT_SEPARATOR,
-}: {
-	locales: string[]
-	isBuild: boolean
-	dictionaries: Dictionaries | null
-	separator?: string
-}) {
-	const firstLocaleStr = locales[0] || ''
-	let dictionaryMapContentString: string
-
-	if (isBuild) {
-		const dictImportInfoList: { locale: string; path: string }[] = []
-
-		locales.forEach(locale => {
-			// prettier-ignore
-			dictImportInfoList.push({
-				locale,
-				path: `./${
-					path.relative(
-						process.cwd(),
-						// TODO 編譯要手動切換(懶得自動了)
-						/* production */ path.resolve(__dirname, `locales/${locale}.json`),
-						// /* development */ path.resolve(process.cwd(), `node_modules/wtbx-${PACKAGE_NAME}/dist/locales/${locale}.json`),
-					)
-						.replace(/\\/g, '/')
-				}`
-			})
-		})
-
-		dictionaryMapContentString = dictImportInfoList
-			.map(
-				({ locale, path }) =>
-					`'${locale}': () => import('${path}', { assert: { type: "json" } })`,
-			)
-			.join(',\n')
-	} else {
-		const asyncGetDictInfoList: { locale: string; funcStr: string }[] = []
-
-		locales.forEach(locale => {
-			const dict = dictionaries?.[locale]
-			asyncGetDictInfoList.push({
-				locale,
-				funcStr: `async () => { return ${typeof dict === 'object' ? JSON.stringify(dict) : '{}'} }`,
-			})
-		})
-
-		dictionaryMapContentString = asyncGetDictInfoList
-			.map(({ locale, funcStr }) => `'${locale}': ${funcStr}`)
-			.join(',\n')
-	}
-
-	return `
-import { useState, useEffect, Fragment } from 'react'
-
-// Record{string, Promise{any} | any} _globMap 轉換 key 為 locale 塞入的字典檔
-const _dictionaryMap = { ${dictionaryMapContentString} } 
-
-// 當前字典
-let dictionary = {} 
-
-// string[] 項目的語系列表
-const localeList = [${locales.map(locale => `'${locale}'`).join(', ')}]
-
-// 當前語系
-let locale = localeList[0]
-
-let _forceUpdate // 強刷 APP 組件
-
-function _recurFindKeyValue (
-	obj,
-	key,
-) {
-	if (typeof key !== 'string') return undefined
-
-	const keys = key.split('${separator}')
-	let result = obj
-	let k
-
-	while ((k = keys.shift()) != null) {
-		result = result[k]
-		if (typeof result !== 'object') break
-	}
-
-	if (keys.length > 0) return undefined
-
-	return result
-}
-
-function _parseValue(text, idxValList, keyValMap) {
-	if (!idxValList?.length && keyValMap == null) return text
-
-  const matchList = []
-  let result = ''
-  let isSkip = false
-  let start = -1
-  
-  idxValList = idxValList || []
-  keyValMap = keyValMap || {}
-  
-  for (let i = 0; i < text.length; i++) {
-    const e = text[i]
-    
-    if (start > -1) {
-      if (e === '}') {
-        const k = text.substring(start + 1, i)
-        const isIdx = /^\\d+$/.test(k)
-        matchList.push([isSkip, isIdx, isIdx ? Number(k) : k, start, i])
-        
-        isSkip = false
-        start = -1
-      }
-    } else if (e === '{') {
-      isSkip = text[i - 1] === '\\\\'
-      start = i
-    }
-  }
-  
-  if (matchList.length === 0) {
-    result = text
-  } else {
-    // 3 start, 4 end
-    if (matchList[0][3] > 0) {
-      if (matchList[0][0]) {
-        result += text.substring(0, matchList[0][3] - 1)
-      } else {
-        result += text.substring(0, matchList[0][3])
-      }
-    }
-    
-    for (let i = 0; i < matchList.length; i++) {
-      const [isSkip, isIdx, key, start] = matchList[i]
-
-      if (i > 0) {
-        if (isSkip) {
-          result += text.substring(matchList[i - 1][4] + 1, start - 1) 
-        } else {
-          result += text.substring(matchList[i - 1][4] + 1, start) 
-        }
-      }
-      
-      if (isSkip) {
-        result += \`{\${key}}\`
-      } else {
-				const replaceText = isIdx ? idxValList[key] : keyValMap[key]
-				if (replaceText == null) result += \`{\${key}}\`
-				else result += replaceText
-      }
-    }
-    
-    if (matchList[matchList.length - 1][4] < text.length - 1) {
-      result += text.substring(matchList[matchList.length - 1][4] + 1, text.length)
-    }
-  }
-  
-  return result
-}
-
-function t(key, idxValList, keyValMap) {
-  const result = _recurFindKeyValue(dictionary, key)
-  
-  if (result === undefined) return key
-  
-  return _parseValue(result, idxValList, keyValMap)
-}
-
-async function _updateLocale(_locale) {
-  if (typeof _dictionaryMap[_locale] === 'function') {
-    _dictionaryMap[_locale] = await _dictionaryMap[_locale]()
-  }
-  
-  dictionary = _dictionaryMap[_locale]
-  locale = _locale
-}
-
-function _notFoundLocaleWarn (_locale = locale) {
-  console.warn(\`not found locale \${_locale}\`)
-}
-
-async function setLocale(_locale, auto = true) {
-  if (_dictionaryMap[_locale] == null) {
-    _notFoundLocaleWarn()
-    return
-  }
-  
-  await _updateLocale(_locale)
-  
-  if (auto) {
-    _forceUpdate?.()
-    return
-  }
-  
-  return _forceUpdate
-}
-
-function App({ defaultLocale, fallback, children }) {
-  const [i, update] = useState(0)
-  
-  useEffect(() => {
-    const hasAny = 
-      (locale = defaultLocale || ${firstLocaleStr}) != null 
-        && _dictionaryMap[locale] != null
-
-    if (hasAny) {
-      _forceUpdate = () => update(i => i + 1)
-      _updateLocale(locale).then(() => {
-        _forceUpdate()
-      })
-    } else {
-      _notFoundLocaleWarn()
-    }
-  }, [])
-  
-  if (i === 0) return fallback || <></>
-  return <Fragment key={i}>{children}</Fragment>
-}
-
-export { dictionary, locale, t, setLocale, App }
-`
-}
-
 export function i18n(options: I18nOptions): any {
 	const {
 		dirs,
@@ -274,6 +50,10 @@ export function i18n(options: I18nOptions): any {
 	let dictMap: DictionaryMap | null = null
 	let dictionaries: Dictionaries | null = null
 	let isBuild = false
+	let baseTypeString: string = ''
+	let injectIdxes: InjectIdxes = {
+		Dictionary: [0, 0],
+	}
 
 	// TODO 之後要擴展 tnode() 功能
 	const plugin: Plugin = {
@@ -286,7 +66,9 @@ export function i18n(options: I18nOptions): any {
 			const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
 			dictMap = transformSamePathMap(filepathList, dirs, flatName)
 			dictionaries = await mergeDictionaries(dictMap)
-			const { baseTypeString, injectIdxes } = await matchVirtualTypes(locales)
+			const vtInfo = await matchVirtualTypes(locales)
+			baseTypeString = vtInfo.baseTypeString
+			injectIdxes = vtInfo.injectIdxes
 			if (isBuild) await generateDictionaryFiles(dictionaries)
 			if (dictionaries != null) {
 				await generateVirtualTypes(
@@ -306,6 +88,8 @@ export function i18n(options: I18nOptions): any {
 				dictionaries,
 				isBuild,
 				dirs,
+				baseTypeString,
+				injectIdxes,
 			})
 			server.watcher.on('unlink', handleServerEvent('unlink'))
 			server.watcher.on('add', handleServerEvent('add'))
@@ -332,12 +116,16 @@ function createHandleServerEvent({
 	dictionaries,
 	isBuild,
 	dirs,
+	baseTypeString,
+	injectIdxes,
 }: {
 	server: ViteDevServer
 	locales: string[]
 	dictionaries: Dictionaries | null
 	isBuild: boolean
 	dirs: string[]
+	baseTypeString: string
+	injectIdxes: InjectIdxes
 }) {
 	type Event = 'unlink' | 'add' | 'change'
 	const updateFilepathList: { event: Event; filepath: string }[] = []
@@ -422,6 +210,11 @@ function createHandleServerEvent({
 			}
 
 			if (isAnyMatch) {
+				await generateVirtualTypes(
+					dictionaries![Object.keys(dictionaries!)[0]] as Dictionaries,
+					baseTypeString,
+					injectIdxes,
+				)
 				if (isBuild) await generateLocaleFiles(dictionaries!)
 				moduleHotUpdate(server)
 			}
@@ -647,4 +440,228 @@ function moduleHotUpdate(server: ViteDevServer) {
 			type: 'full-reload',
 		})
 	}
+}
+
+function _generateStringModule({
+	locales,
+	isBuild,
+	dictionaries,
+	separator = DEFAULT_SEPARATOR,
+}: {
+	locales: string[]
+	isBuild: boolean
+	dictionaries: Dictionaries | null
+	separator?: string
+}) {
+	const firstLocaleStr = locales[0] || ''
+	let dictionaryMapContentString: string
+
+	if (isBuild) {
+		const dictImportInfoList: { locale: string; path: string }[] = []
+
+		locales.forEach(locale => {
+			// prettier-ignore
+			dictImportInfoList.push({
+				locale,
+				path: `./${
+					path.relative(
+						process.cwd(),
+						// TODO 編譯要手動切換(懶得自動了)
+						/* production */ path.resolve(__dirname, `locales/${locale}.json`),
+						// /* development */ path.resolve(process.cwd(), `node_modules/wtbx-${PACKAGE_NAME}/dist/locales/${locale}.json`),
+					)
+						.replace(/\\/g, '/')
+				}`
+			})
+		})
+
+		dictionaryMapContentString = dictImportInfoList
+			.map(
+				({ locale, path }) =>
+					`'${locale}': () => import('${path}', { assert: { type: "json" } })`,
+			)
+			.join(',\n')
+	} else {
+		const asyncGetDictInfoList: { locale: string; funcStr: string }[] = []
+
+		locales.forEach(locale => {
+			const dict = dictionaries?.[locale]
+			asyncGetDictInfoList.push({
+				locale,
+				funcStr: `async () => { return ${typeof dict === 'object' ? JSON.stringify(dict) : '{}'} }`,
+			})
+		})
+
+		dictionaryMapContentString = asyncGetDictInfoList
+			.map(({ locale, funcStr }) => `'${locale}': ${funcStr}`)
+			.join(',\n')
+	}
+
+	return `
+import { useState, useEffect, Fragment } from 'react'
+
+// Record{string, Promise{any} | any} _globMap 轉換 key 為 locale 塞入的字典檔
+const _dictionaryMap = { ${dictionaryMapContentString} } 
+
+// 當前字典
+let dictionary = {} 
+
+// string[] 項目的語系列表
+const localeList = [${locales.map(locale => `'${locale}'`).join(', ')}]
+
+// 當前語系
+let locale = localeList[0]
+
+let _forceUpdate // 強刷 APP 組件
+
+function _recurFindKeyValue (
+	obj,
+	key,
+) {
+	if (typeof key !== 'string') return undefined
+
+	const keys = key.split('${separator}')
+	let result = obj
+	let k
+
+	while ((k = keys.shift()) != null) {
+		result = result[k]
+		if (typeof result !== 'object') break
+	}
+
+	if (keys.length > 0) return undefined
+
+	return result
+}
+
+function _parseValue(text, idxValList, keyValMap) {
+	if (!idxValList?.length && keyValMap == null) return text
+
+  const matchList = []
+  let result = ''
+  let isSkip = false
+  let start = -1
+  
+  idxValList = idxValList || []
+  keyValMap = keyValMap || {}
+  
+  for (let i = 0; i < text.length; i++) {
+    const e = text[i]
+    
+    if (start > -1) {
+      if (e === '}') {
+        const k = text.substring(start + 1, i)
+        const isIdx = /^\\d+$/.test(k)
+        matchList.push([isSkip, isIdx, isIdx ? Number(k) : k, start, i])
+        
+        isSkip = false
+        start = -1
+      }
+    } else if (e === '{') {
+      isSkip = text[i - 1] === '\\\\'
+      start = i
+    }
+  }
+  
+  if (matchList.length === 0) {
+    result = text
+  } else {
+    // 3 start, 4 end
+    if (matchList[0][3] > 0) {
+      if (matchList[0][0]) {
+        result += text.substring(0, matchList[0][3] - 1)
+      } else {
+        result += text.substring(0, matchList[0][3])
+      }
+    }
+    
+    for (let i = 0; i < matchList.length; i++) {
+      const [isSkip, isIdx, key, start] = matchList[i]
+
+      if (i > 0) {
+        if (isSkip) {
+          result += text.substring(matchList[i - 1][4] + 1, start - 1) 
+        } else {
+          result += text.substring(matchList[i - 1][4] + 1, start) 
+        }
+      }
+      
+      if (isSkip) {
+        result += \`{\${key}}\`
+      } else {
+				const replaceText = isIdx ? idxValList[key] : keyValMap[key]
+				if (replaceText == null) result += \`{\${key}}\`
+				else result += replaceText
+      }
+    }
+    
+    if (matchList[matchList.length - 1][4] < text.length - 1) {
+      result += text.substring(matchList[matchList.length - 1][4] + 1, text.length)
+    }
+  }
+  
+  return result
+}
+
+function t(key, idxValList, keyValMap) {
+  const result = _recurFindKeyValue(dictionary, key)
+  
+  if (result === undefined) return key
+  
+  return _parseValue(result, idxValList, keyValMap)
+}
+
+async function _updateLocale(_locale) {
+  if (typeof _dictionaryMap[_locale] === 'function') {
+    _dictionaryMap[_locale] = await _dictionaryMap[_locale]()
+  }
+  
+  dictionary = _dictionaryMap[_locale]
+  locale = _locale
+}
+
+function _notFoundLocaleWarn (_locale = locale) {
+  console.warn(\`not found locale \${_locale}\`)
+}
+
+async function setLocale(_locale, auto = true) {
+  if (_dictionaryMap[_locale] == null) {
+    _notFoundLocaleWarn()
+    return
+  }
+  
+  await _updateLocale(_locale)
+  
+  if (auto) {
+    _forceUpdate?.()
+    return
+  }
+  
+  return _forceUpdate
+}
+
+function App({ defaultLocale, fallback, children }) {
+  const [i, update] = useState(0)
+  
+  useEffect(() => {
+    const hasAny = 
+      (locale = defaultLocale || ${firstLocaleStr}) != null 
+        && _dictionaryMap[locale] != null
+
+    if (hasAny) {
+      _forceUpdate = () => update(i => i + 1)
+      _updateLocale(locale).then(() => {
+        _forceUpdate()
+      })
+    } else {
+      _notFoundLocaleWarn()
+    }
+  }, [])
+  
+  if (i === 0) return fallback || <></>
+  return <Fragment key={i}>{children}</Fragment>
+}
+
+export { dictionary, locale, t, setLocale, App }
+`
 }
