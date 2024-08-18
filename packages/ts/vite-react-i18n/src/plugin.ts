@@ -71,7 +71,7 @@ export function i18n(options: I18nOptions): any {
 			// injectIdxes = vtInfo.injectIdxes
 			if (locales.length > 0) {
 				await fs.promises.writeFile(
-					path.join(__dirname, 'dist/_gen-dictionary.d.ts'),
+					path.join(__dirname, '_gen-locale.d.ts'),
 					`export type Locale = ${locales.map(e => `'${e}'`).join(' | ')}`,
 				)
 			}
@@ -390,7 +390,7 @@ async function generateVirtualTypes(
 	// 	),
 	// )
 	await fs.promises.writeFile(
-		path.join(__dirname, 'dist/_gen-dictionary.d.ts'),
+		path.join(__dirname, '_gen-dictionary.d.ts'),
 		`export type Dictionary = ${createDictionaryTypeString(dict)}`,
 	)
 }
