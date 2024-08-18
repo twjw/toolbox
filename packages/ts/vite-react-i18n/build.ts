@@ -22,20 +22,6 @@ const promiseExec = util.promisify(exec)
 		console.error(error)
 	}
 
-	console.log('開始檢查創建 dist/template')
-
-	try {
-		await fs.access(path.join(__dirname, 'dist/template'))
-	} catch {
-		await fs.mkdir(path.join(__dirname, 'dist/template'))
-	}
-
-	try {
-		await fs.access(path.join(__dirname, 'dist/template/define-type'))
-	} catch {
-		await fs.mkdir(path.join(__dirname, 'dist/template/define-type'))
-	}
-
 	console.log('開始檢查創建 dist/locales')
 
 	try {
@@ -44,13 +30,6 @@ const promiseExec = util.promisify(exec)
 		await fs.mkdir(path.join(__dirname, 'dist/locales'))
 	}
 	await fs.writeFile(path.join(__dirname, 'dist/locales/_'), '')
-
-	console.log('將模板類型拷貝至 dist')
-
-	await fs.copyFile(
-		path.join(__dirname, 'src/template/define-type/client'),
-		path.join(__dirname, 'dist/template/define-type/client'),
-	)
 
 	console.log('構建完成')
 })()

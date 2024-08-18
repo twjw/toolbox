@@ -1,6 +1,6 @@
 {
 	"name": "wtbx-vite-react-i18n",
-	"version": "2.0.0-beta-7",
+	"version": "2.0.0-beta-8",
 	"type": "module",
 	"description": "vite 與 react 的國際化處理方案",
 	"main": "dist/index.js",
@@ -14,8 +14,11 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
 		},
-		"./client": {
-			"types": "./dist/client.d.ts"
+		"./type/gen/dictionary": {
+			"types": "./dist/_gen-dictionary.d.ts"
+		},
+		"./type/gen/locale": {
+			"types": "./dist/_gen-locale.d.ts"
 		}
 	},
 	"scripts": {

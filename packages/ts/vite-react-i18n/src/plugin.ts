@@ -66,9 +66,15 @@ export function i18n(options: I18nOptions): any {
 			const filepathList = (await Promise.all(dirs.map(e => recursiveFindPaths(e)))).flat()
 			dictMap = transformSamePathMap(filepathList, dirs, flatName)
 			dictionaries = await mergeDictionaries(dictMap)
-			const vtInfo = await matchVirtualTypes(locales)
-			baseTypeString = vtInfo.baseTypeString
-			injectIdxes = vtInfo.injectIdxes
+			// const vtInfo = await matchVirtualTypes(locales)
+			// baseTypeString = vtInfo.baseTypeString
+			// injectIdxes = vtInfo.injectIdxes
+			if (locales.length > 0) {
+				await fs.promises.writeFile(
+					path.join(__dirname, 'dist/_gen-dictionary.d.ts'),
+					`export type Locale = ${locales.map(e => `'${e}'`).join(' | ')}`,
+				)
+			}
 			if (isBuild) await generateDictionaryFiles(dictionaries)
 			if (dictionaries != null) {
 				await generateVirtualTypes(
@@ -375,13 +381,17 @@ async function generateVirtualTypes(
 	baseTypeString: string,
 	injectIdxes: InjectIdxes,
 ) {
+	// await fs.promises.writeFile(
+	// 	path.join(__dirname, VIRTUAL_CLIENT_TYPE_NAME),
+	// 	appendInjectText(
+	// 		injectIdxes.Dictionary[1],
+	// 		baseTypeString,
+	// 		createDictionaryTypeString(dict),
+	// 	),
+	// )
 	await fs.promises.writeFile(
-		path.join(__dirname, VIRTUAL_CLIENT_TYPE_NAME),
-		appendInjectText(
-			injectIdxes.Dictionary[1],
-			baseTypeString,
-			createDictionaryTypeString(dict),
-		),
+		path.join(__dirname, 'dist/_gen-dictionary.d.ts'),
+		`export type Dictionary = ${createDictionaryTypeString(dict)}`,
 	)
 }
 
