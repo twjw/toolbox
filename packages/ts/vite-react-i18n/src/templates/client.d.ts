@@ -1,4 +1,4 @@
-export declare module '~i18n' {
+declare module '~i18n' {
 	import type { ReactNode } from 'react'
 
 	type RecursiveKeyOf<Obj extends object, Sep extends string = '.'> = {
