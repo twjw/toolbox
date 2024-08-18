@@ -342,7 +342,7 @@ async function generateDictionaryFiles(dictionaries: Dictionaries | null) {
 
 async function matchVirtualTypes(locales: string[]) {
 	let typeStr = await fs.promises.readFile(
-		path.join(__dirname, `templates/define-type/client`),
+		path.join(__dirname, `template/define-type/client`),
 		'utf-8',
 	)
 	const injectIdxes: InjectIdxes = {
