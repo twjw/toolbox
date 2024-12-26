@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-react-i18n",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"type": "module",
-	"description": "vite 與 react 的國際化處理方案 (更: 新增整合翻譯功能)",
+	"description": "vite 與 react 的國際化處理方案 (更: 修正找不到語系時的 warn locale 取錯值)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist", "readme.md"],

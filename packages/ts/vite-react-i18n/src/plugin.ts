@@ -195,7 +195,7 @@ async function _updateLocale(_locale) {
 }
 
 function _notFoundLocaleWarn () {
-  console.warn(\`not found locale \${_locale}\`)
+  console.warn(\`not found locale \${locale}\`)
 }
 
 async function setLocale(_locale, auto = true) {
