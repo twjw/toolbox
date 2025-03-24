@@ -95,15 +95,15 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 					let mutateFunc: undefined | (<T>(data: any) => T)
 					const cacheUrl = `${resultMethod}:${resultUrl}`
 
-					mark = (
-						config.mark === true ||
-						(config.cacheTime != null && config.cacheTime > 0) ||
-						(config.mark == null && resultMethod === 'get')
-							? cacheUrl
-							: config.mark === false
-								? null
-								: config.mark
-					) as string | symbol | number
+					if (!!config.mark) {
+						if (config.mark === true) mark = cacheUrl
+						else mark = config.mark
+					} else if (
+						(config.mark == null && resultMethod === 'get') ||
+						(config.cacheTime != null && config.cacheTime > 0)
+					)
+						mark = cacheUrl
+					else mark = null as any
 
 					config.signal = (controllerMap[fetchId] =
 						apiOptions.controller || new AbortController()).signal

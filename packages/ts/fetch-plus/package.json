@@ -2,7 +2,7 @@
 	"name": "wtbx-fetch-plus",
 	"version": "1.0.8",
 	"type": "module",
-	"description": "fetch 增強 (更: package.json 更新)",
+	"description": "fetch 增強 (更: 修正自訂 mark 未正確寫入)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
