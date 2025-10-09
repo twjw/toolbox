@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-vite-react-page-routes",
-	"version": "2.0.6",
+	"version": "3.0.0",
 	"type": "module",
-	"description": "v6.3 react-router 的目錄式路由生成器 (更: 修正 '/' 沒有返回 default 的 page meta)",
+	"description": "v6.3 react-router 的目錄式路由生成器 (更: 修正合併目錄超過兩筆會錯誤，因為換作者所以直接升個大版)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist", "readme.md"],
