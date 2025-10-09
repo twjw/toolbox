@@ -1,5 +1,5 @@
 function Page() {
-	return 'common: /account'
+	return 'common: /home/home-news'
 }
 
 export default Page

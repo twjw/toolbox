@@ -7,6 +7,9 @@ function Page() {
 				<Link to={'/home'}>
 					<button>/home</button>
 				</Link>
+				<Link to={'/home/home-news'}>
+					<button>/home/home-news</button>
+				</Link>
 				<Link to={'/account'}>
 					<button>/account</button>
 				</Link>

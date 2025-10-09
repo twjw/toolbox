@@ -1,5 +1,5 @@
 function Page() {
-	return '/purple'
+	return 'purple: /purple'
 }
 
 export default Page

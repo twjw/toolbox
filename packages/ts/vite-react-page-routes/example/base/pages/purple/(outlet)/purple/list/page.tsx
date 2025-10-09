@@ -1,5 +1,5 @@
 function Page() {
-	return '/purple/list'
+	return 'purple: /purple/list'
 }
 
 export default Page

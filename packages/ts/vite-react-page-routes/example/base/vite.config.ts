@@ -10,6 +10,7 @@ export default defineConfig({
 		pageRoutes({
 			pages: [
 				path.resolve(process.cwd(), 'pages', 'common'),
+				path.resolve(process.cwd(), 'pages', 'common-plus'),
 				path.resolve(process.cwd(), 'pages', 'purple'),
 			],
 		}),

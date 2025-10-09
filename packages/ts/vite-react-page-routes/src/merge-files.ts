@@ -70,23 +70,22 @@ function _recursivePassSimpleFileRoute({
 }
 
 function _mergeSimpleFileRouteMap(
-	a: Record<string, FileRoute>,
-	b: Record<string, FileRoute>,
-): Record<string, FileRoute> {
-	for (const k in b) {
-		if (a[k] != null) {
-			for (let i = 0; i < b[k].relateFiles.length; i++) {
-				if (b[k].relateFiles[i] != null) {
-					a[k].relateFiles[i] = b[k].relateFiles[i]
+	result: Record<string, FileRoute>,
+	current: Record<string, FileRoute>,
+) {
+	for (const path in current) {
+		if (result[path] != null) {
+			for (let i = 0; i < current[path].relateFiles.length; i++) {
+				if (current[path].relateFiles[i] != null) {
+					result[path].relateFiles[i] = current[path].relateFiles[i]
 				}
 			}
-			_mergeSimpleFileRouteMap(a[k].children, b[k].children)
+			if (!result[path].children) result[path].children = {}
+			_mergeSimpleFileRouteMap(result[path].children, current[path].children)
 		} else {
-			a[k] = b[k]
+			result[path] = current[path]
 		}
 	}
-
-	return a
 }
 
 function mergeFiles(options: MergeOptions) {
@@ -105,11 +104,8 @@ function mergeFiles(options: MergeOptions) {
 	}
 
 	if (simpleFileRouteMapList.length > 1) {
-		for (let i = 0; i < simpleFileRouteMapList.length - 1; i++) {
-			resultSimpleFileRouteMap = _mergeSimpleFileRouteMap(
-				simpleFileRouteMapList[i],
-				simpleFileRouteMapList[i + 1],
-			)
+		for (let i = 0; i < simpleFileRouteMapList.length; i++) {
+			_mergeSimpleFileRouteMap(resultSimpleFileRouteMap, simpleFileRouteMapList[i])
 		}
 	} else {
 		resultSimpleFileRouteMap = simpleFileRouteMapList[0]
