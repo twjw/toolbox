@@ -32,22 +32,20 @@ namespace FetchPlus {
 
 	export type FetchErrors = FetchPlusAbortError | FetchPlusTimeoutError | FetchPlusUnknownError
 
-	export type RequestInit<Url extends string = ''> = Omit<
-		FetchRequestInit,
-		'method'
-	> & {
+	export type RequestInit<Url extends string = ''> = Omit<FetchRequestInit, 'method'> & {
 		params?: Record<string, any>
 		resType?: ResType
 		other?: any // 用戶自行決定的資料
 	} & PathParams<Url>
 
-	export type PathParams<Url extends string> = UrlPathParams<Url> extends undefined
-		? {
-				pathParams?: undefined
-		  }
-		: {
-				pathParams: UrlPathParams<Url>
-		  }
+	export type PathParams<Url extends string> =
+		UrlPathParams<Url> extends undefined
+			? {
+					pathParams?: undefined
+				}
+			: {
+					pathParams: UrlPathParams<Url>
+				}
 
 	export type UrlPathParams<
 		Url extends string,
@@ -55,10 +53,10 @@ namespace FetchPlus {
 	> = Url extends `${infer B}/:${infer P}/${infer R}`
 		? UrlPathParams<R, [...Params, P]>
 		: Url extends `${infer B}/:${infer P}`
-		  ? Record<[...Params, P][number], string>
-		  : Params['length'] extends 0
-		    ? undefined
-		    : Record<Params[number], string>
+			? Record<[...Params, P][number], string>
+			: Params['length'] extends 0
+				? undefined
+				: Record<Params[number], string>
 
 	export type ResType = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text'
 
@@ -71,7 +69,7 @@ namespace FetchPlus {
 
 	export type ControllerMap = Record<number, AbortController>
 
-	export type InterceptorUseRequestCallback = (config: Config) => Config
+	export type InterceptorUseRequestCallback = (config: Config) => Promise<Config> | Config
 
 	export type InterceptorUseRequest = (callback: InterceptorUseRequestCallback) => void
 

@@ -86,7 +86,12 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 					}
 
 					if (interceptors.useRequest) {
-						config = interceptors.useRequest(config)
+						const _config = interceptors.useRequest(config)
+						if (_config instanceof Promise) {
+							config = await _config
+						} else {
+							config = _config
+						}
 					}
 
 					const { method: resultMethod, url: resultUrl } = _transMethodAndUrl(config)

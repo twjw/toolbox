@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-fetch-plus",
-	"version": "1.0.8",
+	"version": "1.1.0",
 	"type": "module",
-	"description": "fetch 增強 (更: 修正自訂 mark 未正確寫入)",
+	"description": "fetch 增強 (更: request 攔截器新增可傳遞異步函數)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
