@@ -17,6 +17,7 @@ type I18nOptions = {
 	// }
 	uniteFilepath?: string // 整合的檔案路徑(.json)(會監聽實時變化)
 	uniteDictionaries?: UniteDictionaries // 整合的檔案路徑(不會實時變化)
+	uniteFileType?: 'ts' | 'json' // 整合翻譯生成的翻譯檔類型，預設 json（生成 ts 較慢）
 }
 
 type _GlobMap = Record<string, string> // <locale, globPath>
@@ -260,6 +261,7 @@ function resultUnitDictionaries(
 async function generateLocalesByUniteDictionaries(
 	dirs: string[],
 	uniteDictionaries: UniteDictionaries,
+	fileType: 'ts' | 'json' = 'json',
 ) {
 	let locales: Record<string, Record<string, string>> = {}
 
@@ -279,14 +281,17 @@ async function generateLocalesByUniteDictionaries(
 	if (dirs.length === 0 || localesKeys.length === 0) return
 
 	await Promise.all(
-		localesKeys.map(locale =>
-			fs.promises.writeFile(
-				path.resolve(dirs[dirs.length - 1], `${locale}.ts`),
-				`const lang = ${JSON.stringify(locales[locale], null, 2)} as const
+		localesKeys.map(locale => {
+			const filepath = path.resolve(dirs[dirs.length - 1], `${locale}.${fileType}`)
+			const content =
+				fileType === 'ts'
+					? `const lang = ${JSON.stringify(locales[locale], null, 2)} as const
 
-export default lang`,
-			),
-		),
+export default lang`
+					: JSON.stringify(locales[locale], null, 2)
+
+			return fs.promises.writeFile(filepath, content)
+		}),
 	)
 }
 
@@ -311,7 +316,7 @@ function i18n(options: I18nOptions): any {
 		async configResolved() {
 			const uniteDictionaries = resultUnitDictionaries(options)
 			if (uniteDictionaries != null)
-				await generateLocalesByUniteDictionaries(dirs, uniteDictionaries)
+				await generateLocalesByUniteDictionaries(dirs, uniteDictionaries, options.uniteFileType)
 			globMap = _generateLangGlobPath({ dirs })
 			console.log(`[LOG]${CONSOLE_NAME} 已開啟多語系功能，模塊名稱為 ${V_MODULE_NAME}...`)
 		},
@@ -349,7 +354,11 @@ function i18n(options: I18nOptions): any {
 								fs.readFileSync(filepath, 'utf-8'),
 							) as UniteDictionaries
 							// TODO 尚有優化空間，比方說頻繁更改導致衝突可以使用排隊處理，但先不做，發生頻率不高
-							await generateLocalesByUniteDictionaries(dirs, uniteDictionaries)
+							await generateLocalesByUniteDictionaries(
+								dirs,
+								uniteDictionaries,
+								options.uniteFileType,
+							)
 							await waitMs(250)
 							moduleHotUpdate(server)
 						} catch {

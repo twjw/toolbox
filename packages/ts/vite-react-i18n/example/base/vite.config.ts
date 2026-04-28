@@ -8,7 +8,8 @@ export default defineConfig({
 	plugins: [
 		react(),
 		i18n({
-			uniteFilepath: path.resolve(process.cwd(), '.dictionary.json'),
+			// uniteFilepath: path.resolve(process.cwd(), '.dictionary.json'),
+			// uniteFileType: 'json',
 			dirs: [path.resolve(process.cwd(), 'assets/locales')],
 		}),
 	],
