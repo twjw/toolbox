@@ -1,8 +1,8 @@
 {
 	"name": "wtbx-fetch-plus",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"type": "module",
-	"description": "fetch 增強 (更: request 攔截器新增可傳遞異步函數)",
+	"description": "fetch 增強 (更: 修正不會緩存 res 非 ok 的 API)",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -10,6 +10,7 @@
 	],
 	"scripts": {
 		"build-package": "tsup src/index.ts --format esm --dts --clean",
+		"test": "pnpm run build-package && node --test test/*.test.mjs",
 		"publish-package": "pnpm run build-package && npm publish"
 	},
 	"keywords": [

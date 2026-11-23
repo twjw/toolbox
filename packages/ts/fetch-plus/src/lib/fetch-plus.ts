@@ -174,14 +174,15 @@ const createFetchPlus = (options: FetchPlus.Options = {}): FetchPlus.Instance =>
 
 							res = originRes as unknown as FetchPlus.InterceptorResponse
 
-							if (lastCacheTime > 0) {
+							res.data = await res[config?.resType || 'json']()
+
+							// Only cache successful responses after the body has been read.
+							if (res.ok && lastCacheTime > 0) {
 								cacheMap[cacheUrl] = {
 									lastCacheTime,
 									res,
 								}
 							}
-
-							res.data = await res[config?.resType || 'json']()
 						} catch (e) {
 							if ((e as Error).name === 'AbortError') {
 								throw new FetchPlusAbortError('fetch abort')
